@@ -1,16 +1,30 @@
-# yukta_authenticity_app
+# Chai AI — Digital Authenticity Scanner
 
-A new Flutter project.
+Chai AI scans images and detects whether they are AI-generated, AI-edited, or authentic, producing an authenticity score, a risk level (Low / Medium / High), and an enforcement action (Allow / Review / Block).
 
-## Getting Started
+## Repository layout
 
-This project is a starting point for a Flutter application.
+```
+.
+├── frontend/     Flutter application (see frontend/README.md)
+├── backend/      Backend API (not yet implemented)
+├── docs/         Project documentation
+└── README.md
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Components
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **frontend/** — Cross-platform Flutter app: image analysis, results, dashboard, history, file safety checks, PDF reports, and theme support. `cd frontend && flutter pub get && flutter run` to launch.
+- **backend/** — Reserved for the AI forensic analysis backend. Not implemented yet.
+- **docs/** — Project documentation.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Getting started
+
+```bash
+# Run the Flutter app
+cd frontend
+flutter pub get
+flutter run
+```
+
+The analysis and safety-check features require the backend service (see `frontend/README.md` for the API contract).
