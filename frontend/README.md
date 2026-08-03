@@ -1,44 +1,49 @@
-# Chai AI — Digital Authenticity Scanner
+# Chai AI — Frontend
 
-Chai AI is a cross-platform mobile app that scans images and detects whether they are AI-generated, AI-edited, or authentic. It uses an AI forensic engine to produce an authenticity score, a risk level (Low / Medium / High), and an enforcement action (Allow / Review / Block) so moderators and users can decide whether an image can be trusted.
+Chai AI is a cross-platform app that determines whether an uploaded image is **Original**, **AI Edited**, or **AI Generated**. It runs a forensic pipeline and explains every verdict.
 
-## What the app does
+This folder contains the Flutter application. It is fully self-contained: it runs on a **mock repository layer** that simulates the future analysis backend, so the entire product can be explored without a server.
 
-- **Image Analysis** — Pick an image from the gallery or capture one with the camera and run a forensic analysis. The processing screen walks through the AI detection pipeline (AI detection layer, frequency analysis, ELA forensics, metadata integrity, fusion & risk scoring).
-- **Authenticity Result** — View a circular score ring, risk level, enforcement action, and a natural-language explanation of the verdict.
-- **Dashboard** — See aggregate stats (total scans, low/medium/high risk), a risk-distribution pie chart, and recent analyses and safety checks.
-- **History** — Browse past scans, reopen their results, or swipe to delete entries.
-- **File Safety Check** — Upload an image for a moderation-style safety check that recommends Allow, Review, or Block.
-- **Reports** — Export the analysis as a PDF report or share the verdict as text.
-- **Dark / Light / System theme** — Theme toggle persisted across sessions.
+## Features
+
+- **Image Analysis** — upload via gallery, camera, or drag & drop (desktop/web). Animated forensic pipeline (prepare, metadata, AI model, feature comparison, explanation, report).
+- **Explainability** — every verdict lists detected indicators (frequency, texture, metadata, diffusion, compression) with confidence, severity, and description.
+- **Confidence Breakdown** — eight forensic scores (texture, metadata, lighting, frequency, noise, compression, edge consistency, color distribution).
+- **Manipulation Heatmap** — overlay viewer with Original / Heatmap / Split modes and an opacity slider.
+- **Reports** — full report screen with export to PDF, sharing, saving, and detail views.
+- **History** — search, sort, filter by verdict, favorites, swipe-to-delete; 60 realistic seeded entries.
+- **Compare Images** — two-image similarity/difference analysis with AI probability.
+- **Settings & About** — theme, language placeholder, future backend endpoint, model info, privacy.
 
 ## Architecture
 
-The app is built with Flutter (Dart) and organized as:
+Feature-first, with a repository layer so the mock can be swapped for a real API with near-zero UI changes.
 
 ```
 lib/
-  core/        Theme, colors, typography, spacing
-  models/      Data models (analysis result, history item, user)
-  providers/   ChangeNotifier state (auth, history, theme)
-  services/    HTTP API client and PDF report generation
-  views/       Screens (auth, dashboard, analysis, result, history, safety)
-  widgets/     Shared widgets
+  core/          Design system: colors, dimensions, typography, theme
+  models/        Domain models + enums (verdicts, indicators, scores, heatmap)
+  repositories/  Abstract contracts (analysis, history, report) + mock implementations
+  services/      Settings/theme persistence, PDF builder, share
+  navigation/    Central router with custom page transitions
+  widgets/       Reusable components (buttons, cards, ring, skeleton, heatmap, …)
+  features/      Screens grouped by feature (splash, onboarding, home, upload,
+                 processing, result, heatmap, report, history, compare, settings, about)
 ```
 
-State management uses `Provider` with `ChangeNotifier`. Analysis history is persisted locally with `SharedPreferences`.
+State management uses `Provider` + `ChangeNotifier`. History is persisted locally with `SharedPreferences`. The global font is **Footlight MT Light**, bundled in `assets/fonts/`.
 
-## AI / Backend
+## Swapping mock → real backend
 
-The client calls a remote AI forensic API:
+Replace the implementations registered in `lib/main.dart`:
 
-```
-POST {BASE_URL}/analyze
-Content-Type: multipart/form-data
-  file: <image>
-```
+| Contract | Mock today | Future API |
+| --- | --- | --- |
+| `AnalysisRepository` | `MockAnalysisRepository` | `ApiAnalysisRepository` |
+| `HistoryRepository` | `MockHistoryRepository` | `ApiHistoryRepository` |
+| `ReportRepository` | `MockReportRepository` | `ApiReportRepository` |
 
-The base URL is configured in `lib/services/analysis_screen.dart`. The backend is not part of this repository — it is expected to run separately (e.g. a FastAPI server). On a device/emulator use the appropriate host for your machine (`10.0.2.2` for the Android emulator, your LAN IP for a physical device).
+The UI depends only on the abstract contracts, so the swap requires no screen changes.
 
 ## Getting started
 
@@ -49,7 +54,10 @@ flutter run
 
 Requires Flutter 3.38+ (Dart 3.10+).
 
-## Notes
+## Verification
 
-- The analysis pipeline and scores come from the backend response; the client maps the response to the UI.
-- Run the backend service before using the analysis or safety check features.
+```bash
+flutter analyze        # 0 issues
+flutter test           # all green
+flutter build web      # bundles the Footlight MT Light font
+```

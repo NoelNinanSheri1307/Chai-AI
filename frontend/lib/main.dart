@@ -1,80 +1,66 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'core/app_theme.dart';
-import 'providers/theme_provider.dart';
-import 'providers/history_provider.dart';
-import 'views/splash/splash_screen.dart';
+
+import 'core/theme/app_theme.dart';
+import 'features/history/history_controller.dart';
+import 'features/splash/splash_screen.dart';
+import 'navigation/app_router.dart';
+import 'repositories/analysis_repository.dart';
+import 'repositories/history_repository.dart';
+import 'repositories/mock/mock_analysis_repository.dart';
+import 'repositories/mock/mock_history_repository.dart';
+import 'repositories/mock/mock_report_repository.dart';
+import 'repositories/report_repository.dart';
+import 'services/settings_service.dart';
+import 'services/share_service.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => HistoryProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ChaiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ChaiApp extends StatelessWidget {
+  const ChaiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp(
-      title: 'Chai AI',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.themeMode,
-      home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        // Swap these for API-backed implementations when the backend ships.
+        // The UI only ever depends on the abstract repository contracts.
+        Provider<AnalysisRepository>(create: (_) => MockAnalysisRepository()),
+        Provider<HistoryRepository>(create: (_) => MockHistoryRepository()),
+        Provider<ReportRepository>(create: (_) => MockReportRepository()),
+        ChangeNotifierProvider(create: (_) => SettingsService()),
+        ChangeNotifierProvider<HistoryController>(
+          create: (ctx) => HistoryController(ctx.read<HistoryRepository>()),
+        ),
+        Provider(create: (_) => ShareService()),
+      ],
+      child: const ChaiAppRoot(),
     );
   }
 }
 
-class ThemeTestScreen extends StatelessWidget {
-  const ThemeTestScreen({super.key});
+class ChaiAppRoot extends StatelessWidget {
+  const ChaiAppRoot({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Theme Toggle Test')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                themeProvider.setTheme(ThemeMode.system);
-              },
-              child: const Text('System Mode'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                themeProvider.setTheme(ThemeMode.light);
-              },
-              child: const Text('Light Mode'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                themeProvider.setTheme(ThemeMode.dark);
-              },
-              child: const Text('Dark Mode'),
-            ),
-          ],
-        ),
+    final settings = context.watch<SettingsService>();
+    return MaterialApp(
+      title: 'Chai AI',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: settings.themeMode,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        minScaleFactor: 0.9,
+        maxScaleFactor: 1.4,
+        child: child!,
       ),
+      home: const SplashScreen(),
     );
   }
 }
