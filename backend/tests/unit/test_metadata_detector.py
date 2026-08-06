@@ -1,0 +1,179 @@
+"""Unit tests for the concrete MetadataDetector implementation."""
+
+from __future__ import annotations
+
+import io
+import pytest
+from PIL import Image
+
+from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.pipeline.detectors.metadata import MetadataDetector
+from app.pipeline.signals import DetectorSignal
+
+
+def make_mock_image(
+    make: str | None = None,
+    model: str | None = None,
+    software: str | None = None,
+    description: str | None = None,
+) -> bytes:
+    """Helper to generate a JPEG image with custom EXIF tags."""
+    img = Image.new("RGB", (20, 20), color="blue")
+    exif = img.getexif()
+
+    # PIL Exif tag IDs:
+    # 271: Make
+    # 272: Model
+    # 305: Software
+    # 270: ImageDescription
+    if make is not None:
+        exif[271] = make
+    if model is not None:
+        exif[272] = model
+    if software is not None:
+        exif[305] = software
+    if description is not None:
+        exif[270] = description
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", exif=exif)
+    return buf.getvalue()
+
+
+def test_metadata_detector_invalid_bytes() -> None:
+    """Verifies that passing invalid/corrupt image bytes returns the expected no-EXIF score and flags error."""
+    detector = MetadataDetector()
+    invalid_bytes = b"not_an_image"
+
+    signal = detector.execute(invalid_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.40
+    assert signal.confidence == 0.60
+    assert "Failed to parse" in signal.evidence[0]
+    assert signal.metadata["Format"] == "Unknown"
+    assert signal.metadata["Camera"] == "Unknown"
+    assert signal.metadata["Software"] == "None"
+
+
+def test_metadata_detector_no_exif() -> None:
+    """Verifies that an image without EXIF data returns a score of 0.40 and correct details."""
+    detector = MetadataDetector()
+    img = Image.new("RGB", (20, 20), color="red")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    no_exif_bytes = buf.getvalue()
+
+    signal = detector.execute(no_exif_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.40
+    assert signal.confidence == 0.80
+    assert "No EXIF metadata was found" in signal.evidence[0]
+    assert signal.metadata["Format"] == "JPEG"
+    assert signal.metadata["Camera"] == "Unknown"
+    assert signal.metadata["Software"] == "None"
+
+
+def test_metadata_detector_strong_camera() -> None:
+    """Verifies that a valid camera Make and Model returns a low risk score of 0.05."""
+    detector = MetadataDetector()
+    image_bytes = make_mock_image(make="Canon", model="EOS R5")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.05
+    assert signal.confidence == 0.95
+    assert "Valid camera metadata present" in signal.evidence[0]
+    assert signal.metadata["Camera"] == "Canon EOS R5"
+    assert len(signal.indicators) == 0
+
+
+def test_metadata_detector_strong_camera_deduplicated() -> None:
+    """Verifies Make is deduplicated if it already appears in Model."""
+    detector = MetadataDetector()
+    image_bytes = make_mock_image(make="Sony", model="Sony A7 IV")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.metadata["Camera"] == "Sony A7 IV"  # Not "Sony Sony A7 IV"
+
+
+def test_metadata_detector_suspicious_software_photoshop() -> None:
+    """Verifies Photoshop signature returns score of 0.75 and a moderate metadata indicator."""
+    detector = MetadataDetector()
+    image_bytes = make_mock_image(software="Adobe Photoshop 2026")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.75
+    assert signal.confidence == 0.90
+    assert "Software metadata indicates editing pipeline" in signal.evidence[0]
+    assert signal.metadata["Software"] == "Adobe Photoshop 2026"
+    assert len(signal.indicators) == 1
+    assert signal.indicators[0].type == IndicatorType.METADATA
+    assert signal.indicators[0].severity == IndicatorSeverity.MODERATE
+    assert "Photoshop" in signal.indicators[0].description
+
+
+def test_metadata_detector_suspicious_software_gimp() -> None:
+    """Verifies GIMP signature returns score of 0.75 and a moderate metadata indicator."""
+    detector = MetadataDetector()
+    image_bytes = make_mock_image(software="GIMP 2.10")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.75
+    assert len(signal.indicators) == 1
+    assert "GIMP" in signal.indicators[0].description
+
+
+def test_metadata_detector_ai_description() -> None:
+    """Verifies AI keywords in Description tag return score of 0.85 and a strong metadata indicator."""
+    detector = MetadataDetector()
+    image_bytes = make_mock_image(description="This image was generated by AI.")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.85
+    assert signal.confidence == 0.95
+    assert "AI keyword found in image description" in signal.evidence[0]
+    assert len(signal.indicators) == 1
+    assert signal.indicators[0].type == IndicatorType.METADATA
+    assert signal.indicators[0].severity == IndicatorSeverity.STRONG
+    assert "AI generation signature" in signal.indicators[0].description
+
+
+def test_metadata_detector_neutral_exif() -> None:
+    """Verifies EXIF that lacks make/model, software, or AI keywords returns score of 0.20."""
+    detector = MetadataDetector()
+    
+    # Create image with only Software="SomeCleanApp" (no photoshop/gimp, no camera make/model)
+    image_bytes = make_mock_image(software="CleanCameraApp")
+
+    signal = detector.execute(image_bytes)
+
+    assert isinstance(signal, DetectorSignal)
+    assert signal.score == 0.20
+    assert signal.confidence == 0.80
+    assert "lacks standard camera markers but shows no signs of editing software" in signal.evidence[0]
+    assert len(signal.indicators) == 0
+
+
+def test_metadata_detector_contract_details() -> None:
+    """Verifies health, capabilities, name and version implementations."""
+    detector = MetadataDetector()
+
+    assert detector.name == "metadata"
+    assert detector.version == "0.1.0"
+    assert detector.capabilities() == frozenset({"metadata", "exif"})
+    
+    health = detector.health()
+    assert health.status == "ok"
+    assert health.version == "0.1.0"
+    assert health.is_healthy
