@@ -11,17 +11,30 @@ from sqlmodel import Session
 
 from app.api.deps import (
     get_analysis_repository,
+    get_analysis_service,
     get_comparison_repository,
+    get_comparison_service,
     get_db_session,
+    get_detectors,
+    get_evidence_generator,
+    get_explanation_generator,
+    get_fusion_engine,
+    get_heatmap_generator,
     get_history_repository,
+    get_history_service,
     get_job_repository,
     get_object_storage,
+    get_pipeline,
+    get_pipeline_config,
+    get_report_service,
     get_token_repository,
     get_user_repository,
 )
 from app.clients.storage import LocalStorageAdapter
 from app.core.config import Settings
 from app.core.db import Database, create_session_factory
+from app.pipeline.base import AnalysisPipeline
+from app.pipeline.runner import ModularAnalysisPipeline
 from app.repos import (
     AnalysisRepository,
     ComparisonRepository,
@@ -29,6 +42,12 @@ from app.repos import (
     JobRepository,
     TokenRepository,
     UserRepository,
+)
+from app.services import (
+    AnalysisService,
+    ComparisonService,
+    HistoryService,
+    ReportService,
 )
 
 
@@ -102,3 +121,61 @@ def test_repository_dependency_resolves_through_fastapi(db_engine) -> None:
     client = TestClient(app)
     assert client.get("/_di/users/di-user@example.com").json() == {"exists": True}
     assert client.get("/_di/users/unknown@example.com").json() == {"exists": False}
+
+
+def test_pipeline_dependency_is_injected() -> None:
+    """The pipeline framework is composed via DI from injected components."""
+    pipeline_config = get_pipeline_config()
+    pipeline = get_pipeline(
+        detectors=get_detectors(pipeline_config),
+        fusion=get_fusion_engine(pipeline_config),
+        heatmap_generator=get_heatmap_generator(pipeline_config),
+        evidence_generator=get_evidence_generator(pipeline_config),
+        explanation_generator=get_explanation_generator(pipeline_config),
+        pipeline_config=pipeline_config,
+    )
+    assert isinstance(pipeline, AnalysisPipeline)
+    assert isinstance(pipeline, ModularAnalysisPipeline)
+
+    result = pipeline.analyze(
+        b"\xff\xd8\xff\xe0" + b"payload", content_type="image/jpeg"
+    )
+    assert result.verdict.value == "aiGenerated"
+    assert result.metadata["pipeline_version"] == pipeline_config.pipeline_version
+
+
+def test_service_dependencies_wire(settings: Settings) -> None:
+    """Service providers assemble their repositories, storage and pipeline."""
+    settings = Settings(
+        environment="testing",
+        database_url="sqlite://",
+        storage_root=settings.storage_root,
+    )
+    database = Database(settings)
+    database.create_all()
+    session = database.session()
+    try:
+        pipeline_config = get_pipeline_config()
+        pipeline = get_pipeline(
+            detectors=get_detectors(pipeline_config),
+            fusion=get_fusion_engine(pipeline_config),
+            heatmap_generator=get_heatmap_generator(pipeline_config),
+            evidence_generator=get_evidence_generator(pipeline_config),
+            explanation_generator=get_explanation_generator(pipeline_config),
+            pipeline_config=pipeline_config,
+        )
+        storage = get_object_storage(settings)
+
+        analysis_service = get_analysis_service(session, storage, pipeline, settings)
+        assert isinstance(analysis_service, AnalysisService)
+
+        history_service = get_history_service(session)
+        assert isinstance(history_service, HistoryService)
+
+        comparison_service = get_comparison_service(analysis_service, session)
+        assert isinstance(comparison_service, ComparisonService)
+
+        report_service = get_report_service(session)
+        assert isinstance(report_service, ReportService)
+    finally:
+        session.close()

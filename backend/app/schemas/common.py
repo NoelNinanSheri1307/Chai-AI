@@ -1,11 +1,13 @@
-"""Shared response schemas: the standard error envelope and health payloads."""
+"""Shared response schemas: error envelope, health payloads, page envelope."""
 
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, Field
+
+ItemT = TypeVar("ItemT")
 
 
 class ErrorBody(BaseModel):
@@ -42,3 +44,13 @@ class ReadinessResponse(BaseModel):
 
     status: HealthStatus
     checks: dict[str, str]
+
+
+class PageEnvelope(BaseModel, Generic[ItemT]):
+    """Standard paginated list envelope (API contract conventions)."""
+
+    items: list[ItemT]
+    total: int
+    page: int
+    limit: int
+    has_more: bool

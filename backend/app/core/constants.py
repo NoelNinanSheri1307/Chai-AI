@@ -36,6 +36,10 @@ ENUM_LABEL_MAX_LENGTH = 100
 TEXT_VALUE_MAX_LENGTH = 1024
 HEATMAP_REGION_LABEL_MAX_LENGTH = 100
 
+# Public resource id prefixes (opaque, server-generated) -------------------
+ANALYSIS_PUBLIC_ID_PREFIX = "ana_"
+COMPARISON_PUBLIC_ID_PREFIX = "cm_"
+
 # Upload limits (enforced from the analyses milestone onward) ----------
 MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024
 ALLOWED_IMAGE_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})

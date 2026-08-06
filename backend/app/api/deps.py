@@ -1,12 +1,15 @@
 """FastAPI dependencies (dependency injection).
 
-Backing systems (database, object storage) and their repositories are provided
-here for routers and services. Repositories are constructed with the plain
-session they need; nothing in this module leaks HTTP concerns into the
-repository layer.
+Backing systems (database, object storage), repositories, services and the
+forensic pipeline framework are all provided here for routers. Repositories are
+constructed with the plain session they need; services receive their
+repositories, the storage client and the injected pipeline.
 
-Business services are intentionally not injected yet: they arrive with their
-milestones and remain exposed as clearly-marked extension points.
+The pipeline framework is composed at this composition root: detectors, the
+fusion engine, heatmap generator and the evidence/explanation generators are all
+injected into the modular runner. No service or router ever instantiates an
+implementation directly, so a real detector or fusion model can replace a
+placeholder without touching callers.
 """
 
 from __future__ import annotations
@@ -21,12 +24,35 @@ from app.clients.storage import StorageClient, create_storage_client
 from app.core.config import Settings, get_settings
 from app.core.db import get_session as _get_db_session
 from app.core.logging import get_request_id
+from app.pipeline.base import AnalysisPipeline
+from app.pipeline.config import (
+    PipelineConfig,
+)
+from app.pipeline.config import (
+    get_pipeline_config as _resolve_pipeline_config,
+)
+from app.pipeline.detectors.base import Detector
+from app.pipeline.detectors.registry import build_detectors
+from app.pipeline.explanation.base import EvidenceGenerator, ExplanationGenerator
+from app.pipeline.explanation.placeholder import (
+    PlaceholderEvidenceGenerator,
+    PlaceholderExplanationGenerator,
+)
+from app.pipeline.fusion.base import FusionEngine
+from app.pipeline.fusion.placeholder import PlaceholderFusionEngine
+from app.pipeline.heatmap.base import HeatmapGenerator
+from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
+from app.pipeline.runner import ModularAnalysisPipeline
 from app.repos.analysis_repo import AnalysisRepository
 from app.repos.comparison_repo import ComparisonRepository
 from app.repos.history_repo import HistoryRepository
 from app.repos.job_repo import JobRepository
 from app.repos.token_repo import TokenRepository
 from app.repos.user_repo import UserRepository
+from app.services.analysis_service import AnalysisService
+from app.services.compare_service import ComparisonService
+from app.services.history_service import HistoryService
+from app.services.report_service import ReportService
 
 
 def get_settings_dependency() -> Settings:
@@ -51,6 +77,57 @@ def get_db_session(settings: SettingsDep) -> Generator[Session, None, None]:
 def get_object_storage(settings: SettingsDep) -> StorageClient:
     """Provide the object-storage adapter for the active environment."""
     return create_storage_client(settings)
+
+
+def get_pipeline_config() -> PipelineConfig:
+    """Provide the cached pipeline configuration."""
+    return _resolve_pipeline_config()
+
+
+def get_detectors(pipeline_config: PipelineConfigDep) -> list[Detector]:
+    """Provide the detector set selected by the pipeline configuration."""
+    return build_detectors(pipeline_config.enabled_detector_names())
+
+
+def get_fusion_engine(pipeline_config: PipelineConfigDep) -> FusionEngine:
+    """Provide the fusion engine (deterministic placeholder for now)."""
+    return PlaceholderFusionEngine(pipeline_config)
+
+
+def get_heatmap_generator(pipeline_config: PipelineConfigDep) -> HeatmapGenerator:
+    """Provide the heatmap generator (deterministic placeholder for now)."""
+    return PlaceholderHeatmapGenerator(pipeline_config)
+
+
+def get_evidence_generator(pipeline_config: PipelineConfigDep) -> EvidenceGenerator:
+    """Provide the evidence generator (deterministic placeholder for now)."""
+    return PlaceholderEvidenceGenerator(pipeline_config)
+
+
+def get_explanation_generator(
+    pipeline_config: PipelineConfigDep,
+) -> ExplanationGenerator:
+    """Provide the explanation generator (deterministic placeholder for now)."""
+    return PlaceholderExplanationGenerator(pipeline_config)
+
+
+def get_pipeline(
+    detectors: DetectorsDep,
+    fusion: FusionEngineDep,
+    heatmap_generator: HeatmapGeneratorDep,
+    evidence_generator: EvidenceGeneratorDep,
+    explanation_generator: ExplanationGeneratorDep,
+    pipeline_config: PipelineConfigDep,
+) -> AnalysisPipeline:
+    """Provide a modular analysis pipeline assembled from injected components."""
+    return ModularAnalysisPipeline(
+        detectors=detectors,
+        fusion=fusion,
+        heatmap_generator=heatmap_generator,
+        evidence_generator=evidence_generator,
+        explanation_generator=explanation_generator,
+        pipeline_config=pipeline_config,
+    )
 
 
 def get_user_repository(session: SessionDep) -> UserRepository:
@@ -83,15 +160,65 @@ def get_token_repository(session: SessionDep) -> TokenRepository:
     return TokenRepository(session)
 
 
+def get_analysis_service(
+    session: SessionDep,
+    storage: StorageDep,
+    pipeline: PipelineDep,
+    settings: SettingsDep,
+) -> AnalysisService:
+    """Provide an :class:`AnalysisService` wired with its dependencies."""
+    return AnalysisService(
+        analysis_repo=AnalysisRepository(session),
+        storage=storage,
+        pipeline=pipeline,
+        settings=settings,
+    )
+
+
+def get_history_service(session: SessionDep) -> HistoryService:
+    """Provide a :class:`HistoryService` bound to the request session."""
+    return HistoryService(history_repo=HistoryRepository(session))
+
+
+def get_comparison_service(
+    analysis_service: AnalysisServiceDep,
+    session: SessionDep,
+) -> ComparisonService:
+    """Provide a :class:`ComparisonService` wired with its dependencies."""
+    return ComparisonService(
+        analysis_service=analysis_service,
+        comparison_repo=ComparisonRepository(session),
+    )
+
+
+def get_report_service(session: SessionDep) -> ReportService:
+    """Provide a :class:`ReportService` bound to the request session."""
+    return ReportService(analysis_repo=AnalysisRepository(session))
+
+
 # Common dependency aliases. They are declared after the functions they wrap so
 # that ``Depends(...)`` resolves the callables at import time.
 SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
 SessionDep = Annotated[Session, Depends(get_db_session)]
+StorageDep = Annotated[StorageClient, Depends(get_object_storage)]
+PipelineConfigDep = Annotated[PipelineConfig, Depends(get_pipeline_config)]
+DetectorsDep = Annotated[list[Detector], Depends(get_detectors)]
+FusionEngineDep = Annotated[FusionEngine, Depends(get_fusion_engine)]
+HeatmapGeneratorDep = Annotated[HeatmapGenerator, Depends(get_heatmap_generator)]
+EvidenceGeneratorDep = Annotated[EvidenceGenerator, Depends(get_evidence_generator)]
+ExplanationGeneratorDep = Annotated[
+    ExplanationGenerator, Depends(get_explanation_generator)
+]
+PipelineDep = Annotated[AnalysisPipeline, Depends(get_pipeline)]
+AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+HistoryServiceDep = Annotated[HistoryService, Depends(get_history_service)]
+ComparisonServiceDep = Annotated[ComparisonService, Depends(get_comparison_service)]
+ReportServiceDep = Annotated[ReportService, Depends(get_report_service)]
 
 
 # ---------------------------------------------------------------------------
 # Future milestone extension points. These remain reserved until their backing
-# systems arrive; nothing in the persistence milestone consumes them.
+# systems arrive; nothing in the application-core milestone consumes them.
 # ---------------------------------------------------------------------------
 
 
@@ -106,18 +233,4 @@ def get_job_service() -> Any:
     """Provide the background job service (analyses milestone)."""
     raise NotImplementedError(
         "The job service is not implemented until the analyses milestone."
-    )
-
-
-def get_analysis_service() -> Any:
-    """Provide the analysis service (analyses milestone)."""
-    raise NotImplementedError(
-        "The analysis service is not implemented until the analyses milestone."
-    )
-
-
-def get_history_service() -> Any:
-    """Provide the history service (history milestone)."""
-    raise NotImplementedError(
-        "The history service is not implemented until the history milestone."
     )

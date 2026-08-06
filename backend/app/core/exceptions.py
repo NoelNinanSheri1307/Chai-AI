@@ -56,6 +56,60 @@ class ChaiValidationError(ChaiError):
         super().__init__(ErrorCode.VALIDATION_ERROR, message, details=details)
 
 
+class FileTooLargeError(ChaiError):
+    """An upload exceeded the configured size limit (HTTP 413)."""
+
+    def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
+        super().__init__(ErrorCode.FILE_TOO_LARGE, message, details=details)
+
+
+class UnsupportedMediaTypeError(ChaiError):
+    """An upload declared a media type the API does not accept (HTTP 415)."""
+
+    def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
+        super().__init__(ErrorCode.UNSUPPORTED_MEDIA_TYPE, message, details=details)
+
+
+class InvalidImageError(ChaiError):
+    """An upload is not a supported image or fails magic-byte validation (HTTP 422)."""
+
+    def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
+        super().__init__(ErrorCode.INVALID_IMAGE, message, details=details)
+
+
+class AnalysisNotFoundError(ChaiError):
+    """An analysis with the requested public id does not exist (HTTP 404)."""
+
+    def __init__(self, public_id: str) -> None:
+        super().__init__(
+            ErrorCode.ANALYSIS_NOT_FOUND,
+            f"No analysis found for id {public_id!r}.",
+            details={"id": public_id},
+        )
+
+
+class HistoryNotFoundError(ChaiError):
+    """A history entry with the requested public id does not exist (HTTP 404)."""
+
+    def __init__(self, public_id: str) -> None:
+        super().__init__(
+            ErrorCode.HISTORY_NOT_FOUND,
+            f"No history entry found for id {public_id!r}.",
+            details={"id": public_id},
+        )
+
+
+class ComparisonNotFoundError(ChaiError):
+    """A comparison with the requested public id does not exist (HTTP 404)."""
+
+    def __init__(self, public_id: str) -> None:
+        super().__init__(
+            ErrorCode.COMPARISON_NOT_FOUND,
+            f"No comparison found for id {public_id!r}.",
+            details={"id": public_id},
+        )
+
+
 class ConfigurationError(ChaiError):
     """Invalid or missing configuration; fatal at startup."""
 

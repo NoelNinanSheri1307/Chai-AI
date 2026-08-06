@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from pathlib import Path
 
 import pytest
@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
 import app.models  # noqa: F401  (register every table on Base.metadata)
+from app.api.deps import get_db_session, get_settings_dependency
 from app.clients.storage import LocalStorageAdapter
 from app.core.config import Settings, clear_settings_cache
 from app.core.db import (
@@ -21,13 +22,27 @@ from app.core.db import (
     create_session_factory,
 )
 from app.main import create_app
+from app.pipeline.config import (
+    PipelineConfig,
+    clear_pipeline_config_cache,
+    get_pipeline_config,
+)
+from app.pipeline.detectors.registry import build_detectors
+from app.pipeline.explanation.placeholder import (
+    PlaceholderEvidenceGenerator,
+    PlaceholderExplanationGenerator,
+)
+from app.pipeline.fusion.placeholder import PlaceholderFusionEngine
+from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
+from app.pipeline.runner import ModularAnalysisPipeline
 
 
 @pytest.fixture(autouse=True)
 def _reset_settings() -> None:
-    """Isolate cached settings and databases between tests."""
+    """Isolate cached settings, databases and pipeline config between tests."""
     clear_settings_cache()
     clear_database_cache()
+    clear_pipeline_config_cache()
 
 
 @pytest.fixture()
@@ -100,3 +115,53 @@ def storage_root(tmp_path: Path) -> Path:
 def storage(storage_root: Path) -> LocalStorageAdapter:
     """An isolated ``LocalStorageAdapter`` backed by a temp directory."""
     return LocalStorageAdapter(storage_root)
+
+
+@pytest.fixture()
+def pipeline_config() -> PipelineConfig:
+    """The cached default pipeline configuration."""
+    return get_pipeline_config()
+
+
+@pytest.fixture()
+def pipeline(pipeline_config: PipelineConfig) -> ModularAnalysisPipeline:
+    """A fully wired modular pipeline using all placeholder components."""
+    return ModularAnalysisPipeline(
+        detectors=build_detectors(pipeline_config.enabled_detector_names()),
+        fusion=PlaceholderFusionEngine(pipeline_config),
+        heatmap_generator=PlaceholderHeatmapGenerator(pipeline_config),
+        evidence_generator=PlaceholderEvidenceGenerator(pipeline_config),
+        explanation_generator=PlaceholderExplanationGenerator(pipeline_config),
+        pipeline_config=pipeline_config,
+    )
+
+
+@pytest.fixture()
+def api_client(settings: Settings, db_engine: Engine, storage_root: Path) -> TestClient:
+    """An ASGI client wired to the isolated test database and storage root.
+
+    The application's settings, database session and object-storage providers
+    are overridden so every request runs against the same in-memory engine and
+    temporary storage used by the rest of the test suite.
+    """
+    app_settings = settings.model_copy(
+        update={"database_url": "sqlite://", "storage_root": storage_root}
+    )
+    app = create_app(settings=app_settings)
+    factory = create_session_factory(db_engine)
+
+    def override_settings() -> Settings:
+        return app_settings
+
+    def override_db_session() -> Generator[Session, None, None]:
+        with factory() as session:
+            try:
+                yield session
+                session.commit()
+            except Exception:
+                session.rollback()
+                raise
+
+    app.dependency_overrides[get_settings_dependency] = override_settings
+    app.dependency_overrides[get_db_session] = override_db_session
+    return TestClient(app)

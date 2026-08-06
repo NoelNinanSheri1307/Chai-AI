@@ -2,10 +2,32 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from sqlmodel import Session
 
-from app.models.comparison import Comparison
+from app.models.comparison import Comparison, ComparisonFinding, ComparisonRegion
 from app.repos.base import BaseRepository, Page, PageParams
+
+
+@dataclass(frozen=True)
+class FindingDraft:
+    """A similarity/difference line to persist against a comparison."""
+
+    is_similarity: bool
+    text: str
+
+
+@dataclass(frozen=True)
+class RegionDraft:
+    """A normalized shared manipulated region to persist against a comparison."""
+
+    x: float
+    y: float
+    width: float
+    height: float
+    intensity: float
+    label: str
 
 
 class ComparisonRepository(BaseRepository[Comparison]):
@@ -72,3 +94,42 @@ class ComparisonRepository(BaseRepository[Comparison]):
             filters={"user_id": user_id},
             include_deleted=include_deleted,
         )
+
+    # ------------------------------------------------------------------
+    # Comparison child persistence
+    # ------------------------------------------------------------------
+    def persist_children(
+        self,
+        comparison_id: int,
+        *,
+        findings: list[FindingDraft],
+        regions: list[RegionDraft],
+    ) -> None:
+        """Persist the findings and regions belonging to a comparison.
+
+        Findings carry a display ``position`` derived from list order; regions
+        are stored as normalized rectangles. The caller owns the surrounding
+        transaction; this method flushes but never commits.
+        """
+        for position, finding in enumerate(findings):
+            self.session.add(
+                ComparisonFinding(
+                    comparison_id=comparison_id,
+                    is_similarity=finding.is_similarity,
+                    text=finding.text,
+                    position=position,
+                )
+            )
+        for region in regions:
+            self.session.add(
+                ComparisonRegion(
+                    comparison_id=comparison_id,
+                    x=region.x,
+                    y=region.y,
+                    width=region.width,
+                    height=region.height,
+                    intensity=region.intensity,
+                    label=region.label,
+                )
+            )
+        self.session.flush()

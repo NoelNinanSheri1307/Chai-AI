@@ -7,7 +7,17 @@ from typing import Any
 from sqlalchemy import select
 from sqlmodel import Session
 
-from app.models.analysis import Analysis, MetadataItem
+from app.core.enums import AnalysisStatus
+from app.models.analysis import (
+    Analysis,
+    DetectedIndicator,
+    Evidence,
+    ForensicScore,
+    Heatmap,
+    HeatmapRegion,
+    MetadataItem,
+)
+from app.pipeline.base import PipelineResult
 from app.repos.base import BaseRepository, Page, PageParams
 
 
@@ -100,3 +110,68 @@ class AnalysisRepository(BaseRepository[Analysis]):
             MetadataItem.key == key,
         )
         return self.session.scalars(statement).first() is not None
+
+    # ------------------------------------------------------------------
+    # Pipeline result persistence
+    # ------------------------------------------------------------------
+    def persist_result(self, analysis: Analysis, result: PipelineResult) -> Analysis:
+        """Write a pipeline result onto ``analysis`` and its child graph.
+
+        Sets the verdict/confidence/risk/explanation/duration fields, marks the
+        analysis completed, and persists the forensic scores, indicators,
+        evidence, metadata items and heatmap (with regions). The caller owns the
+        surrounding transaction; this method flushes but never commits.
+        """
+        analysis.verdict = result.verdict
+        analysis.confidence = result.confidence
+        analysis.risk_level = result.risk_level
+        analysis.explanation = result.explanation
+        analysis.duration_ms = result.duration_ms
+        analysis.status = AnalysisStatus.COMPLETED
+
+        for score in result.scores:
+            self.session.add(
+                ForensicScore(
+                    analysis_id=analysis.id,
+                    category=score.category,
+                    value=score.value,
+                )
+            )
+        for indicator in result.indicators:
+            self.session.add(
+                DetectedIndicator(
+                    analysis_id=analysis.id,
+                    indicator_type=indicator.type,
+                    confidence=indicator.confidence,
+                    severity=indicator.severity,
+                    description=indicator.description,
+                )
+            )
+        for position, line in enumerate(result.evidence):
+            self.session.add(
+                Evidence(analysis_id=analysis.id, text=line, position=position)
+            )
+        for key, value in result.metadata.items():
+            self.session.add(
+                MetadataItem(analysis_id=analysis.id, key=key, value=value)
+            )
+        if result.heatmap is not None:
+            heatmap = Heatmap(
+                analysis_id=analysis.id,
+                overall_manipulation=result.heatmap.overall_manipulation,
+            )
+            self.session.add(heatmap)
+            for region in result.heatmap.regions:
+                self.session.add(
+                    HeatmapRegion(
+                        heatmap_id=heatmap.id,
+                        x=region.x,
+                        y=region.y,
+                        width=region.width,
+                        height=region.height,
+                        intensity=region.intensity,
+                        label=region.label,
+                    )
+                )
+        self.session.flush()
+        return analysis
