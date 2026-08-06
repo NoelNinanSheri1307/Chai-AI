@@ -24,6 +24,18 @@ REQUEST_ID_HEADER = "X-Request-ID"
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
 
+# Persistence / model length limits --------------------------------------
+USER_EMAIL_MAX_LENGTH = 254
+PASSWORD_HASH_MAX_LENGTH = 255
+DISPLAY_NAME_MAX_LENGTH = 100
+PUBLIC_ID_MAX_LENGTH = 64
+RESOURCE_ID_MAX_LENGTH = 255
+IMAGE_MIME_MAX_LENGTH = 50
+IMAGE_FILENAME_MAX_LENGTH = 255
+ENUM_LABEL_MAX_LENGTH = 100
+TEXT_VALUE_MAX_LENGTH = 1024
+HEATMAP_REGION_LABEL_MAX_LENGTH = 100
+
 # Upload limits (enforced from the analyses milestone onward) ----------
 MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024
 ALLOWED_IMAGE_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})

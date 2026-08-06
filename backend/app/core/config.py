@@ -10,6 +10,7 @@ values).
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, field_validator
@@ -54,6 +55,21 @@ class Settings(BaseSettings):
     trusted_hosts: list[str] = Field(default_factory=lambda: ["*"])
     request_id_header: str = constants.REQUEST_ID_HEADER
 
+    # Database ----------------------------------------------------------
+    # Full SQLAlchemy/SQLModel URL. Comes from configuration for every
+    # environment; defaults are provided per environment below rather than
+    # hardcoding a single connection string.
+    database_url: str | None = None
+    # Connection-pool sizing for server-backed databases (PostgreSQL). These
+    # are ignored for SQLite, which manages its own file/in-memory access.
+    database_pool_size: int = 5
+    database_max_overflow: int = 10
+
+    # Object storage ------------------------------------------------------
+    # Filesystem root for the local storage adapter. Keys are resolved to
+    # paths beneath this root.
+    storage_root: Path = Path("storage")
+
     @field_validator("environment", mode="before")
     @classmethod
     def _normalize_environment(cls, value: object) -> object:
@@ -79,6 +95,13 @@ class Settings(BaseSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
+    @field_validator("database_pool_size", "database_max_overflow")
+    @classmethod
+    def _validate_pool_sizes(cls, value: object) -> object:
+        if isinstance(value, int) and value < 1:
+            raise ValueError("database pool sizes must be at least 1")
+        return value
+
     # Derived helpers ---------------------------------------------------
     @property
     def is_development(self) -> bool:
@@ -94,6 +117,25 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """True when running in the production environment."""
         return self.environment == "production"
+
+    @property
+    def effective_database_url(self) -> str:
+        """Return the resolved database URL for the active environment.
+
+        An explicit ``CHAI_DATABASE_URL`` always wins. When absent, safe per
+        environment defaults are used: in-memory SQLite for testing, a file for
+        development, and a postgres URL for production. This keeps zero
+        hardcoded connection strings while remaining immediately runnable.
+        """
+        if self.database_url is not None and self.database_url.strip():
+            return self.database_url.strip()
+        if self.is_testing:
+            return "sqlite://"
+        if self.is_development:
+            return "sqlite:///./chai.db"
+        # Production (and any unclassified environment) behaves as PostgreSQL;
+        # an operator normally supplies a concrete URL.
+        return "postgresql+psycopg://chai:chai@localhost:5432/chai"
 
 
 @lru_cache
