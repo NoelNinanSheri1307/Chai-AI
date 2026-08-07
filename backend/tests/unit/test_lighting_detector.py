@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import io
+
 import cv2
 import numpy as np
 from PIL import Image
 
-from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.core.enums import IndicatorType, ScoreCategory
 from app.pipeline.detectors.lighting import LightingDetector
 from app.pipeline.signals import DetectorSignal
 
@@ -25,7 +26,7 @@ def test_lighting_detector_invalid_bytes() -> None:
 
 
 def test_lighting_detector_uniform_gradient() -> None:
-    """A smooth left-to-right gradient has consistent lighting direction across all quadrants (low circ_std)."""
+    """A smooth left-to-right gradient has consistent lighting (low circ_std)."""
     detector = LightingDetector()
 
     # Create a smooth horizontal gradient: all quadrants share the same light direction
@@ -44,7 +45,7 @@ def test_lighting_detector_uniform_gradient() -> None:
 
 
 def test_lighting_detector_contradictory_lighting() -> None:
-    """An image with opposing gradients in different quadrants has high circ_std, scoring 0.85."""
+    """Opposing gradients in different quadrants yield high circ_std (0.85)."""
     detector = LightingDetector()
 
     img = np.zeros((256, 256), dtype=np.uint8)
@@ -70,7 +71,7 @@ def test_lighting_detector_contradictory_lighting() -> None:
 
 
 def test_lighting_detector_flat_image() -> None:
-    """A solid flat image has near-zero gradients everywhere — numerically degenerate but handled gracefully."""
+    """A flat image is numerically degenerate but handled gracefully."""
     detector = LightingDetector()
 
     img = Image.new("L", (256, 256), color=128)

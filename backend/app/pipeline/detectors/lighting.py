@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+
 import cv2
 import numpy as np
 
@@ -82,7 +83,7 @@ class LightingDetector(Detector):
         # Using circular statistics: R = |mean of unit vectors|
         sin_sum = sum(np.sin(a) for a in angles)
         cos_sum = sum(np.cos(a) for a in angles)
-        r_bar = np.sqrt(sin_sum ** 2 + cos_sum ** 2) / len(angles)
+        r_bar = np.sqrt(sin_sum**2 + cos_sum**2) / len(angles)
         # Circular std: sqrt(-2 * ln(R_bar)), clamped for numerical safety
         r_bar_clamped = max(r_bar, 1e-6)
         circ_std = float(np.sqrt(-2.0 * np.log(r_bar_clamped)))

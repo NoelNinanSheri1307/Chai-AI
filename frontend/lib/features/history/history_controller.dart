@@ -64,7 +64,13 @@ class HistoryController extends ChangeNotifier {
   Future<void> load() async {
     _loading = true;
     notifyListeners();
-    _items = await _repository.fetchAll();
+    try {
+      _items = await _repository.fetchAll();
+    } catch (_) {
+      // A failed history fetch (e.g. backend offline) must never crash the UI;
+      // degrade gracefully to an empty list.
+      _items = [];
+    }
     _loading = false;
     notifyListeners();
   }

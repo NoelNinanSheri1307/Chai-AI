@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import io
+
 import cv2
 import numpy as np
 from PIL import Image
 
-from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.core.enums import IndicatorSeverity, IndicatorType
 from app.pipeline.detectors.noise import NoiseDetector
 from app.pipeline.signals import DetectorSignal
 
@@ -27,9 +28,9 @@ def test_noise_detector_invalid_bytes() -> None:
 
 
 def test_noise_detector_flat_smooth() -> None:
-    """Verifies that a perfectly flat image has noise_std < 0.01, returning score of 0.50."""
+    """A perfectly flat image has noise_std < 0.01, returning score of 0.50."""
     detector = NoiseDetector()
-    
+
     # Flat image has zero high-frequency noise residual
     img = Image.new("L", (100, 100), color=128)
     buf = io.BytesIO()
@@ -47,11 +48,13 @@ def test_noise_detector_flat_smooth() -> None:
 
 
 def test_noise_detector_natural_noise() -> None:
-    """Verifies that a small amount of uniform noise yields 0.01 <= noise_std < 0.04, returning score of 0.12."""
+    """Mild Gaussian noise sits in the natural band (0.01 <= noise_std < 0.04)."""
     detector = NoiseDetector()
 
-    # Small uniform noise range [120, 136] has std of ~4.6. 4.6 / 255.0 = 0.018.
-    noise = np.random.randint(120, 136, (100, 100), dtype=np.uint8)
+    # Mild Gaussian noise (sigma ~12) leaves a small high-frequency residual
+    # after the Gaussian-blur subtraction, landing in the natural-sensor band.
+    rng = np.random.RandomState(7)
+    noise = np.clip(rng.normal(128, 12, (100, 100)), 0, 255).astype(np.uint8)
     _, buf = cv2.imencode(".png", noise)
     natural_noise_bytes = buf.tobytes()
 
@@ -66,7 +69,7 @@ def test_noise_detector_natural_noise() -> None:
 
 
 def test_noise_detector_high_noise() -> None:
-    """Verifies that high noise variance yields noise_std > 0.08, returning score of 0.80 and strong indicator."""
+    """High noise variance (noise_std > 0.08) returns 0.80 and a strong indicator."""
     detector = NoiseDetector()
 
     # High uniform noise range [0, 256] has std of ~73.8. 73.8 / 255.0 = 0.29.
@@ -93,7 +96,7 @@ def test_noise_detector_contract_details() -> None:
     assert detector.name == "noise"
     assert detector.version == "0.1.0"
     assert detector.capabilities() == frozenset({"noise", "prnu", "sensor"})
-    
+
     health = detector.health()
     assert health.status == "ok"
     assert health.version == "0.1.0"

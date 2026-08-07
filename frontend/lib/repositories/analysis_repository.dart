@@ -20,5 +20,7 @@ abstract class AnalysisRepository {
     String? pathB,
     String? nameA,
     String? nameB,
+    Uint8List? bytesA,
+    Uint8List? bytesB,
   });
 }

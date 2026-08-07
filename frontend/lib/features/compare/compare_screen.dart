@@ -62,7 +62,12 @@ class _CompareScreenState extends State<CompareScreen> {
     });
     try {
       final repo = context.read<AnalysisRepository>();
-      final result = await repo.compareImages(nameA: _nameA, nameB: _nameB);
+      final result = await repo.compareImages(
+        nameA: _nameA,
+        nameB: _nameB,
+        bytesA: _bytesA,
+        bytesB: _bytesB,
+      );
       if (!mounted) return;
       setState(() {
         _result = result;

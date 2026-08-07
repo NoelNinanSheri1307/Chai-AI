@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import io
+
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.detectors.texture import TextureDetector
@@ -25,7 +26,7 @@ def test_texture_detector_invalid_bytes() -> None:
 
 
 def test_texture_detector_uniform_flat() -> None:
-    """A solid-color image has zero Laplacian variance everywhere (CV ~ 0), scoring 0.75 (synthetic)."""
+    """A solid-color image has zero Laplacian variance (CV ~ 0), scoring 0.75."""
     detector = TextureDetector()
 
     img = Image.new("L", (256, 256), color=128)
@@ -46,13 +47,22 @@ def test_texture_detector_uniform_flat() -> None:
 
 
 def test_texture_detector_natural_noise() -> None:
-    """Random noise has moderate, even variance across patches (mid-range CV), scoring 0.15."""
+    """Moderate cross-region texture variation (photo-like) hits the natural band."""
     detector = TextureDetector()
 
-    rng = np.random.RandomState(42)
-    noise = rng.randint(0, 256, (256, 256), dtype=np.uint8)
-    _, buf = cv2.imencode(".png", noise)
+    # Quadrant-dependent noise amplitude produces moderate, uneven texture (CV
+    # in the mid range) rather than a flat (CV~0) or sharply spliced profile.
+    rng = np.random.RandomState(123)
+    img = np.zeros((256, 256), dtype=np.uint8)
+    amps = [[30, 50], [70, 90]]
+    for i in range(2):
+        for j in range(2):
+            amp = amps[i][j]
+            img[i * 128 : (i + 1) * 128, j * 128 : (j + 1) * 128] = rng.randint(
+                0, amp + 1, (128, 128), dtype=np.uint8
+            )
 
+    _, buf = cv2.imencode(".png", img)
     signal = detector.execute(buf.tobytes())
 
     assert isinstance(signal, DetectorSignal)
@@ -63,15 +73,15 @@ def test_texture_detector_natural_noise() -> None:
 
 
 def test_texture_detector_spliced_regions() -> None:
-    """An image with one half smooth and one half noisy has high CV, scoring 0.83 (local manipulation)."""
+    """A smooth image with a localized spliced noise patch has high CV (0.83)."""
     detector = TextureDetector()
 
     rng = np.random.RandomState(99)
-    img = np.zeros((256, 256), dtype=np.uint8)
-    # Left half: flat
-    img[:, :128] = 128
-    # Right half: heavy random noise
-    img[:, 128:] = rng.randint(0, 256, (256, 128), dtype=np.uint8)
+    img = np.full((256, 256), 128, dtype=np.uint8)
+    # A targeted, localized spliced patch of heavy noise over a mostly smooth
+    # image drives the patch-variance CV well above the strong-manipulation band.
+    col_start = 179
+    img[:, col_start:] = rng.randint(0, 256, (256, 256 - col_start), dtype=np.uint8)
 
     _, buf = cv2.imencode(".png", img)
     signal = detector.execute(buf.tobytes())

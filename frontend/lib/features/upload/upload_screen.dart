@@ -93,6 +93,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       _bytes = bytes;
                     });
                   },
+                  onTap: () => _pick(ImageSource.gallery),
                   child: AppCard(
                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                     child: hasImage

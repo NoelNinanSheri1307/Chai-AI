@@ -6,9 +6,9 @@ import 'features/history/history_controller.dart';
 import 'features/splash/splash_screen.dart';
 import 'navigation/app_router.dart';
 import 'repositories/analysis_repository.dart';
+import 'repositories/api/api_analysis_repository.dart';
+import 'repositories/api/api_history_repository.dart';
 import 'repositories/history_repository.dart';
-import 'repositories/mock/mock_analysis_repository.dart';
-import 'repositories/mock/mock_history_repository.dart';
 import 'repositories/mock/mock_report_repository.dart';
 import 'repositories/report_repository.dart';
 import 'services/settings_service.dart';
@@ -24,14 +24,19 @@ class ChaiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = SettingsService();
     return MultiProvider(
       providers: [
-        // Swap these for API-backed implementations when the backend ships.
-        // The UI only ever depends on the abstract repository contracts.
-        Provider<AnalysisRepository>(create: (_) => MockAnalysisRepository()),
-        Provider<HistoryRepository>(create: (_) => MockHistoryRepository()),
+        // The frontend talks to the running backend over HTTP. Swap these for
+        // mock repositories when you want offline, simulated results instead.
+        Provider<AnalysisRepository>(
+          create: (_) => ApiAnalysisRepository(settings.endpoint),
+        ),
+        Provider<HistoryRepository>(
+          create: (_) => ApiHistoryRepository(settings.endpoint),
+        ),
         Provider<ReportRepository>(create: (_) => MockReportRepository()),
-        ChangeNotifierProvider(create: (_) => SettingsService()),
+        ChangeNotifierProvider<SettingsService>(create: (_) => settings),
         ChangeNotifierProvider<HistoryController>(
           create: (ctx) => HistoryController(ctx.read<HistoryRepository>()),
         ),

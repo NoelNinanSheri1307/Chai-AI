@@ -32,6 +32,8 @@ class MockAnalysisRepository implements AnalysisRepository {
     String? pathB,
     String? nameA,
     String? nameB,
+    Uint8List? bytesA,
+    Uint8List? bytesB,
   }) async {
     final seedA = _seedFrom(pathA, nameA);
     final seedB = _seedFrom(pathB, nameB);

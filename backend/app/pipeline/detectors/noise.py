@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+
 import cv2
 import numpy as np
 
@@ -16,7 +17,8 @@ class NoiseDetector(Detector):
     """Sensor-noise (PRNU) detector.
 
     Extracts high-frequency noise residual by subtracting a Gaussian-blurred
-    version from the original grayscale image, then analyzes the noise standard deviation.
+    version from the original grayscale image, then analyzes the noise
+    standard deviation.
     """
 
     name = "noise"
@@ -30,7 +32,7 @@ class NoiseDetector(Detector):
         content_type: str | None = None,
         file_name: str | None = None,
     ) -> DetectorSignal:
-        """Run the sensor-noise detector over image_bytes and return a DetectorSignal."""
+        """Run the sensor-noise detector over image_bytes and return a DetectorSignal."""  # noqa: E501
         start_time = time.perf_counter()
 
         try:
@@ -69,32 +71,38 @@ class NoiseDetector(Detector):
             score = 0.50
             confidence = 0.80
             evidence = [
-                "Image has an exceptionally low noise floor, typical of synthetic or heavily denoised content."
+                "Image has an exceptionally low noise floor, typical of "
+                "synthetic or heavily denoised content."
             ]
         elif 0.01 <= noise_std < 0.04:
             score = 0.12
             confidence = 0.90
             evidence = [
-                "Sensor noise pattern is consistent with a clean, natural camera capture."
+                "Sensor noise pattern is consistent with a clean, natural "
+                "camera capture."
             ]
         elif 0.04 <= noise_std <= 0.08:
             score = 0.40
             confidence = 0.80
             evidence = [
-                "Moderate noise variance detected, suggesting minor compression or editing artifacts."
+                "Moderate noise variance detected, suggesting minor "
+                "compression or editing artifacts."
             ]
         else:
             score = 0.80
             confidence = 0.85
             evidence = [
-                "High-frequency noise standard deviation is highly elevated, indicating significant editing artifacts or artificial noise injection."
+                "High-frequency noise standard deviation is highly elevated, "
+                "indicating significant editing artifacts or artificial noise "
+                "injection."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.TEXTURE,
                     confidence=score,
                     severity=IndicatorSeverity.STRONG,
-                    description="Significant high-frequency noise anomaly detected in texture residual.",
+                    description="Significant high-frequency noise anomaly "
+                    "detected in texture residual.",
                 )
             )
 

@@ -11,8 +11,14 @@ import '../core/utils/context_ext.dart';
 class DragDropZone extends StatefulWidget {
   final void Function(List<XFile> files) onFiles;
   final Widget child;
+  final VoidCallback? onTap;
 
-  const DragDropZone({super.key, required this.onFiles, required this.child});
+  const DragDropZone({
+    super.key,
+    required this.onFiles,
+    required this.child,
+    this.onTap,
+  });
 
   @override
   State<DragDropZone> createState() => _DragDropZoneState();
@@ -40,7 +46,11 @@ class _DragDropZoneState extends State<DragDropZone> {
             width: 1.6,
           ),
         ),
-        child: widget.child,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: widget.child,
+        ),
       ),
     );
   }

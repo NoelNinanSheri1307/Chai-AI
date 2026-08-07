@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import io
+
 from PIL import Image
 
-from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.core.enums import IndicatorSeverity, IndicatorType
 from app.pipeline.detectors.ela import ELADetector
 from app.pipeline.signals import DetectorSignal
 
@@ -25,9 +26,9 @@ def test_ela_detector_invalid_bytes() -> None:
 
 
 def test_ela_detector_low_brightness() -> None:
-    """Verifies that a flat solid image has low ELA difference (brightness < 5), returning score of 0.15."""
+    """A flat solid image has low ELA difference (brightness < 5), score 0.15."""
     detector = ELADetector()
-    
+
     # Solid gray image compressively degrades very little, ELA difference will be ~0
     img = Image.new("RGB", (100, 100), color=(128, 128, 128))
     buf = io.BytesIO()
@@ -45,10 +46,11 @@ def test_ela_detector_low_brightness() -> None:
 
 
 def test_ela_detector_high_brightness() -> None:
-    """Verifies that a high-frequency checkerboard pattern creates high ELA differences, returning score of 0.85."""
+    """A high-frequency checkerboard pattern creates high ELA differences (0.85)."""
     detector = ELADetector()
 
-    # Create a high-frequency checkerboard image that compresses poorly at JPEG quality 90
+    # Create a high-frequency checkerboard stored losslessly (PNG) so the detail
+    # survives to the re-compression step; a JPEG source low-passes it away.
     img = Image.new("RGB", (100, 100))
     pixels = img.load()
     for x in range(100):
@@ -59,7 +61,7 @@ def test_ela_detector_high_brightness() -> None:
                 pixels[x, y] = (0, 255, 0)
 
     buf = io.BytesIO()
-    img.save(buf, format="JPEG")
+    img.save(buf, format="PNG")
     noisy_image_bytes = buf.getvalue()
 
     signal = detector.execute(noisy_image_bytes)
@@ -82,7 +84,7 @@ def test_ela_detector_contract_details() -> None:
     assert detector.name == "ela"
     assert detector.version == "0.1.0"
     assert detector.capabilities() == frozenset({"ela", "compression_artifacts"})
-    
+
     health = detector.health()
     assert health.status == "ok"
     assert health.version == "0.1.0"

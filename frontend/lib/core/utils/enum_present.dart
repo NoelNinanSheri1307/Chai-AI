@@ -75,6 +75,8 @@ extension IndicatorTypeX on IndicatorType {
         return Icons.blur_on;
       case IndicatorType.compression:
         return Icons.photo_size_select_small;
+      case IndicatorType.lighting:
+        return Icons.light_mode_outlined;
     }
   }
 

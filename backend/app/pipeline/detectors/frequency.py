@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+
 import cv2
 import numpy as np
 
@@ -55,7 +56,8 @@ class FrequencyDetector(Detector):
                         type=IndicatorType.DIFFUSION,
                         confidence=0.50,
                         severity=IndicatorSeverity.LOW,
-                        description="Failed decoding: default diffusion signature baseline.",
+                        description="Failed decoding: default diffusion "
+                        "signature baseline.",
                     )
                 ],
             )
@@ -68,48 +70,75 @@ class FrequencyDetector(Detector):
         fshift = np.fft.fftshift(f)
         magnitude_spectrum = np.log(np.abs(fshift) + 1)
 
-        # 3. Calculate mean and standard deviation of spectrum
+        # 3. Calculate mean and standard deviation of the spectrum (kept for
+        #    downstream metadata/observability).
         mean_spectrum = float(np.mean(magnitude_spectrum))
         std_spectrum = float(np.std(magnitude_spectrum))
 
-        # Heuristic GAN fingerprint detection based on standard deviation
-        anomaly_score = std_spectrum
+        # 4. Periodic / resampling-lattice metric.
+        #
+        # A raw standard deviation of the full spectrum does not separate a
+        # periodic lattice from broadband content (and smooth images score
+        # *higher*, not lower). Instead we measure how strongly the spectral
+        # energy is concentrated into a single band component once the low-
+        # frequency (DC) region is suppressed:
+        #
+        #     anomaly = peak_band_energy / total_band_energy
+        #
+        # A generation resampling lattice (or upscaling grid) concentrates its
+        # energy into one sharp peak → high ratio. Broadband noise, smooth
+        # gradients and natural photography leave the band flat → low ratio.
+        center = img.shape[0] // 2
+        yy, xx = np.mgrid[0 : img.shape[0], 0 : img.shape[1]]
+        radius = np.hypot(xx - center, yy - center)
+        band = magnitude_spectrum[radius >= 16]
+        if band.size == 0:
+            anomaly_score = 0.0
+        else:
+            anomaly_score = float(band.max() / (band.sum() + 1e-9))
 
         indicators = []
-        # (Legacy thresholds mapping: >1.1 -> 0.90; 0.9 to 1.1 -> 0.75; <0.9 -> 0.20)
-        if anomaly_score > 1.1:
+        # Calibrated on the concentration metric: flat, broadband spectra stay
+        # well below 0.02 (natural); partial 0.02..0.08 (possible upscaling);
+        # strong concentrated lattices >= 0.08 (resampling / generation).
+        if anomaly_score >= 0.08:
             score = 0.90
             confidence = 0.90
             evidence = [
-                "Frequency spectrum standard deviation is highly elevated, indicating periodic resampling patterns from generative models."
+                "Frequency spectrum shows a strongly concentrated periodic lattice, "
+                "indicating resampling or upscaling artifacts from a generative model."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.DIFFUSION,
                     confidence=score,
                     severity=IndicatorSeverity.STRONG,
-                    description="Strong periodic resampling lattice detected in frequency domain.",
+                    description="Strong periodic resampling lattice "
+                    "detected in frequency domain.",
                 )
             )
-        elif 0.9 <= anomaly_score <= 1.1:
+        elif anomaly_score >= 0.02:
             score = 0.75
             confidence = 0.85
             evidence = [
-                "Frequency spectrum standard deviation is slightly elevated, suggesting potential synthetic content or artificial upscaling."
+                "Frequency spectrum shows a partially concentrated periodic component, "
+                "suggesting possible synthetic content or artificial upscaling."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.DIFFUSION,
                     confidence=score,
                     severity=IndicatorSeverity.MODERATE,
-                    description="Moderate resampling grid artifacts detected in frequency domain.",
+                    description="Moderate resampling grid artifacts "
+                    "detected in frequency domain.",
                 )
             )
         else:
             score = 0.20
             confidence = 0.80
             evidence = [
-                "Frequency spectrum matches standard natural camera noise with no periodic artifact lattices."
+                "Frequency spectrum is broadband and free of concentrated periodic "
+                "lattices, matching natural camera content."
             ]
 
         processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))

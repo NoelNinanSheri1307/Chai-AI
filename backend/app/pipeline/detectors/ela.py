@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import time
+
 import numpy as np
 from PIL import Image, ImageChops
 
@@ -63,46 +64,52 @@ class ELADetector(Detector):
         mean_brightness = float(np.mean(ela_array))
 
         # 4. Map mean brightness to risk score and metadata
-        # (Legacy thresholds mapping: <5 -> 0.15; <15 -> 0.40; <30 -> 0.65; >=30 -> 0.85)
+        # (Legacy thresholds: <5 -> 0.15; <15 -> 0.40; <30 -> 0.65; >=30 -> 0.85)
         indicators = []
         if mean_brightness < 5:
             score = 0.15
             confidence = 0.90
             evidence = [
-                "Error Level Analysis shows low, uniform compression error consistent with an original image."
+                "Error Level Analysis shows low, uniform compression error "
+                "consistent with an original image."
             ]
         elif mean_brightness < 15:
             score = 0.40
             confidence = 0.85
             evidence = [
-                "Error Level Analysis reveals minor anomalies in compression block boundaries."
+                "Error Level Analysis reveals minor anomalies in compression "
+                "block boundaries."
             ]
         elif mean_brightness < 30:
             score = 0.65
             confidence = 0.85
             evidence = [
-                "Error Level Analysis shows moderate variations in compression error, indicating potential local edits."
+                "Error Level Analysis shows moderate variations in compression "
+                "error, indicating potential local edits."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.COMPRESSION,
                     confidence=score,
                     severity=IndicatorSeverity.MODERATE,
-                    description="Local compression block irregularities detected via ELA.",
+                    description="Local compression block irregularities "
+                    "detected via ELA.",
                 )
             )
         else:
             score = 0.85
             confidence = 0.90
             evidence = [
-                "Error Level Analysis indicates high compression difference, strongly suggesting tampering/local re-saving."
+                "Error Level Analysis indicates high compression difference, "
+                "strongly suggesting tampering/local re-saving."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.COMPRESSION,
                     confidence=score,
                     severity=IndicatorSeverity.STRONG,
-                    description="Significant compression block mismatch detected via ELA.",
+                    description="Significant compression block mismatch "
+                    "detected via ELA.",
                 )
             )
 

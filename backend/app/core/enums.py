@@ -38,6 +38,7 @@ class IndicatorType(str, enum.Enum):
     METADATA = "metadata"
     DIFFUSION = "diffusion"
     COMPRESSION = "compression"
+    LIGHTING = "lighting"
 
 
 class IndicatorSeverity(str, enum.Enum):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+
 import cv2
 import numpy as np
 
@@ -87,40 +88,46 @@ class CompressionDetector(Detector):
             score = 0.10
             confidence = 0.90
             evidence = [
-                "Edge and block boundary analysis shows high compression consistency throughout the image."
+                "Edge and block boundary analysis shows high compression "
+                "consistency throughout the image."
             ]
         elif 1 <= tamper_count <= 2:
             score = 0.35
             confidence = 0.80
             evidence = [
-                f"Slight edge inconsistencies found in {tamper_count} local compression blocks."
+                f"Slight edge inconsistencies found in {tamper_count} local "
+                "compression blocks."
             ]
         elif 3 <= tamper_count <= 5:
             score = 0.68
             confidence = 0.85
             evidence = [
-                f"Moderate compression block boundary mismatches detected across {tamper_count} regions."
+                f"Moderate compression block boundary mismatches detected across "
+                f"{tamper_count} regions."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.COMPRESSION,
                     confidence=score,
                     severity=IndicatorSeverity.MODERATE,
-                    description=f"Local compression boundaries show {tamper_count} edge anomalies.",
+                    description=f"Local compression boundaries show {tamper_count} "
+                    "edge anomalies.",
                 )
             )
         else:
             score = 0.88
             confidence = 0.90
             evidence = [
-                f"High density of compression edge inconsistencies found across {tamper_count} distinct regions."
+                f"High density of compression edge inconsistencies found across "
+                f"{tamper_count} distinct regions."
             ]
             indicators.append(
                 IndicatorResult(
                     type=IndicatorType.COMPRESSION,
                     confidence=score,
                     severity=IndicatorSeverity.STRONG,
-                    description=f"High density of compression block mismatch regions ({tamper_count} counts).",
+                    description=f"High density of compression block mismatch "
+                    f"regions ({tamper_count} counts).",
                 )
             )
 

@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import io
-import cv2
-import numpy as np
+
 from PIL import Image
 
-from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.core.enums import IndicatorSeverity, IndicatorType
 from app.pipeline.detectors.frequency import FrequencyDetector
 from app.pipeline.signals import DetectorSignal
 
 
 def test_frequency_detector_invalid_bytes() -> None:
-    """Verifies that invalid image bytes return fallback score of 0.40 and default indicators."""
+    """Invalid bytes return the fallback score (0.40) and default indicators."""
     detector = FrequencyDetector()
     invalid_bytes = b"not_an_image_file"
 
@@ -29,7 +28,7 @@ def test_frequency_detector_invalid_bytes() -> None:
 
 
 def test_frequency_detector_low_anomaly() -> None:
-    """Verifies that a flat solid image has low frequency standard deviation, returning score of 0.20."""
+    """A flat solid image has no periodic lattice, returning score of 0.20."""
     detector = FrequencyDetector()
 
     # Create solid gray image
@@ -43,13 +42,13 @@ def test_frequency_detector_low_anomaly() -> None:
     assert isinstance(signal, DetectorSignal)
     assert signal.score == 0.20
     assert signal.confidence == 0.80
-    assert float(signal.metadata["anomaly_score"]) < 0.9
-    assert "matches standard natural camera noise" in signal.evidence[0]
+    assert float(signal.metadata["anomaly_score"]) < 0.02
+    assert "broadband" in signal.evidence[0]
     assert len(signal.indicators) == 0
 
 
 def test_frequency_detector_high_anomaly() -> None:
-    """Verifies that a stripe pattern creates frequency spikes with high standard deviation, returning score of 0.90."""
+    """A stripe gradient creates a concentrated periodic lattice, score 0.90."""
     detector = FrequencyDetector()
 
     # Create image with clean high-contrast vertical stripe grating
@@ -69,11 +68,11 @@ def test_frequency_detector_high_anomaly() -> None:
     signal = detector.execute(grating_bytes)
 
     assert isinstance(signal, DetectorSignal)
-    # Stripe grating creates sharp spikes in Fourier space leading to high standard deviation
+    # Stripe grating concentrates the spectrum into a sharp peak (high ratio)
     assert signal.score == 0.90
     assert signal.confidence == 0.90
-    assert float(signal.metadata["anomaly_score"]) > 1.1
-    assert "highly elevated" in signal.evidence[0]
+    assert float(signal.metadata["anomaly_score"]) > 0.08
+    assert "concentrated periodic" in signal.evidence[0]
     assert len(signal.indicators) == 1
     assert signal.indicators[0].type == IndicatorType.DIFFUSION
     assert signal.indicators[0].severity == IndicatorSeverity.STRONG
@@ -86,7 +85,7 @@ def test_frequency_detector_contract_details() -> None:
     assert detector.name == "frequency"
     assert detector.version == "0.1.0"
     assert detector.capabilities() == frozenset({"frequency", "fft"})
-    
+
     health = detector.health()
     assert health.status == "ok"
     assert health.version == "0.1.0"

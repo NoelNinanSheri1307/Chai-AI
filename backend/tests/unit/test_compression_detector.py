@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import io
+
 from PIL import Image, ImageDraw
 
-from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
+from app.core.enums import IndicatorSeverity, IndicatorType
 from app.pipeline.detectors.compression import CompressionDetector
 from app.pipeline.signals import DetectorSignal
 
@@ -25,9 +26,9 @@ def test_compression_detector_invalid_bytes() -> None:
 
 
 def test_compression_detector_no_anomalies() -> None:
-    """Verifies that a solid flat image has zero local anomalies, returning score of 0.10."""
+    """A solid flat image has zero local anomalies, returning score of 0.10."""
     detector = CompressionDetector()
-    
+
     img = Image.new("RGB", (100, 100), color=(128, 128, 128))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -44,7 +45,7 @@ def test_compression_detector_no_anomalies() -> None:
 
 
 def test_compression_detector_moderate_anomalies() -> None:
-    """Verifies that 4 distinct shape changes trigger moderate score of 0.68 and moderate indicator."""
+    """Four distinct local anomalies trigger the moderate score (0.68)."""
     detector = CompressionDetector()
 
     img = Image.new("RGB", (150, 150), color="black")
@@ -72,7 +73,7 @@ def test_compression_detector_moderate_anomalies() -> None:
 
 
 def test_compression_detector_high_anomalies() -> None:
-    """Verifies that 8 distinct shape changes trigger high score of 0.88 and strong indicator."""
+    """Eight distinct local anomalies trigger the high score (0.88)."""
     detector = CompressionDetector()
 
     img = Image.new("RGB", (200, 200), color="black")
@@ -105,7 +106,7 @@ def test_compression_detector_contract_details() -> None:
     assert detector.name == "compression"
     assert detector.version == "0.1.0"
     assert detector.capabilities() == frozenset({"compression", "blocking"})
-    
+
     health = detector.health()
     assert health.status == "ok"
     assert health.version == "0.1.0"

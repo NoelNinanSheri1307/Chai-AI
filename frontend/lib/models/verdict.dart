@@ -44,7 +44,8 @@ enum IndicatorType {
   texture('Texture anomalies'),
   metadata('Metadata mismatch'),
   diffusion('Diffusion artifacts'),
-  compression('Compression artifacts');
+  compression('Compression artifacts'),
+  lighting('Lighting inconsistencies');
 
   final String label;
   const IndicatorType(this.label);
