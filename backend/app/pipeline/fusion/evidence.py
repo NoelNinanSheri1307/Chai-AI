@@ -5,7 +5,10 @@ This module exposes *why* the final decision was reached:
 * :class:`DetectorContribution` records, per detector, its normalized score,
   confidence, configured weight, its *share* of the total active weight, and how
   much of the fused manipulation evidence it explains (``contribution``). This
-  is the per-detector attribution used for explainability and UI.
+  is the per-detector attribution used for explainability and UI. Each
+  contribution also carries the detector's three-class hypothesis allocation
+  (``hypothesis_weights``) and the hypothesis it most preferred
+  (``preferred_hypothesis``).
 * :meth:`aggregate_evidence` merges the detectors' evidence into a single,
   deduplicated list, sorts it by contribution importance (strongest first) and
   preserves each item's detector source. No detector evidence is lost; identical
@@ -14,9 +17,19 @@ This module exposes *why* the final decision was reached:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from app.pipeline.fusion.base import DetectorContribution
+from app.pipeline.fusion.classify import DetectorHypothesisContribution
+from app.pipeline.fusion.hypotheses import Hypothesis, hypothesis_label
 
 from .normalize import NormalizedSignal
+
+_HYPOTHESIS_ORDER = (
+    Hypothesis.ORIGINAL,
+    Hypothesis.AI_EDITED,
+    Hypothesis.AI_GENERATED,
+)
 
 
 def _direction(score: float, support_threshold: float) -> str:
@@ -28,16 +41,27 @@ def _direction(score: float, support_threshold: float) -> str:
     return "supports:neutral"
 
 
+def _preferred_hypothesis(weights: tuple[float, float, float]) -> Hypothesis:
+    """Return the hypothesis with the largest allocation."""
+    return _HYPOTHESIS_ORDER[max(range(3), key=lambda i: weights[i])]
+
+
 def build_contributions(
-    signals: list[NormalizedSignal], support_threshold: float
+    signals: list[NormalizedSignal],
+    support_threshold: float,
+    hypothesis_rows: Sequence[DetectorHypothesisContribution] | None = None,
 ) -> list[DetectorContribution]:
     """Rank each detector's contribution to the fused manipulation evidence.
 
     Returns contributions ordered by descending absolute importance so the head
-    of the list is always the most influential detector.
+    of the list is always the most influential detector. When ``hypothesis_rows``
+    is provided (matching ``signals`` in order), each contribution is enriched
+    with the detector's three-class hypothesis allocation.
     """
     total_weight = sum(s.reliability for s in signals) or 0.0
     total_manipulation = sum(s.reliability * s.score for s in signals) or 0.0
+
+    hypothesis_by_detector = {row.detector: row for row in (hypothesis_rows or ())}
 
     contributions: list[DetectorContribution] = []
     for s in signals:
@@ -45,6 +69,9 @@ def build_contributions(
         contribution = (
             (weight_share * s.score / total_manipulation) if total_manipulation else 0.0
         )
+        row = hypothesis_by_detector.get(s.detector)
+        weights = row.weights if row else (0.0, 0.0, 0.0)
+        preferred = _preferred_hypothesis(weights) if row else Hypothesis.ORIGINAL
         contributions.append(
             DetectorContribution(
                 detector=s.detector,
@@ -56,6 +83,8 @@ def build_contributions(
                 weight_share=weight_share,
                 contribution=contribution,
                 direction=_direction(s.score, support_threshold),
+                hypothesis_weights=weights,
+                preferred_hypothesis=hypothesis_label(preferred),
             )
         )
     contributions.sort(

@@ -34,9 +34,9 @@ from app.pipeline.config import (
 from app.pipeline.detectors.base import Detector
 from app.pipeline.detectors.registry import build_detectors
 from app.pipeline.explanation.base import EvidenceGenerator, ExplanationGenerator
-from app.pipeline.explanation.placeholder import (
-    PlaceholderEvidenceGenerator,
-    PlaceholderExplanationGenerator,
+from app.pipeline.explanation.classifier import (
+    ClassificationEvidenceGenerator,
+    ClassificationExplanationGenerator,
 )
 from app.pipeline.fusion.base import FusionEngine
 from app.pipeline.fusion.engine import DeterministicFusionEngine
@@ -100,15 +100,15 @@ def get_heatmap_generator(pipeline_config: PipelineConfigDep) -> HeatmapGenerato
 
 
 def get_evidence_generator(pipeline_config: PipelineConfigDep) -> EvidenceGenerator:
-    """Provide the evidence generator (deterministic placeholder for now)."""
-    return PlaceholderEvidenceGenerator(pipeline_config)
+    """Provide the deterministic, classification-driven evidence generator."""
+    return ClassificationEvidenceGenerator(pipeline_config)
 
 
 def get_explanation_generator(
     pipeline_config: PipelineConfigDep,
 ) -> ExplanationGenerator:
-    """Provide the explanation generator (deterministic placeholder for now)."""
-    return PlaceholderExplanationGenerator(pipeline_config)
+    """Provide the deterministic, classification-driven explanation generator."""
+    return ClassificationExplanationGenerator(pipeline_config)
 
 
 def get_pipeline(

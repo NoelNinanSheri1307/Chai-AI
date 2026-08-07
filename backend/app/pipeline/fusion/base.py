@@ -28,6 +28,10 @@ class DetectorContribution:
     weight_share: float  # reliability / total active weight (0..1)
     contribution: float  # this detector's share of fused manipulation (0..1)
     direction: str  # supports:manipulation | supports:original
+    # Three-class forensic support: this detector's normalized support
+    # allocation across (original, ai_edited, ai_generated), summing to 1.
+    hypothesis_weights: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    preferred_hypothesis: str = ""
 
     def supports_manipulation(self) -> bool:
         """Whether this detector's signal favoured manipulation."""
@@ -54,6 +58,17 @@ class FusionResult:
     reliability: float = 0.0  # weighted detector self-confidence in [0, 1]
     coverage: float = 0.0  # fraction of intended detectors active in [0, 1]
     decision_reason: str = ""  # human-readable rationale for the verdict
+
+    # ------------------------------------------------------------------
+    # Three-class forensic classification
+    # ------------------------------------------------------------------
+    # Normalized support probabilities for each hypothesis, in the order
+    # (original, ai_edited, ai_generated). They sum to 1 when evidence exists.
+    hypothesis_scores: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    runner_up_verdict: Verdict | None = None  # the second-most-supported class
+    classification_margin: float = 0.0  # winner score - runner-up score
+    # Deterministic, class-aware per-detector reasoning (see DetectorReasoning).
+    detector_reasoning: list[dict[str, object]] = field(default_factory=list)
 
     # ------------------------------------------------------------------
     # Versioning

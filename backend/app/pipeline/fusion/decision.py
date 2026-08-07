@@ -1,115 +1,117 @@
-"""Fusion decision logic: verdict, confidence and risk.
+"""Fusion decision logic: three-class classification, confidence and risk.
 
-This module turns the aggregation metrics into the three outputs the rest of the
-application consumes. The decision rules are deliberately simple, threshold- and
-weight-driven rules sourced from configuration, so every verdict can be traced
-back to the configured constants and the input metrics:
+This module turns the normalized detector signals into the executable decision
+the rest of the application consumes. It replaces the earlier manipulation-score
+thresholding with a genuine three-class comparison:
 
-* **verdict** — a two-bound rule on the weighted manipulation score combined
-  with detector agreement:
-    * ``manipulation <= original_max_manipulation`` → ``ORIGINAL`` (the signal
-      profile is honest/natural).
-    * ``manipulation >= generated_min_manipulation AND agreement >=
-      generated_min_agreement`` → ``AI_GENERATED`` (the image is consistently,
-      strongly synthetic).
-    * otherwise → ``AI_EDITED`` (localized, partial or conflicting evidence).
-* **confidence** — a weighted blend of four transparent factors: agreement
-  (signals point the same way), decisiveness (the mean is far from the ambiguous
-  ``0.5``), coverage (how many intended detectors ran) and reliability (how much
-  the detectors trust their own signals). Borderline or sparse evidence lowers
-  confidence; strong, unanimous evidence raises it.
-* **risk** — derived from the fused confidence via the configured thresholds.
-
-All thresholds and blend weights come from :class:`PipelineConfig`.
+* **verdict** — the hypothesis (Original / AI Edited / AI Generated) that the
+  accumulated detector evidence supports most strongly. Confidence is *not* a
+  single manipulation gate; each detector contributes different evidence to each
+  hypothesis via the contribution matrix.
+* **margin** — how far the winning hypothesis clears its runner-up; this drives
+  confidence.
+* **confidence** — a calibrated blend of the classification margin, detector
+  agreement, winning-hypothesis separation, active-detector coverage and the
+  detectors' own self-assessed reliability. It expresses *certainty about the
+     classification*, not merely how manipulated the image looks.
+* **risk** — derived from verdict + confidence via the configured thresholds.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.core.enums import RiskLevel, Verdict
 from app.pipeline.config import PipelineConfig
 
-from .metrics import FusionMetrics
-from .normalize import clamp01
+from .classify import (
+    ClassificationResult,
+    DetectorHypothesisContribution,
+    compute_classification,
+)
+from .hypotheses import Hypothesis
+
+_VERDICT_TO_LABEL = {
+    Verdict.ORIGINAL: "Original",
+    Verdict.AI_EDITED: "AI Edited",
+    Verdict.AI_GENERATED: "AI Generated",
+}
+
+_HYPOTHESIS_TO_VERDICT = {
+    Hypothesis.ORIGINAL: Verdict.ORIGINAL,
+    Hypothesis.AI_EDITED: Verdict.AI_EDITED,
+    Hypothesis.AI_GENERATED: Verdict.AI_GENERATED,
+}
 
 
 @dataclass(frozen=True)
 class FusionDecision:
-    """The executable decision derived from the fusion metrics."""
+    """The executable decision derived from the classifier."""
 
     verdict: Verdict
     confidence: float
     risk_level: RiskLevel
     reason: str
-
-
-def compute_confidence(metrics: FusionMetrics, config: PipelineConfig) -> float:
-    """Blend agreement, decisiveness, coverage and reliability into confidence."""
-    if metrics.active_count == 0:
-        return 0.0
-    total_inv = 1.0 / config.confidence_weight_sum()
-    confidence = (
-        config.confidence_agreement_weight * metrics.agreement
-        + config.confidence_decisiveness_weight * metrics.decisiveness
-        + config.confidence_coverage_weight * metrics.coverage
-        + config.confidence_reliability_weight * metrics.reliability
-    ) * total_inv
-    return round(clamp01(confidence), 4)
-
-
-def decide_verdict(
-    metrics: FusionMetrics, config: PipelineConfig
-) -> tuple[Verdict, str]:
-    """Choose a verdict from the manipulation score and detector agreement."""
-    manipulation = metrics.manipulation
-    if metrics.active_count == 0:
-        return (
-            Verdict.ORIGINAL,
-            "No detector produced a usable signal, so no manipulation "
-            "evidence was found.",
-        )
-    if manipulation <= config.original_max_manipulation:
-        return (
-            Verdict.ORIGINAL,
-            (
-                f"Fused manipulation score {manipulation:.2f} is at or below "
-                f"the original ceiling ({config.original_max_manipulation:.2f})."
-            ),
-        )
-    if (
-        manipulation >= config.generated_min_manipulation
-        and metrics.agreement >= config.generated_min_agreement
-    ):
-        return (
-            Verdict.AI_GENERATED,
-            (
-                f"Fused manipulation score {manipulation:.2f} exceeds "
-                f"{config.generated_min_manipulation:.2f} and detector agreement "
-                f"{metrics.agreement:.2f} exceeds "
-                f"{config.generated_min_agreement:.2f}, "
-                "indicating strong, coherent synthetic content."
-            ),
-        )
-    return (
-        Verdict.AI_EDITED,
-        (
-            f"Fused manipulation {manipulation:.2f} is above the original ceiling "
-            f"but below the AI-generated threshold "
-            f"({config.generated_min_manipulation:.2f}) "
-            "or the detectors disagree, indicating localized/partial editing."
-        ),
+    # Three-class transparency (also mirrored onto FusionResult).
+    hypothesis_scores: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    runner_up_verdict: Verdict | None = None
+    classification_margin: float = 0.0
+    detector_contributions: list[DetectorHypothesisContribution] = field(
+        default_factory=list
     )
 
 
-def make_decision(metrics: FusionMetrics, config: PipelineConfig) -> FusionDecision:
-    """Assemble the full decision (verdict + confidence + risk + reason)."""
-    verdict, reason = decide_verdict(metrics, config)
-    confidence = compute_confidence(metrics, config)
-    risk_level = config.risk_for(verdict, confidence)
+def verdict_for_hypothesis(hypothesis: Hypothesis) -> Verdict:
+    """Map a hypothesis enum to its equivalent verdict enum."""
+    return _HYPOTHESIS_TO_VERDICT[hypothesis]
+
+
+def hypothesis_label(verdict: Verdict) -> str:
+    """Return the display label of the hypothesis matching ``verdict``."""
+    return _VERDICT_TO_LABEL[verdict]
+
+
+def _intro_for(verdict: Verdict, config: PipelineConfig) -> str:
+    """Return the configured reasoning intro paragraph for a verdict."""
+    return {
+        Verdict.ORIGINAL: config.reasoning_intro_original,
+        Verdict.AI_EDITED: config.reasoning_intro_edited,
+        Verdict.AI_GENERATED: config.reasoning_intro_generated,
+    }[verdict]
+
+
+def _reason(classification: ClassificationResult, config: PipelineConfig) -> str:
+    """Compose a deterministic human-readable decision reason."""
+    verdict = _HYPOTHESIS_TO_VERDICT[classification.winner]
+    label = _VERDICT_TO_LABEL[verdict]
+    return (
+        f"{_intro_for(verdict, config)} Classified as {label} with "
+        f"{classification.confidence:.0%} certainty (margin "
+        f"{classification.margin:.0%} over its runner-up)."
+    )
+
+
+def make_decision(
+    normalized,
+    config: PipelineConfig,
+    total_capacity: int,
+) -> FusionDecision:
+    """Classify ``normalized`` signals into the final decision."""
+    classification = compute_classification(
+        normalized, config, total_capacity=total_capacity
+    )
+    risk_level = config.risk_for(classification.verdict, classification.confidence)
     return FusionDecision(
-        verdict=verdict,
-        confidence=confidence,
+        verdict=classification.verdict,
+        confidence=classification.confidence,
         risk_level=risk_level,
-        reason=reason,
+        reason=_reason(classification, config),
+        hypothesis_scores=(
+            classification.scores.original,
+            classification.scores.edited,
+            classification.scores.generated,
+        ),
+        runner_up_verdict=_HYPOTHESIS_TO_VERDICT[classification.runner_up],
+        classification_margin=classification.margin,
+        detector_contributions=classification.detector_contributions,
     )

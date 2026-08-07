@@ -1,14 +1,16 @@
 """Deterministic forensic fusion engine.
 
 The :class:`DeterministicFusionEngine` is the single component responsible for
-turning detector signals into an explainable forensic verdict. It replaces the
-placeholder engine and performs a fixed, fully transparent pipeline:
+turning detector signals into an explainable forensic verdict. It performs a
+fixed, fully transparent pipeline:
 
     1. normalize — map every detector output onto the shared ``[0, 1]`` scale.
-    2. metrics   — aggregate the normalized signals (manipulation, agreement,
-                   reliability, coverage).
-    3. decide    — derive the verdict, confidence and risk from configuration.
-    4. explain   — build per-detector contributions and ranked evidence.
+    2. classify  — accumulate per-hypothesis evidence through the contribution
+                   matrix and rank Original / AI Edited / AI Generated.
+    3. decide    — derive verdict, confidence, margin and risk from the
+                   classifier (see :mod:`app.pipeline.fusion.decision`).
+    4. explain   — build per-detector contributions, class-aware reasoning and
+                   ranked evidence.
 
 Every step is a pure, deterministic function; no randomness, hidden weights or
 external models are involved. The behavior is fully governed by
@@ -20,6 +22,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from app.core.enums import Verdict
 from app.pipeline.base import ScoreResult
 from app.pipeline.config import PipelineConfig
 from app.pipeline.fusion.base import FusionEngine, FusionResult
@@ -30,6 +33,13 @@ from .decision import make_decision
 from .evidence import aggregate_evidence, build_contributions
 from .metrics import compute_metrics
 from .normalize import normalize_signal
+
+# Index of each verdict inside the (original, ai_edited, ai_generated) tuple.
+_VERDICT_HYPOTHESIS_INDEX = {
+    Verdict.ORIGINAL: 0,
+    Verdict.AI_EDITED: 1,
+    Verdict.AI_GENERATED: 2,
+}
 
 
 class DeterministicFusionEngine(FusionEngine):
@@ -47,10 +57,12 @@ class DeterministicFusionEngine(FusionEngine):
 
         total_capacity = len(self._config.enabled_detector_names())
         metrics = compute_metrics(normalized, total_capacity)
-        decision = make_decision(metrics, self._config)
+        decision = make_decision(normalized, self._config, total_capacity)
 
         contributions = build_contributions(
-            normalized, self._config.manipulation_support_threshold
+            normalized,
+            self._config.manipulation_support_threshold,
+            decision.detector_contributions,
         )
         evidence = aggregate_evidence(normalized, contributions)
 
@@ -75,6 +87,12 @@ class DeterministicFusionEngine(FusionEngine):
             reliability=metrics.reliability,
             coverage=metrics.coverage,
             decision_reason=decision.reason,
+            hypothesis_scores=decision.hypothesis_scores,
+            runner_up_verdict=decision.runner_up_verdict,
+            classification_margin=decision.classification_margin,
+            detector_reasoning=_build_detector_reasoning(
+                contributions, decision.verdict
+            ),
             fusion_version=self._config.fusion_version,
             weight_config_version=self._config.weight_config_version,
             pipeline_version=self._config.pipeline_version,
@@ -86,3 +104,34 @@ class DeterministicFusionEngine(FusionEngine):
     def config(self) -> PipelineConfig:
         """Return the configuration driving this engine."""
         return self._config
+
+
+def _build_detector_reasoning(
+    contributions: list,
+    verdict: Verdict,
+) -> list[dict[str, object]]:
+    """Expose why each detector supported/opposed the winning class.
+
+    Each entry is a deterministic, machine-readable record intended for future
+    frontend visualization: the detector name, its normalized score, its
+    class-weighted support percentages and whether it supported the winning
+    hypothesis.
+    """
+    winning_index = _VERDICT_HYPOTHESIS_INDEX[verdict]
+    reasoning: list[dict[str, object]] = []
+    for contribution in contributions:
+        weights = contribution.hypothesis_weights
+        reasoning.append(
+            {
+                "detector": contribution.detector,
+                "normalized_score": round(contribution.normalized_score, 4),
+                "preferred_hypothesis": contribution.preferred_hypothesis,
+                "hypothesis_weights": {
+                    "original": round(weights[0], 4),
+                    "ai_edited": round(weights[1], 4),
+                    "ai_generated": round(weights[2], 4),
+                },
+                "supports_winner": weights[winning_index] == max(weights),
+            }
+        )
+    return reasoning

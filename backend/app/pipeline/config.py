@@ -118,6 +118,104 @@ class PipelineConfig(BaseSettings):
     # manipulation; at or below (1 - threshold) it evidences an original.
     manipulation_support_threshold: float = 0.5
 
+    # ------------------------------------------------------------------
+    # Three-class forensic classification (Original | AI Edited | AI Generated)
+    # ------------------------------------------------------------------
+    # Per-hypothesis response curve centres on the normalized manipulation
+    # score: Original evidence peaks at a clean (low) reading, AI Edited peaks
+    # at a localized/partial (mid) reading, AI Generated peaks at a strongly
+    # synthetic (high) reading. The response is a Gaussian ``e^(-d^2/2sigma^2)``
+    # over the signed distance from each centre, so the same score produces a
+    # *soft* amount of evidence for every hypothesis rather than a hard cut.
+    classifier_original_center: float = 0.0
+    classifier_edited_center: float = 0.5
+    classifier_generated_center: float = 1.0
+    # Gaussian standard deviation (in score units) controlling how quickly
+    # evidence for a hypothesis fades as the reading moves away from its center.
+    classifier_resolution: float = 0.15
+
+    # Detector contribution matrix. For each detector, how strongly its signal
+    # may support each of the three hypotheses, given the score it measured.
+    # High coefficients mark detectors whose evidence *naturally* speaks to a
+    # hypothesis (e.g. ELA -> AI Edited, frequency -> AI Generated); low values
+    # mean the detector rarely implies that hypothesis. All values are used as
+    # relative weights and normalised at evaluation time.
+    classifier_contribution_matrix: dict[str, dict[str, float]] = Field(
+        default_factory=lambda: {
+            "metadata": {
+                "original": 0.90,
+                "ai_edited": 0.20,
+                "ai_generated": 0.25,
+            },
+            "frequency": {
+                "original": 0.15,
+                "ai_edited": 0.30,
+                "ai_generated": 1.00,
+            },
+            "ela": {
+                "original": 0.15,
+                "ai_edited": 1.00,
+                "ai_generated": 0.40,
+            },
+            "noise": {
+                "original": 0.85,
+                "ai_edited": 0.50,
+                "ai_generated": 0.45,
+            },
+            "compression": {
+                "original": 0.50,
+                "ai_edited": 0.90,
+                "ai_generated": 0.40,
+            },
+            "texture": {
+                "original": 0.40,
+                "ai_edited": 0.70,
+                "ai_generated": 0.80,
+            },
+            "lighting": {
+                "original": 0.40,
+                "ai_edited": 0.60,
+                "ai_generated": 0.60,
+            },
+        }
+    )
+    # Weight applied to a detector missing from ``classifier_contribution_matrix``.
+    # All three hypotheses receive this same fallback so partial configuration
+    # never fails (the detector still contributes proportionally to its reading).
+    classifier_contribution_default: float = 0.5
+
+    # Confidence model for classification. Blends the classification margin,
+    # detector agreement, the winning-hypothesis probability, the active-detector
+    # coverage and the detectors' self-assessed reliability. The weights sum to 1.
+    classification_margin_weight: float = 0.40
+    classification_agreement_weight: float = 0.20
+    classification_separation_weight: float = 0.20
+    classification_coverage_weight: float = 0.10
+    classification_reliability_weight: float = 0.10
+
+    # Deterministic reasoning templates used by the explainer. ``{}`` placeholders
+    # are filled from each classification at runtime.
+    reasoning_intro_original: str = (
+        "Camera metadata is internally consistent, natural sensor noise is present, "
+        "frequency analysis found no periodic artifacts, and lighting remains "
+        "physically coherent."
+    )
+    reasoning_intro_edited: str = (
+        "Localized ELA artifacts, inconsistent noise patterns, and compression "
+        "discontinuities indicate modification of an authentic photograph."
+    )
+    reasoning_intro_generated: str = (
+        "Strong frequency artifacts, globally uniform texture, inconsistent lighting, "
+        "and synthetic noise characteristics strongly support AI generation."
+    )
+    reasoning_support_line: str = "{detector} supported {hypothesis_label}."
+    reasoning_oppose_line: str = "{detector} opposed the winning hypothesis."
+    reasoning_detailed_line: str = (
+        "{detector} weighted {original:.0%} toward {original_label}, "
+        "{edited:.0%} toward {edited_label}, and {generated:.0%} toward "
+        "{generated_label}."
+    )
+
     # Deterministic placeholder decision ---------------------------------
     # The placeholder pipeline does no real math; it emits this fixed decision
     # so the application lifecycle stays deterministic. The real fusion engine
@@ -182,8 +280,49 @@ class PipelineConfig(BaseSettings):
         }
 
     def confidence_weight_sum(self) -> float:
-        """Total of the confidence factor weights (documented as roughly 1)."""
+        """Total of the confidence-model weights (documented as roughly 1)."""
         return sum(self.confidence_weights().values())
+
+    # ------------------------------------------------------------------
+    # Three-class classification helpers
+    # ------------------------------------------------------------------
+    def contribution_weights_for(self, detector: str) -> list[float]:
+        """Return the per-hypothesis contribution weights for ``detector``.
+
+        The order matches :data:`HYPOTHESES` (original, AI edited, AI generated)
+        and every value is non-negative. Unknown detectors fall back to
+        ``classifier_contribution_default`` for each hypothesis so partial
+        configuration never drops a signal.
+        """
+        row = self.classifier_contribution_matrix.get(detector)
+        if row is None:
+            return [self.classifier_contribution_default] * 3
+        return [
+            max(0.0, row.get(name, self.classifier_contribution_default))
+            for name in ("original", "ai_edited", "ai_generated")
+        ]
+
+    def classifier_centers(self) -> list[float]:
+        """Return the response-curve centres in hypothesis order."""
+        return [
+            self.classifier_original_center,
+            self.classifier_edited_center,
+            self.classifier_generated_center,
+        ]
+
+    def classification_weights(self) -> dict[str, float]:
+        """Return the classification-confidence blend factors by role."""
+        return {
+            "margin": self.classification_margin_weight,
+            "agreement": self.classification_agreement_weight,
+            "separation": self.classification_separation_weight,
+            "coverage": self.classification_coverage_weight,
+            "reliability": self.classification_reliability_weight,
+        }
+
+    def classification_weight_sum(self) -> float:
+        """Total of the classification-confidence factor weights."""
+        return sum(self.classification_weights().values())
 
     def risk_level_for(self, confidence: float) -> RiskLevel:
         """Map a fused confidence score to a risk level using thresholds."""

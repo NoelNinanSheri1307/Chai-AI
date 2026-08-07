@@ -9,11 +9,23 @@ tuned or swapped without touching the pipeline or the services.
 """
 
 from app.pipeline.fusion.base import DetectorContribution, FusionEngine, FusionResult
+from app.pipeline.fusion.classify import (
+    ClassificationResult,
+    DetectorHypothesisContribution,
+    compute_classification,
+)
 from app.pipeline.fusion.engine import DeterministicFusionEngine
+from app.pipeline.fusion.hypotheses import HYPOTHESES, Hypothesis, HypothesisScores
 
 __all__ = [
+    "ClassificationResult",
     "DetectorContribution",
+    "DetectorHypothesisContribution",
     "DeterministicFusionEngine",
     "FusionEngine",
     "FusionResult",
+    "HYPOTHESES",
+    "Hypothesis",
+    "HypothesisScores",
+    "compute_classification",
 ]

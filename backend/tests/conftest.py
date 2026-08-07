@@ -28,9 +28,9 @@ from app.pipeline.config import (
     get_pipeline_config,
 )
 from app.pipeline.detectors.registry import build_detectors
-from app.pipeline.explanation.placeholder import (
-    PlaceholderEvidenceGenerator,
-    PlaceholderExplanationGenerator,
+from app.pipeline.explanation.classifier import (
+    ClassificationEvidenceGenerator,
+    ClassificationExplanationGenerator,
 )
 from app.pipeline.fusion.engine import DeterministicFusionEngine
 from app.pipeline.heatmap.generator import DeterministicHeatmapGenerator
@@ -130,8 +130,8 @@ def pipeline(pipeline_config: PipelineConfig) -> ModularAnalysisPipeline:
         detectors=build_detectors(pipeline_config.enabled_detector_names()),
         fusion=DeterministicFusionEngine(pipeline_config),
         heatmap_generator=DeterministicHeatmapGenerator(pipeline_config),
-        evidence_generator=PlaceholderEvidenceGenerator(pipeline_config),
-        explanation_generator=PlaceholderExplanationGenerator(pipeline_config),
+        evidence_generator=ClassificationEvidenceGenerator(pipeline_config),
+        explanation_generator=ClassificationExplanationGenerator(pipeline_config),
         pipeline_config=pipeline_config,
     )
 

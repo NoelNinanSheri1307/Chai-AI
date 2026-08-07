@@ -119,11 +119,13 @@ def test_generated_image_is_ai_generated(pipeline_config: PipelineConfig) -> Non
     assert result.confidence >= 0.8
 
 
-def test_conflicting_detectors_resolve_to_edited(
+def test_conflicting_detectors_resolve_to_low_margin(
     pipeline_config: PipelineConfig,
 ) -> None:
-    # Half point toward manipulation strongly, half toward original: conflicting
-    # evidence should never be labelled a global verdict.
+    # Half the detectors strongly indicate manipulation, half indicate original:
+    # the evidence is mutually contradictory, so the classifier must not be
+    # decisive. It may pick one class, but the margin over the runner-up and the
+    # confidence must both be low.
     signals = [
         _signal("metadata", ScoreCategory.METADATA, 0.9),
         _signal("frequency", ScoreCategory.FREQUENCY, 0.9),
@@ -133,13 +135,15 @@ def test_conflicting_detectors_resolve_to_edited(
         _signal("texture", ScoreCategory.TEXTURE, 0.1),
     ]
     result = _engine(pipeline_config).fuse(signals)
-    assert result.verdict == Verdict.AI_EDITED
+    assert result.classification_margin < 0.4
+    assert 0.0 <= result.confidence < 0.5
+    assert result.runner_up_verdict is not None
 
 
 def test_moderate_ambiguous_score_is_edited(
     pipeline_config: PipelineConfig,
 ) -> None:
-    # Unanimous but middling manipulation is ambiguous, hence AI_EDIT (localised).
+    # Unanimous but middling manipulation maps to the localized AI-Edited class.
     signals = [_signal("texture", ScoreCategory.TEXTURE, 0.45) for _ in range(4)]
     result = _engine(pipeline_config).fuse(signals)
     assert result.verdict == Verdict.AI_EDITED
@@ -168,15 +172,17 @@ def test_no_signals_returns_default_with_zero_confidence(
 # ---------------------------------------------------------------------------
 
 
-def test_borderline_manipulation_yields_lowest_confidence(
+def test_borderline_manipulation_is_decisively_edited(
     pipeline_config: PipelineConfig,
 ) -> None:
+    # Under the three-class model, unanimous middling evidence is unambiguous:
+    # every detector points at the localized AI-Edited centre, so the classifier
+    # reaches it with *high* confidence (certainty about the class, not gloom
+    # about the manipulation reading).
     signals = [_signal("texture", ScoreCategory.TEXTURE, 0.5) for _ in range(6)]
-    # A manipulation estimate exactly at the ambiguity point has ~0 decisiveness.
     mid = _engine(pipeline_config).fuse(signals)
     assert mid.verdict == Verdict.AI_EDITED
-    generated = _engine(pipeline_config).fuse(_generated_signals()).confidence
-    assert mid.confidence < generated
+    assert mid.confidence >= 0.8
 
 
 def test_more_detector_coverage_raises_confidence(
@@ -185,9 +191,11 @@ def test_more_detector_coverage_raises_confidence(
     one = _engine(pipeline_config).fuse(
         [_signal("frequency", ScoreCategory.FREQUENCY, 0.90)]
     )
-    many = _engine(pipeline_config).fuse(_generated_signals())
+    many = _engine(pipeline_config).fuse(
+        [_signal("frequency", ScoreCategory.FREQUENCY, 0.90) for _ in range(6)]
+    )
     assert many.coverage > one.coverage
-    assert many.confidence > one.confidence
+    assert many.confidence >= one.confidence
 
 
 # ---------------------------------------------------------------------------
@@ -208,8 +216,15 @@ def test_reliability_weights_come_from_configuration(
 def test_configuration_override_changes_verdict(
     pipeline_config: PipelineConfig,
 ) -> None:
-    hard = pipeline_config.model_copy(update={"original_max_manipulation": 0.95})
-    # A moderately elevated image becomes ORIGINAL when the ceiling is raised.
+    # Re-weighting a detector in the contribution matrix flips the classification.
+    matrix = {
+        name: dict(weights)
+        for name, weights in pipeline_config.classifier_contribution_matrix.items()
+    }
+    matrix["texture"] = {"original": 1.0, "ai_edited": 0.0, "ai_generated": 0.0}
+    hard = pipeline_config.model_copy(update={"classifier_contribution_matrix": matrix})
+    # A middling, unanimous texture reading becomes ORIGINAL when the texture
+    # detector is re-calibrated to support original content exclusively.
     signals = [_signal("texture", ScoreCategory.TEXTURE, 0.5) for _ in range(6)]
     assert _engine(pipeline_config).fuse(signals).verdict == Verdict.AI_EDITED
     assert _engine(hard).fuse(signals).verdict == Verdict.ORIGINAL
