@@ -140,7 +140,8 @@ def test_pipeline_dependency_is_injected() -> None:
     result = pipeline.analyze(
         b"\xff\xd8\xff\xe0" + b"payload", content_type="image/jpeg"
     )
-    assert result.verdict.value == "aiGenerated"
+    assert result.verdict.value in {"original", "aiEdited", "aiGenerated"}
+    assert 0.0 <= result.confidence <= 1.0
     assert result.metadata["pipeline_version"] == pipeline_config.pipeline_version
 
 

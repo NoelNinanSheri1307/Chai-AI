@@ -21,7 +21,10 @@ def test_share_text_returns_report(api_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert "Chai AI" in body["text"]
-    assert "AI Generated" in body["text"]
+    assert "Verdict:" in body["text"]
+    assert any(
+        label in body["text"] for label in ("Original", "AI Edited", "AI Generated")
+    )
 
 
 def test_share_text_shortcut_path_returns_same(api_client: TestClient) -> None:

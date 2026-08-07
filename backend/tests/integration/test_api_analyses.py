@@ -15,10 +15,11 @@ def test_upload_analysis_returns_completed_result(api_client: TestClient) -> Non
     assert response.status_code == 200
     body = response.json()
     assert body["id"].startswith("ana_")
-    assert body["verdict"] == "aiGenerated"
+    assert body["verdict"] in {"original", "aiEdited", "aiGenerated"}
+    assert 0.0 <= body["confidence"] <= 1.0
     assert "scores" in body
     assert "indicators" in body
-    assert body["confidence"] == 0.91
+    assert body["riskLevel"] in {"low", "medium", "high"}
 
 
 def test_upload_garbage_returns_422_invalid_image(api_client: TestClient) -> None:
@@ -51,7 +52,7 @@ def test_get_analysis_returns_stored_result(api_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["id"] == uploaded["id"]
-    assert body["verdict"] == "aiGenerated"
+    assert body["verdict"] == uploaded["verdict"]
 
 
 def test_get_analysis_missing_returns_404(api_client: TestClient) -> None:

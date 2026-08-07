@@ -8,7 +8,7 @@ from app.pipeline.explanation.placeholder import (
     PlaceholderEvidenceGenerator,
     PlaceholderExplanationGenerator,
 )
-from app.pipeline.fusion.placeholder import PlaceholderFusionEngine
+from app.pipeline.fusion.engine import DeterministicFusionEngine
 
 
 def test_generators_are_abstract() -> None:
@@ -23,7 +23,7 @@ def test_generators_are_abstract() -> None:
 def test_evidence_generator_returns_configured_lines(
     pipeline_config: PipelineConfig,
 ) -> None:
-    fusion = PlaceholderFusionEngine(pipeline_config).fuse([])
+    fusion = DeterministicFusionEngine(pipeline_config).fuse([])
     generator = PlaceholderEvidenceGenerator(pipeline_config)
     evidence = generator.generate(fusion, [])
     assert evidence == pipeline_config.placeholder_evidence
@@ -31,7 +31,7 @@ def test_evidence_generator_returns_configured_lines(
 
 
 def test_evidence_output_is_deterministic(pipeline_config: PipelineConfig) -> None:
-    fusion = PlaceholderFusionEngine(pipeline_config).fuse([])
+    fusion = DeterministicFusionEngine(pipeline_config).fuse([])
     generator = PlaceholderEvidenceGenerator(pipeline_config)
     assert generator.generate(fusion, []) == generator.generate(fusion, [])
 
@@ -39,7 +39,7 @@ def test_evidence_output_is_deterministic(pipeline_config: PipelineConfig) -> No
 def test_explanation_generator_returns_human_text(
     pipeline_config: PipelineConfig,
 ) -> None:
-    fusion = PlaceholderFusionEngine(pipeline_config).fuse([])
+    fusion = DeterministicFusionEngine(pipeline_config).fuse([])
     generator = PlaceholderExplanationGenerator(pipeline_config)
     text = generator.explain(fusion, pipeline_config.placeholder_evidence, [])
     assert text == pipeline_config.placeholder_explanation
@@ -50,7 +50,7 @@ def test_evidence_and_explanation_are_separate_concerns(
     pipeline_config: PipelineConfig,
 ) -> None:
     """Evidence (facts) and explanation (narrative) are distinct outputs."""
-    fusion = PlaceholderFusionEngine(pipeline_config).fuse([])
+    fusion = DeterministicFusionEngine(pipeline_config).fuse([])
     evidence = PlaceholderEvidenceGenerator(pipeline_config).generate(fusion, [])
     explanation = PlaceholderExplanationGenerator(pipeline_config).explain(
         fusion, evidence, []

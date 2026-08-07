@@ -39,7 +39,7 @@ from app.pipeline.explanation.placeholder import (
     PlaceholderExplanationGenerator,
 )
 from app.pipeline.fusion.base import FusionEngine
-from app.pipeline.fusion.placeholder import PlaceholderFusionEngine
+from app.pipeline.fusion.engine import DeterministicFusionEngine
 from app.pipeline.heatmap.base import HeatmapGenerator
 from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
 from app.pipeline.runner import ModularAnalysisPipeline
@@ -90,8 +90,8 @@ def get_detectors(pipeline_config: PipelineConfigDep) -> list[Detector]:
 
 
 def get_fusion_engine(pipeline_config: PipelineConfigDep) -> FusionEngine:
-    """Provide the fusion engine (deterministic placeholder for now)."""
-    return PlaceholderFusionEngine(pipeline_config)
+    """Provide the deterministic forensic fusion engine."""
+    return DeterministicFusionEngine(pipeline_config)
 
 
 def get_heatmap_generator(pipeline_config: PipelineConfigDep) -> HeatmapGenerator:

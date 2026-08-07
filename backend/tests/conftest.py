@@ -32,7 +32,7 @@ from app.pipeline.explanation.placeholder import (
     PlaceholderEvidenceGenerator,
     PlaceholderExplanationGenerator,
 )
-from app.pipeline.fusion.placeholder import PlaceholderFusionEngine
+from app.pipeline.fusion.engine import DeterministicFusionEngine
 from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
 from app.pipeline.runner import ModularAnalysisPipeline
 
@@ -128,7 +128,7 @@ def pipeline(pipeline_config: PipelineConfig) -> ModularAnalysisPipeline:
     """A fully wired modular pipeline using all placeholder components."""
     return ModularAnalysisPipeline(
         detectors=build_detectors(pipeline_config.enabled_detector_names()),
-        fusion=PlaceholderFusionEngine(pipeline_config),
+        fusion=DeterministicFusionEngine(pipeline_config),
         heatmap_generator=PlaceholderHeatmapGenerator(pipeline_config),
         evidence_generator=PlaceholderEvidenceGenerator(pipeline_config),
         explanation_generator=PlaceholderExplanationGenerator(pipeline_config),

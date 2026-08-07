@@ -46,7 +46,7 @@ def test_history_detail_returns_full_result(api_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["id"] == public_id
-    assert body["verdict"] == "aiGenerated"
+    assert body["verdict"] in {"original", "aiEdited", "aiGenerated"}
     assert body["scores"]
 
 
