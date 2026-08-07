@@ -41,7 +41,7 @@ from app.pipeline.explanation.placeholder import (
 from app.pipeline.fusion.base import FusionEngine
 from app.pipeline.fusion.engine import DeterministicFusionEngine
 from app.pipeline.heatmap.base import HeatmapGenerator
-from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
+from app.pipeline.heatmap.generator import DeterministicHeatmapGenerator
 from app.pipeline.runner import ModularAnalysisPipeline
 from app.repos.analysis_repo import AnalysisRepository
 from app.repos.comparison_repo import ComparisonRepository
@@ -95,8 +95,8 @@ def get_fusion_engine(pipeline_config: PipelineConfigDep) -> FusionEngine:
 
 
 def get_heatmap_generator(pipeline_config: PipelineConfigDep) -> HeatmapGenerator:
-    """Provide the heatmap generator (deterministic placeholder for now)."""
-    return PlaceholderHeatmapGenerator(pipeline_config)
+    """Provide the deterministic spatial heatmap generator."""
+    return DeterministicHeatmapGenerator(pipeline_config)
 
 
 def get_evidence_generator(pipeline_config: PipelineConfigDep) -> EvidenceGenerator:

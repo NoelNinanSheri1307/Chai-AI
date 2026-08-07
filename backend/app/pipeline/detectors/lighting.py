@@ -10,7 +10,7 @@ import numpy as np
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
-from app.pipeline.signals import DetectorHealth, DetectorSignal
+from app.pipeline.signals import DetectorHealth, DetectorSignal, SpatialRegion
 
 
 class LightingDetector(Detector):
@@ -147,6 +147,29 @@ class LightingDetector(Detector):
 
         processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
+        # Localize illumination inconsistencies: when lighting directions
+        # diverge, attribute each image quadrant as a potential manipulation
+        # area (coarse, whole-quadrant boxes).
+        severity = (
+            "strong" if score >= 0.85 else ("moderate" if score >= 0.65 else "low")
+        )
+        spacing = 1.0 / self._NUM_DIVISIONS
+        spatial_regions = tuple(
+            SpatialRegion(
+                x=col * spacing,
+                y=row * spacing,
+                width=spacing,
+                height=spacing,
+                confidence=score,
+                severity=severity,
+                label="Lighting inconsistency",
+                detector=self.name,
+            )
+            for row in range(self._NUM_DIVISIONS)
+            for col in range(self._NUM_DIVISIONS)
+            if circ_std >= 1.0
+        )
+
         return DetectorSignal(
             detector_name=self.name,
             detector_version=self.version,
@@ -161,6 +184,7 @@ class LightingDetector(Detector):
             },
             processing_time_ms=processing_time_ms,
             indicators=indicators,
+            regions=spatial_regions,
         )
 
     def health(self) -> DetectorHealth:

@@ -28,7 +28,9 @@ class ForensicScoreDTO(BaseModel):
 class DetectedIndicatorDTO(BaseModel):
     """A discrete manipulation signal found by the pipeline."""
 
-    type: Literal["frequency", "texture", "metadata", "diffusion", "compression", "lighting"]
+    type: Literal[
+        "frequency", "texture", "metadata", "diffusion", "compression", "lighting"
+    ]
     confidence: float = Field(ge=0.0, le=1.0)
     severity: SeverityLabel
     description: str = Field(min_length=1)

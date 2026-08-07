@@ -10,7 +10,8 @@ import numpy as np
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
-from app.pipeline.signals import DetectorHealth, DetectorSignal
+from app.pipeline.heatmap.spatial import normalize_pixel_box
+from app.pipeline.signals import DetectorHealth, DetectorSignal, SpatialRegion
 
 
 class CompressionDetector(Detector):
@@ -133,6 +134,19 @@ class CompressionDetector(Detector):
 
         processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
+        severity = "strong" if tamper_count >= 6 else "moderate"
+        image_height, image_width = gray.shape[:2]
+        spatial_regions = tuple(
+            SpatialRegion(
+                *normalize_pixel_box(x, y, w, h, image_width, image_height),
+                confidence=score,
+                severity=severity,
+                label="Compression block",
+                detector=self.name,
+            )
+            for x, y, w, h in regions
+        )
+
         return DetectorSignal(
             detector_name=self.name,
             detector_version=self.version,
@@ -146,6 +160,7 @@ class CompressionDetector(Detector):
             },
             processing_time_ms=processing_time_ms,
             indicators=indicators,
+            regions=spatial_regions,
         )
 
     def health(self) -> DetectorHealth:

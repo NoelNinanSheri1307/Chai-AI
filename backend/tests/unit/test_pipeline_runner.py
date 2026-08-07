@@ -11,7 +11,7 @@ from app.pipeline.explanation.placeholder import (
     PlaceholderExplanationGenerator,
 )
 from app.pipeline.fusion.engine import DeterministicFusionEngine
-from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
+from app.pipeline.heatmap.generator import DeterministicHeatmapGenerator
 from app.pipeline.runner import ModularAnalysisPipeline
 from tests.sample_images import JPEG_BYTES
 
@@ -56,7 +56,7 @@ def test_disabling_a_detector_removes_its_signal(
     pipeline = ModularAnalysisPipeline(
         detectors=build_detectors(disabled_config.enabled_detector_names()),
         fusion=DeterministicFusionEngine(disabled_config),
-        heatmap_generator=PlaceholderHeatmapGenerator(disabled_config),
+        heatmap_generator=DeterministicHeatmapGenerator(disabled_config),
         evidence_generator=PlaceholderEvidenceGenerator(disabled_config),
         explanation_generator=PlaceholderExplanationGenerator(disabled_config),
         pipeline_config=disabled_config,
@@ -75,7 +75,7 @@ def test_removing_a_detector_does_not_change_pipeline(
     pipeline = ModularAnalysisPipeline(
         detectors=build_detectors(pruned_config.enabled_detector_names()),
         fusion=DeterministicFusionEngine(pruned_config),
-        heatmap_generator=PlaceholderHeatmapGenerator(pruned_config),
+        heatmap_generator=DeterministicHeatmapGenerator(pruned_config),
         evidence_generator=PlaceholderEvidenceGenerator(pruned_config),
         explanation_generator=PlaceholderExplanationGenerator(pruned_config),
         pipeline_config=pruned_config,

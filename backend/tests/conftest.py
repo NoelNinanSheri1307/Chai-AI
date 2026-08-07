@@ -33,7 +33,7 @@ from app.pipeline.explanation.placeholder import (
     PlaceholderExplanationGenerator,
 )
 from app.pipeline.fusion.engine import DeterministicFusionEngine
-from app.pipeline.heatmap.placeholder import PlaceholderHeatmapGenerator
+from app.pipeline.heatmap.generator import DeterministicHeatmapGenerator
 from app.pipeline.runner import ModularAnalysisPipeline
 
 
@@ -129,7 +129,7 @@ def pipeline(pipeline_config: PipelineConfig) -> ModularAnalysisPipeline:
     return ModularAnalysisPipeline(
         detectors=build_detectors(pipeline_config.enabled_detector_names()),
         fusion=DeterministicFusionEngine(pipeline_config),
-        heatmap_generator=PlaceholderHeatmapGenerator(pipeline_config),
+        heatmap_generator=DeterministicHeatmapGenerator(pipeline_config),
         evidence_generator=PlaceholderEvidenceGenerator(pipeline_config),
         explanation_generator=PlaceholderExplanationGenerator(pipeline_config),
         pipeline_config=pipeline_config,

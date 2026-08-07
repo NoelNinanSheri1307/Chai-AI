@@ -10,7 +10,7 @@ import numpy as np
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
-from app.pipeline.signals import DetectorHealth, DetectorSignal
+from app.pipeline.signals import DetectorHealth, DetectorSignal, SpatialRegion
 
 
 class TextureDetector(Detector):
@@ -62,6 +62,7 @@ class TextureDetector(Detector):
 
         # 2. Compute per-patch Laplacian variance
         patch_variances = []
+        cells: list[tuple[int, int]] = []
         ps = self._PATCH_SIZE
         for y in range(0, img.shape[0], ps):
             for x in range(0, img.shape[1], ps):
@@ -70,6 +71,7 @@ class TextureDetector(Detector):
                     continue
                 lap = cv2.Laplacian(patch, cv2.CV_64F)
                 patch_variances.append(float(lap.var()))
+                cells.append((x, y))
 
         if not patch_variances:
             processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
@@ -148,6 +150,31 @@ class TextureDetector(Detector):
 
         processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
+        # Localize the anomaly: mark patches whose texture variance deviates
+        # sharply from the image mean (localized over- or under-detailed areas).
+        if cv >= 1.2:
+            severity = "strong"
+        elif cv >= 0.8:
+            severity = "moderate"
+        else:
+            severity = "low"
+        deviation = 1.0 * max(std_var, 1e-3)
+        cell = self._PATCH_SIZE / 256.0
+        spatial_regions = tuple(
+            SpatialRegion(
+                x=x / 256.0,
+                y=y / 256.0,
+                width=cell,
+                height=cell,
+                confidence=score,
+                severity=severity,
+                label="Texture anomaly",
+                detector=self.name,
+            )
+            for (x, y), var in zip(cells, patch_variances, strict=True)
+            if abs(var - mean_var) > deviation
+        )
+
         return DetectorSignal(
             detector_name=self.name,
             detector_version=self.version,
@@ -163,6 +190,7 @@ class TextureDetector(Detector):
             },
             processing_time_ms=processing_time_ms,
             indicators=indicators,
+            regions=spatial_regions,
         )
 
     def health(self) -> DetectorHealth:

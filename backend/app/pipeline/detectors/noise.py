@@ -10,6 +10,7 @@ import numpy as np
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
+from app.pipeline.heatmap.spatial import mask_to_regions
 from app.pipeline.signals import DetectorHealth, DetectorSignal
 
 
@@ -108,6 +109,25 @@ class NoiseDetector(Detector):
 
         processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
+        # Localize the anomaly: threshold the high-frequency residual that was
+        # already computed and convert the blobs into normalized regions.
+        if noise_std > 0.08:
+            severity = "strong"
+        elif noise_std >= 0.04:
+            severity = "moderate"
+        else:
+            severity = "low"
+        spatial_regions = tuple(
+            mask_to_regions(
+                noise >= 20,
+                detector=self.name,
+                severity=severity,
+                label="Noise anomaly",
+                confidence=score,
+                min_area=12,
+            )
+        )
+
         return DetectorSignal(
             detector_name=self.name,
             detector_version=self.version,
@@ -121,6 +141,7 @@ class NoiseDetector(Detector):
             },
             processing_time_ms=processing_time_ms,
             indicators=indicators,
+            regions=spatial_regions,
         )
 
     def health(self) -> DetectorHealth:

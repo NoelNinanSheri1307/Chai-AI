@@ -161,6 +161,8 @@ class AnalysisRepository(BaseRepository[Analysis]):
                 overall_manipulation=result.heatmap.overall_manipulation,
             )
             self.session.add(heatmap)
+            # Flush so ``heatmap.id`` is assigned before child regions reference it.
+            self.session.flush()
             for region in result.heatmap.regions:
                 self.session.add(
                     HeatmapRegion(

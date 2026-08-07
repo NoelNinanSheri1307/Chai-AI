@@ -6,6 +6,10 @@ that turn a normalized image into signals (FFT, ELA, metadata, …) are implemen
 by a later milestone and live in this package.
 """
 
-from app.pipeline.signals.model import DetectorHealth, DetectorSignal
+from app.pipeline.signals.model import (
+    DetectorHealth,
+    DetectorSignal,
+    SpatialRegion,
+)
 
-__all__ = ["DetectorHealth", "DetectorSignal"]
+__all__ = ["DetectorHealth", "DetectorSignal", "SpatialRegion"]

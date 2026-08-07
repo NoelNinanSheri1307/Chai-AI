@@ -127,7 +127,18 @@ class PipelineConfig(BaseSettings):
     default_confidence: float = 0.91
 
     # Placeholder outputs ------------------------------------------------
+    # Fallback overall manipulation score used when no fusion result is
+    # available (for example in isolated heatmap tests).
     heatmap_overall_manipulation: float = 0.78
+
+    # Real heatmap generation --------------------------------------------
+    heatmap_enabled: bool = True
+    # Regions overlapping above this IoU are merged into a single region.
+    heatmap_iou_threshold: float = 0.4
+    # Normalized area threshold below which regions are dropped as noise.
+    heatmap_min_region_area: float = 0.0005
+    # Maximum number of regions returned (strongest first).
+    heatmap_max_regions: int = 12
     placeholder_evidence: list[str] = Field(
         default_factory=lambda: [
             "Sensor and frequency analyses returned clean profiles."
