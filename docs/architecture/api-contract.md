@@ -393,6 +393,29 @@ Auth required (bearer token).
 
 **Errors:** `404 analysis_not_found`.
 
+### 6.3 Structured JSON report
+
+`GET /v1/reports/{analysis_public_id}/json`
+
+**Response `200`** — the complete `ForensicReport` (see DTO Reference).
+
+**Errors:** `404 analysis_not_found`.
+
+### 6.4 Markdown report
+
+`GET /v1/reports/{analysis_public_id}/md`
+
+**Response `200`** — human-readable Markdown
+(`text/markdown`), with sections `Classification`, `Confidence`,
+`Why this classification?`, `Supporting Evidence`, `Contradicting Evidence`,
+`Detector Analysis`, `Suspicious Regions`, `Image Metadata`, `Processing
+Information` and `Methodology`.
+
+**Errors:** `404 analysis_not_found`.
+
+> The bare `GET /v1/reports/{analysis_public_id}` path remains an alias for the
+> share-text endpoint (not listed in OpenAPI).
+
 ---
 
 ## DTO Reference
@@ -486,6 +509,93 @@ Auth required (bearer token).
 
 > `imageBytes` is a client-side in-memory field and is **not** transmitted in API
 > JSON; binaries are served by the `/original`, `/heatmap`, and `.pdf` endpoints.
+
+### ForensicReport
+
+Served by `GET /v1/reports/{analysis_public_id}/json`. Values are normalized
+support scores from the deterministic three-class classifier (they are *not*
+calibrated posterior probabilities). Every section is derived from the stored
+analysis; no ORM object, secret or filesystem path is included.
+
+```json
+{
+  "analysis_id": "ana_512",
+  "timestamp": "2026-08-04T07:05:00Z",
+  "pipeline_version": "1.0",
+  "classification": {
+    "verdict": "aiGenerated",
+    "classification": "AI Generated",
+    "confidence": 0.94,
+    "confidence_percent": 94,
+    "risk": "high",
+    "margin": 0.5,
+    "summary": "The image is classified as AI Generated with 94% confidence because multiple independent forensic signals corroborate synthetic origin."
+  },
+  "comparison": {
+    "original": 0.08,
+    "ai_edited": 0.21,
+    "ai_generated": 0.71,
+    "winner": "AI Generated",
+    "runner_up": "AI Edited",
+    "margin": 0.5,
+    "note": "Values are normalized support scores from the deterministic three-class classifier; they are not calibrated posterior probabilities."
+  },
+  "supporting_evidence": [
+    { "source_detector": "frequency", "text": "Spectral anomalies consistent with upscaled synthetic content.", "importance": 0.75, "contribution": 0.3, "severity": null, "supports_verdict": true }
+  ],
+  "contradicting_evidence": [
+    { "source_detector": "metadata", "text": "Valid camera metadata detected.", "importance": 0.9, "contribution": 0.15, "severity": null, "supports_verdict": false }
+  ],
+  "detector_contributions": [
+    {
+      "detector": "frequency",
+      "detector_version": "0.1.0",
+      "normalized_score": 0.83,
+      "confidence": 0.9,
+      "reliability_weight": 0.18,
+      "weight_share": 0.18,
+      "contribution": 0.3,
+      "contribution_original": 0.05,
+      "contribution_ai_edited": 0.2,
+      "contribution_ai_generated": 0.75,
+      "contribution_winning_class": 0.75,
+      "direction": "supports:manipulation",
+      "preferred_hypothesis": "AI Generated",
+      "reasoning": "measured normalized score 0.83; allocated support ...; prefers AI Generated.",
+      "processing_time_ms": 160
+    }
+  ],
+  "heatmap": {
+    "present": true,
+    "overall_manipulation": 0.78,
+    "region_count": 1,
+    "regions": [
+      { "x": 0.1, "y": 0.2, "width": 0.3, "height": 0.4, "intensity": 0.8, "severity": "strong", "label": "Synthetic region", "detectors": ["frequency"] }
+    ],
+    "detector_attribution": ["frequency"],
+    "narrative": "1 localized suspicious region(s) were detected primarily by frequency. The strongest signal peaks at 80%."
+  },
+  "image_metadata": {
+    "status": "present",
+    "exif_present": true,
+    "camera_present": true,
+    "software_present": true,
+    "has_suspicious_entries": false,
+    "suspicious_entries": [],
+    "items": { "Camera": "Adobe Firefly", "Software": "ComfyUI", "Format": "PNG", "File size": "3.1 MB" },
+    "narrative": "The image declares valid camera metadata (Adobe Firefly)."
+  },
+  "processing": {
+    "total_analysis_ms": 2100,
+    "active_detector_count": 2,
+    "detector_execution": [ { "detector": "frequency", "processing_time_ms": 160 } ],
+    "pipeline_version": "1.0",
+    "fusion_version": "0.1.0",
+    "framework_version": "0.1.0",
+    "detector_versions": ["frequency@0.1.0", "texture@0.1.0"]
+  }
+}
+```
 
 ### HistoryItem
 

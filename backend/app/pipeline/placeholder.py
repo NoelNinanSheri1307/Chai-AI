@@ -22,7 +22,9 @@ from app.pipeline.base import (
     AnalysisPipeline,
     HeatmapResult,
     IndicatorResult,
+    PipelineReportData,
     PipelineResult,
+    ReportContribution,
     ScoreResult,
 )
 
@@ -64,6 +66,7 @@ class PlaceholderAnalysisPipeline(AnalysisPipeline):
             evidence=["Sensor and frequency analyses returned clean profiles."],
             metadata=metadata,
             heatmap=HeatmapResult(overall_manipulation=0.78, regions=[]),
+            report_data=_placeholder_report_data(),
         )
 
     @staticmethod
@@ -112,3 +115,57 @@ class PlaceholderAnalysisPipeline(AnalysisPipeline):
             "Format": _FORMAT_BY_MIME.get(content_type, "Unknown"),
             "File size": f"{len(image_bytes):,} bytes",
         }
+
+
+def _placeholder_report_data() -> PipelineReportData:
+    """A deterministic report snapshot mirroring the placeholder result."""
+    contributions = (
+        ReportContribution(
+            detector="frequency",
+            detector_version="0.1.0",
+            category=ScoreCategory.FREQUENCY,
+            normalized_score=0.77,
+            detector_confidence=0.90,
+            reliability=0.18,
+            weight_share=18 / 100,
+            contribution=0.20,
+            direction="supports:manipulation",
+            hypothesis_weights=(0.10, 0.25, 0.65),
+            preferred_hypothesis="AI Generated",
+            processing_time_ms=180,
+        ),
+        ReportContribution(
+            detector="texture",
+            detector_version="0.1.0",
+            category=ScoreCategory.TEXTURE,
+            normalized_score=0.83,
+            detector_confidence=0.85,
+            reliability=0.15,
+            weight_share=15 / 100,
+            contribution=0.22,
+            direction="supports:manipulation",
+            hypothesis_weights=(0.12, 0.30, 0.58),
+            preferred_hypothesis="AI Generated",
+            processing_time_ms=160,
+        ),
+        ReportContribution(
+            detector="metadata",
+            detector_version="0.1.0",
+            category=ScoreCategory.METADATA,
+            normalized_score=0.64,
+            detector_confidence=0.90,
+            reliability=0.10,
+            weight_share=10 / 100,
+            contribution=0.12,
+            direction="supports:manipulation",
+            hypothesis_weights=(0.70, 0.15, 0.15),
+            preferred_hypothesis="Original",
+            processing_time_ms=90,
+        ),
+    )
+    return PipelineReportData(
+        hypothesis_scores=(0.08, 0.21, 0.71),
+        runner_up_verdict=Verdict.AI_EDITED,
+        classification_margin=0.50,
+        contributions=contributions,
+    )

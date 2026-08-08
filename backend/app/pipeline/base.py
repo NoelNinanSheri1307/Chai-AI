@@ -63,8 +63,47 @@ class HeatmapResult:
 
 
 @dataclass(frozen=True)
+class ReportContribution:
+    """A single detector's contribution as recorded for the forensic report.
+
+    This is the persistence/report-facing snapshot of a fusion contribution: it
+    carries every field the report needs (including the detector's own
+    processing time) without depending on the fusion engine internals.
+    """
+
+    detector: str
+    detector_version: str
+    category: ScoreCategory
+    normalized_score: float
+    detector_confidence: float
+    reliability: float
+    weight_share: float
+    contribution: float
+    direction: str
+    hypothesis_weights: tuple[float, float, float]
+    preferred_hypothesis: str
+    processing_time_ms: int = 0
+
+
+@dataclass(frozen=True)
+class PipelineReportData:
+    """The forensic report snapshot produced alongside an analysis result.
+
+    Built by the pipeline from the fused decision so the report layer never
+    needs to re-run fusion. ``hypothesis_scores`` holds the normalized support
+    for (original, ai_edited, ai_generated); ``contributions`` are ordered by
+    decreasing influence (strongest first).
+    """
+
+    hypothesis_scores: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    runner_up_verdict: Verdict | None = None
+    classification_margin: float = 0.0
+    contributions: tuple[ReportContribution, ...] = ()
+
+
+@dataclass(frozen=True)
 class PipelineResult:
-    """The complete, structured output of an analysis run."""
+    """The complete, validated output of an analysis pipeline."""
 
     verdict: Verdict
     confidence: float
@@ -76,6 +115,7 @@ class PipelineResult:
     evidence: list[str] = field(default_factory=list)
     metadata: dict[str, str] = field(default_factory=dict)
     heatmap: HeatmapResult | None = None
+    report_data: PipelineReportData | None = None
 
 
 class AnalysisPipeline(ABC):

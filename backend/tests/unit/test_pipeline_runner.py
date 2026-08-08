@@ -34,9 +34,53 @@ def test_pipeline_executes_full_stage_chain(
 
 
 def test_pipeline_is_deterministic(pipeline: ModularAnalysisPipeline) -> None:
+    """Two runs produce identical deterministic outputs.
+
+    Wall-clock measurements (``duration_ms`` and per-detector
+    ``processing_time_ms``) are environment-dependent and excluded from the
+    equality.
+    """
     first = pipeline.analyze(JPEG_BYTES, content_type="image/jpeg")
     second = pipeline.analyze(JPEG_BYTES, content_type="image/jpeg")
-    assert first == second
+
+    assert first.verdict == second.verdict
+    assert first.confidence == second.confidence
+    assert first.risk_level == second.risk_level
+    assert first.explanation == second.explanation
+    assert first.scores == second.scores
+    assert first.indicators == second.indicators
+    assert first.evidence == second.evidence
+    assert first.metadata == second.metadata
+    assert first.heatmap == second.heatmap
+
+    assert first.report_data is not None and second.report_data is not None
+    assert first.report_data.hypothesis_scores == second.report_data.hypothesis_scores
+    assert first.report_data.runner_up_verdict == second.report_data.runner_up_verdict
+    assert (
+        first.report_data.classification_margin
+        == second.report_data.classification_margin
+    )
+    assert _contributions_fingerprint(first) == _contributions_fingerprint(second)
+
+
+def _contributions_fingerprint(result: PipelineResult) -> tuple[tuple, ...]:
+    """Deterministic fingerprint of report contributions (times excluded)."""
+    return tuple(
+        (
+            c.detector,
+            c.detector_version,
+            c.category,
+            c.normalized_score,
+            c.detector_confidence,
+            c.reliability,
+            c.weight_share,
+            c.contribution,
+            c.direction,
+            c.hypothesis_weights,
+            c.preferred_hypothesis,
+        )
+        for c in (result.report_data.contributions if result.report_data else ())
+    )
 
 
 def test_pipeline_scores_reflect_configured_detectors(

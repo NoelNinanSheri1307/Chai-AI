@@ -98,6 +98,20 @@ class Analysis(TimestampMixin, SoftDeleteMixin, table=True):
         ),
     )
 
+    # Forensic report snapshot ------------------------------------------
+    # The three-class classification support scores in the fixed order
+    # (original, ai_edited, ai_generated), the runner-up verdict and the
+    # classification margin. Persisted so reports are reconstructable from the
+    # stored analysis without ever re-running fusion.
+    hypothesis_original: float | None = Field(default=None, nullable=True)
+    hypothesis_edited: float | None = Field(default=None, nullable=True)
+    hypothesis_generated: float | None = Field(default=None, nullable=True)
+    runner_up_verdict: Verdict | None = Field(
+        default=None,
+        sa_column=enum_column(Verdict, nullable=True),
+    )
+    classification_margin: float | None = Field(default=None, nullable=True)
+
     # Relationships
     user: Optional["User"] = Relationship(back_populates="analyses")
     forensic_scores: list["ForensicScore"] = Relationship(
@@ -117,6 +131,10 @@ class Analysis(TimestampMixin, SoftDeleteMixin, table=True):
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
     heatmap: Optional["Heatmap"] = Relationship(
+        back_populates="analysis",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    analysis_contributions: list["AnalysisContribution"] = Relationship(
         back_populates="analysis",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
@@ -296,3 +314,50 @@ class HeatmapRegion(CreatedAtMixin, table=True):
     )
 
     heatmap: "Heatmap" = Relationship(back_populates="regions")
+
+
+class AnalysisContribution(CreatedAtMixin, table=True):
+    """A per-detector contribution snapshot recorded for the forensic report.
+
+    One row per active detector, in rank order. It mirrors the fused
+    ``DetectorContribution`` so the report layer can reconstruct the full
+    breakdown (normalized score, self-confidence, reliability weight, evidence
+    share, direction and per-hypothesis support) from the stored analysis.
+    """
+
+    __tablename__ = "analysis_contributions"
+    __table_args__ = (
+        Index("ix_analysis_contributions_analysis_id", "analysis_id"),
+        CheckConstraint(
+            "normalized_score >= 0 AND normalized_score <= 1",
+            name="ck_analysis_contributions_normalized_score",
+        ),
+        CheckConstraint(
+            "detector_confidence >= 0 AND detector_confidence <= 1",
+            name="ck_analysis_contributions_detector_confidence",
+        ),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    analysis_id: int = Field(
+        foreign_key="analyses.id",
+        ondelete="CASCADE",
+        nullable=False,
+    )
+    position: int = Field(nullable=False)
+    detector: str = Field(nullable=False, max_length=100)
+    detector_version: str = Field(nullable=False, max_length=50)
+    category: str = Field(nullable=False, max_length=50)
+    normalized_score: float = Field(nullable=False)
+    detector_confidence: float = Field(nullable=False)
+    reliability: float = Field(nullable=False)
+    weight_share: float = Field(nullable=False)
+    contribution: float = Field(nullable=False)
+    direction: str = Field(nullable=False, max_length=50)
+    hypothesis_original: float = Field(nullable=False)
+    hypothesis_edited: float = Field(nullable=False)
+    hypothesis_generated: float = Field(nullable=False)
+    preferred_hypothesis: str = Field(nullable=False, max_length=50)
+    processing_time_ms: int = Field(default=0, nullable=False)
+
+    analysis: "Analysis" = Relationship(back_populates="analysis_contributions")

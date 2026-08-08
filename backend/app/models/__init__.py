@@ -7,6 +7,7 @@ complete schema. Models carry persistence logic only; no business logic.
 
 from app.models.analysis import (
     Analysis,
+    AnalysisContribution,
     DetectedIndicator,
     Evidence,
     ForensicScore,
@@ -25,6 +26,7 @@ from app.models.user import User
 
 __all__ = [
     "Analysis",
+    "AnalysisContribution",
     "Comparison",
     "ComparisonFinding",
     "ComparisonRegion",

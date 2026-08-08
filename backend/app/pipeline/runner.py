@@ -18,11 +18,16 @@ import logging
 import time
 from collections.abc import Sequence
 
-from app.pipeline.base import AnalysisPipeline, PipelineResult
+from app.pipeline.base import (
+    AnalysisPipeline,
+    PipelineReportData,
+    PipelineResult,
+    ReportContribution,
+)
 from app.pipeline.config import PipelineConfig
 from app.pipeline.detectors.base import Detector
 from app.pipeline.explanation.base import EvidenceGenerator, ExplanationGenerator
-from app.pipeline.fusion.base import FusionEngine
+from app.pipeline.fusion.base import DetectorContribution, FusionEngine, FusionResult
 from app.pipeline.heatmap.base import HeatmapContext, HeatmapGenerator
 from app.pipeline.signals import DetectorSignal
 from app.pipeline.versioning import ComponentVersion, PipelineRunVersion
@@ -111,6 +116,7 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             evidence=evidence,
             metadata=self._build_metadata(signals),
             heatmap=heatmap,
+            report_data=self._build_report_data(signals, fusion_result),
         )
 
     # ------------------------------------------------------------------
@@ -141,3 +147,51 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         for signal in signals:
             metadata.update(signal.metadata)
         return metadata
+
+    def _build_report_data(
+        self,
+        signals: Sequence[DetectorSignal],
+        fusion_result: FusionResult,
+    ) -> PipelineReportData:
+        """Snapshot the fused decision for the report layer.
+
+        The report layer must never re-run fusion; this snapshot carries the
+        three-class hypothesis scores, the runner-up, the classification margin
+        and every per-detector contribution (with its processing time).
+        """
+        times_by_detector = {
+            signal.detector_name: signal.processing_time_ms for signal in signals
+        }
+        contributions = tuple(
+            _to_report_contribution(
+                contribution, times_by_detector.get(contribution.detector, 0)
+            )
+            for contribution in fusion_result.contributions
+        )
+        return PipelineReportData(
+            hypothesis_scores=fusion_result.hypothesis_scores,
+            runner_up_verdict=fusion_result.runner_up_verdict,
+            classification_margin=fusion_result.classification_margin,
+            contributions=contributions,
+        )
+
+
+def _to_report_contribution(
+    contribution: DetectorContribution,
+    processing_time_ms: int,
+) -> ReportContribution:
+    """Map a fusion contribution onto its report snapshot."""
+    return ReportContribution(
+        detector=contribution.detector,
+        detector_version=contribution.detector_version,
+        category=contribution.category,
+        normalized_score=contribution.normalized_score,
+        detector_confidence=contribution.detector_confidence,
+        reliability=contribution.reliability,
+        weight_share=contribution.weight_share,
+        contribution=contribution.contribution,
+        direction=contribution.direction,
+        hypothesis_weights=contribution.hypothesis_weights,
+        preferred_hypothesis=contribution.preferred_hypothesis,
+        processing_time_ms=processing_time_ms,
+    )

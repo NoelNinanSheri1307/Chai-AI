@@ -249,26 +249,45 @@ Legend — Status: `Completed` | `Next` | `Planned`. Complexity: S/M/L/XL.
 
 ---
 
-## Milestone 9 — Reports
+## Milestone 9 — Reports & Forensic Explainability
 
-**Status:** `Planned`
+**Status:** `Completed`
 
 **Objectives**
-- PDF and share-text generation for an analysis or comparison.
+- Complete the forensic reporting and explainability layer: a deterministic,
+  typed report that states what the image was classified as, why, which
+  forensic signals contributed, where suspicious regions were detected, how
+  confident the system is, and what evidence supports or contradicts the
+  verdict.
+- Interpretability without changing any intelligence: detectors, fusion,
+  classification and heatmap generation all remain as built in earlier
+  milestones.
 
 **Deliverables**
-- `GET /v1/reports/{analysis_public_id}.pdf` and `/share-text`.
-- `ReportService`; server-side PDF rendering (library is an open product
-  decision).
-- Report object storage path.
+- Typed forensic report model (classification summary, comparison, supporting
+  and contradicting evidence, detector contributions, heatmap summary, image
+  metadata summary, processing summary).
+- Report-relevant persisted snapshot (hypothesis scores, runner-up, margin,
+  per-detector contributions) written at analysis time so reports never re-run
+  detectors/fusion/heatmaps.
+- `GET /v1/reports/{analysis_public_id}/json` (structured report),
+  `{analysis_public_id}/md` (Markdown report) and
+  `{analysis_public_id}/share-text` (deterministic share text); the bare
+  `/{analysis_public_id}` shortcut is preserved.
+- Deterministic, security-aware renderers: no randomness, no secrets, no
+  filesystem paths or database internals in any report output.
+- Report-layer tests: all three verdicts, evidence, contributions, comparison,
+  heatmap, metadata, processing, share text, Markdown, JSON, determinism and
+  security.
 
-**Dependencies** — Milestones 2, 5 (and 6 for result content).
+**Dependencies** — Milestones 2, 5, 6 (and 8 for result content).
 
 **Estimated complexity** — M.
 
 **Success criteria**
-- PDF and share text render deterministically within
-  `DEFAULT_REPORT_TIMEOUT_SECONDS=20`; report bytes served and cached.
+- The same completed analysis always yields byte-identical JSON/Markdown/share
+  reports; existing endpoint contracts are unchanged; the full test suite and
+  ruff checks pass.
 
 ---
 
@@ -313,7 +332,7 @@ Legend — Status: `Completed` | `Next` | `Planned`. Complexity: S/M/L/XL.
 | 6 | AI pipeline + fusion | Planned | XL | M2, M5 |
 | 7 | History | Planned | M | M2, M5 |
 | 8 | Compare | Planned | L | M2, M5, M6 |
-| 9 | Reports | Planned | M | M2, M5, M6 |
+| 9 | Reports & Forensic Explainability | Completed | M | M2, M5, M6 |
 | 10 | Hardening | Planned | L | all |
 
 ---

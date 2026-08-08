@@ -10,6 +10,7 @@ from sqlmodel import Session
 from app.core.enums import AnalysisStatus
 from app.models.analysis import (
     Analysis,
+    AnalysisContribution,
     DetectedIndicator,
     Evidence,
     ForensicScore,
@@ -128,6 +129,36 @@ class AnalysisRepository(BaseRepository[Analysis]):
         analysis.explanation = result.explanation
         analysis.duration_ms = result.duration_ms
         analysis.status = AnalysisStatus.COMPLETED
+
+        if result.report_data is not None:
+            scores = result.report_data.hypothesis_scores
+            analysis.hypothesis_original = scores[0]
+            analysis.hypothesis_edited = scores[1]
+            analysis.hypothesis_generated = scores[2]
+            analysis.runner_up_verdict = result.report_data.runner_up_verdict
+            analysis.classification_margin = result.report_data.classification_margin
+            for position, contribution in enumerate(result.report_data.contributions):
+                weights = contribution.hypothesis_weights
+                self.session.add(
+                    AnalysisContribution(
+                        analysis_id=analysis.id,
+                        position=position,
+                        detector=contribution.detector,
+                        detector_version=contribution.detector_version,
+                        category=contribution.category.value,
+                        normalized_score=contribution.normalized_score,
+                        detector_confidence=contribution.detector_confidence,
+                        reliability=contribution.reliability,
+                        weight_share=contribution.weight_share,
+                        contribution=contribution.contribution,
+                        direction=contribution.direction,
+                        hypothesis_original=weights[0],
+                        hypothesis_edited=weights[1],
+                        hypothesis_generated=weights[2],
+                        preferred_hypothesis=contribution.preferred_hypothesis,
+                        processing_time_ms=contribution.processing_time_ms,
+                    )
+                )
 
         for score in result.scores:
             self.session.add(
