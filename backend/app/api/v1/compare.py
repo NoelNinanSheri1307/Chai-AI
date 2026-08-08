@@ -28,14 +28,18 @@ router = APIRouter(prefix="/compare", tags=["compare"])
         "unsupported_media_type, 422 invalid_image."
     ),
 )
-async def compare_images(
+def compare_images(
     service: ComparisonServiceDep,
     file_a: Annotated[UploadFile, File()],
     file_b: Annotated[UploadFile, File()],
 ) -> CompareResultDTO:
-    """Analyze and compare two uploaded images."""
-    data_a = await file_a.read()
-    data_b = await file_b.read()
+    """Analyze and compare two uploaded images.
+
+    Declared synchronously (``def``) so the CPU-bound analysis pipeline runs in
+    a worker thread, keeping the event loop available for other requests.
+    """
+    data_a = file_a.file.read()
+    data_b = file_b.file.read()
     return service.compare_images(
         file_a_data=data_a,
         content_type_a=file_a.content_type,

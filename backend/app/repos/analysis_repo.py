@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session
 
 from app.core.enums import AnalysisStatus
@@ -20,6 +21,23 @@ from app.models.analysis import (
 )
 from app.pipeline.base import PipelineResult
 from app.repos.base import BaseRepository, Page, PageParams
+
+
+def _analysis_graph_loads() -> tuple[Any, ...]:
+    """Eager-load options for the full analysis child graph.
+
+    A handful of ``selectinload`` calls load scores, indicators, evidence,
+    metadata items, report contributions and the heatmap (with its regions) in
+    O(1) extra queries instead of one query per child row (N+1).
+    """
+    return (
+        selectinload(Analysis.forensic_scores),
+        selectinload(Analysis.detected_indicators),
+        selectinload(Analysis.evidence),
+        selectinload(Analysis.metadata_items),
+        selectinload(Analysis.analysis_contributions),
+        selectinload(Analysis.heatmap).selectinload(Heatmap.regions),
+    )
 
 
 class AnalysisRepository(BaseRepository[Analysis]):
@@ -40,11 +58,20 @@ class AnalysisRepository(BaseRepository[Analysis]):
         public_id: str,
         *,
         include_deleted: bool = False,
+        eager_child_graph: bool = False,
     ) -> Analysis | None:
-        """Return the analysis with the given public id, or ``None``."""
+        """Return the analysis with the given public id, or ``None``.
+
+        ``eager_child_graph`` eagerly loads the child graph (scores,
+        indicators, evidence, metadata, contributions, heatmap) in a small
+        bounded number of queries, avoiding the classic N+1 when the caller
+        renders a full result or report.
+        """
         statement = self._base_select(include_deleted=include_deleted).where(
             Analysis.public_id == public_id
         )
+        if eager_child_graph:
+            statement = statement.options(*_analysis_graph_loads())
         return self.session.scalars(statement).first()
 
     def public_id_exists(
@@ -65,16 +92,20 @@ class AnalysisRepository(BaseRepository[Analysis]):
         public_id: str,
         *,
         include_deleted: bool = False,
+        eager_child_graph: bool = False,
     ) -> Analysis | None:
         """Return an analysis scoped to a user, or ``None``.
 
         ``user_id`` of ``None`` addresses anonymous analyses (created without
-        an authenticated owner).
+        an authenticated owner). ``eager_child_graph`` loads the child graph in
+        a bounded number of queries to avoid N+1 on detail reads/reports.
         """
         statement = self._base_select(include_deleted=include_deleted).where(
             Analysis.public_id == public_id,
             Analysis.user_id == user_id,
         )
+        if eager_child_graph:
+            statement = statement.options(*_analysis_graph_loads())
         return self.session.scalars(statement).first()
 
     def list_for_user(

@@ -63,18 +63,33 @@ class LocalStorageAdapter(StorageClient):
     """Filesystem-backed storage rooted at a configurable directory.
 
     Keys use forward slashes as separators and are resolved beneath ``root``.
-    Absolute and path-traversal keys are rejected. Writes are atomic (temp
-    file + rename) so a crash never leaves a partially written object.
+    Absolute and path-traversal keys are rejected, write payloads are bounded
+    (immutable per-instance), writes are atomic (temp file + rename) so a crash
+    never leaves a partially written object, and ``root`` is created lazily.
+
+    The storage root is a private data directory; the API never serves its
+    files via static mounts, so objects are only reachable through the
+    documented download endpoints.
     """
 
-    def __init__(self, root: str | Path) -> None:
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        max_key_length: int = 255,
+        max_object_bytes: int | None = None,
+    ) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self._max_key_length = max_key_length
+        self._max_object_bytes = max_object_bytes
 
     def _resolve(self, key: str) -> Path:
         """Resolve a key to an absolute path verified to stay under ``root``."""
         if not isinstance(key, str) or not key or "\x00" in key:
             raise StorageError("Storage key must be a non-empty string.")
+        if len(key) > self._max_key_length:
+            raise StorageError(f"Storage key exceeds {self._max_key_length} characters")
         normalized = key.replace("\\", "/")
         if normalized.startswith("/"):
             raise StorageError(f"Storage key must be relative: {key!r}")
@@ -92,6 +107,10 @@ class LocalStorageAdapter(StorageClient):
 
     def store(self, key: str, data: bytes, *, content_type: str | None = None) -> None:
         """Write ``data`` atomically under ``key``."""
+        if self._max_object_bytes is not None and len(data) > self._max_object_bytes:
+            raise StorageError(
+                f"Object exceeds the {self._max_object_bytes} byte storage limit"
+            )
         path = self._resolve(key)
         path.parent.mkdir(parents=True, exist_ok=True)
         temp_path = path.with_name(f".{path.name}.{uuid4().hex}.tmp")

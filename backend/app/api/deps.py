@@ -24,6 +24,7 @@ from app.clients.storage import StorageClient, create_storage_client
 from app.core.config import Settings, get_settings
 from app.core.db import get_session as _get_db_session
 from app.core.logging import get_request_id
+from app.core.rate_limit import RateLimiter, build_rate_limiter
 from app.pipeline.base import AnalysisPipeline
 from app.pipeline.config import (
     PipelineConfig,
@@ -84,6 +85,15 @@ def get_pipeline_config() -> PipelineConfig:
     return _resolve_pipeline_config()
 
 
+def get_rate_limiter(settings: SettingsDep) -> RateLimiter:
+    """Provide the configured rate limiter abstraction (default: no-op)."""
+    return build_rate_limiter(
+        settings.rate_limiter,
+        limit=settings.rate_limiter_limit,
+        window_seconds=settings.rate_limiter_window_seconds,
+    )
+
+
 def get_detectors(pipeline_config: PipelineConfigDep) -> list[Detector]:
     """Provide the detector set selected by the pipeline configuration."""
     return build_detectors(pipeline_config.enabled_detector_names())
@@ -118,8 +128,10 @@ def get_pipeline(
     evidence_generator: EvidenceGeneratorDep,
     explanation_generator: ExplanationGeneratorDep,
     pipeline_config: PipelineConfigDep,
+    settings: Settings | None = None,
 ) -> AnalysisPipeline:
     """Provide a modular analysis pipeline assembled from injected components."""
+    resolved_settings = settings or get_settings()
     return ModularAnalysisPipeline(
         detectors=detectors,
         fusion=fusion,
@@ -127,6 +139,7 @@ def get_pipeline(
         evidence_generator=evidence_generator,
         explanation_generator=explanation_generator,
         pipeline_config=pipeline_config,
+        max_concurrency=resolved_settings.pipeline_max_concurrency,
     )
 
 
@@ -202,6 +215,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
 SessionDep = Annotated[Session, Depends(get_db_session)]
 StorageDep = Annotated[StorageClient, Depends(get_object_storage)]
 PipelineConfigDep = Annotated[PipelineConfig, Depends(get_pipeline_config)]
+RateLimiterDep = Annotated[RateLimiter, Depends(get_rate_limiter)]
 DetectorsDep = Annotated[list[Detector], Depends(get_detectors)]
 FusionEngineDep = Annotated[FusionEngine, Depends(get_fusion_engine)]
 HeatmapGeneratorDep = Annotated[HeatmapGenerator, Depends(get_heatmap_generator)]

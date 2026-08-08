@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
     trusted_hosts: list[str] = Field(default_factory=lambda: ["*"])
     request_id_header: str = constants.REQUEST_ID_HEADER
+    # Expose interactive documentation (``/docs``, ``/redoc``, ``/openapi.json``).
+    # Production deployments commonly disable this to reduce attack surface.
+    docs_enabled: bool = False
+    # Maximum accepted request body in bytes. Uploads are validated against the
+    # more specific upload limit; this guard is a coarse HTTP-level bound.
+    max_request_body_bytes: int = constants.MAX_REQUEST_BODY_BYTES
 
     # Database ----------------------------------------------------------
     # Full SQLAlchemy/SQLModel URL. Comes from configuration for every
@@ -69,6 +75,41 @@ class Settings(BaseSettings):
     # Filesystem root for the local storage adapter. Keys are resolved to
     # paths beneath this root.
     storage_root: Path = Path("storage")
+
+    # Upload / image safety -----------------------------------------------
+    # Hard upload size limit in bytes (the API contract's 25 MB default).
+    max_upload_size_bytes: int = constants.MAX_UPLOAD_SIZE_BYTES
+    # Allowed image MIME types (magic bytes are authoritative anyway).
+    allowed_image_mime_types: list[str] = Field(
+        default_factory=lambda: sorted(constants.ALLOWED_IMAGE_MIME_TYPES)
+    )
+    # Decompression-bomb / pathological-image limits. ``max_image_pixels`` bounds
+    # the number of pixels a decoded image may claim; ``max_image_dimension``
+    # bounds each side. Images exceeding either are rejected with a controlled
+    # error before any detector decodes them.
+    max_image_pixels: int = constants.MAX_IMAGE_PIXELS
+    max_image_dimension: int = constants.MAX_IMAGE_DIMENSION
+
+    # Analysis pipeline --------------------------------------------------
+    # Maximum number of independent detectors executed concurrently (see
+    # ``PipelineConfig.max_concurrency``). ``1`` = sequential.
+    pipeline_max_concurrency: int = Field(default=1, ge=1, le=64)
+    # Wall-clock budget for the whole analysis pipeline. Detectors cannot be
+    # pre-empted in-process; on timeout the request returns ``timeout`` (504)
+    # while the stray pure work finishes in the background and is discarded.
+    # ``None``/``<= 0`` disables the guard (not recommended in production).
+    analysis_timeout_seconds: float | None = Field(
+        default=constants.DEFAULT_ANALYSIS_TIMEOUT_SECONDS, ge=0
+    )
+
+    # Rate limiting ------------------------------------------------------
+    # Backend name for the rate limiter abstraction. ``none`` (default) performs
+    # no limiting; ``memory`` enables the single-process sliding-window limiter
+    # for development/testing only. A distributed backend (e.g. Redis) should
+    # be configured operationally for production deployments.
+    rate_limiter: str = "none"
+    rate_limiter_limit: int = Field(default=100, ge=1)
+    rate_limiter_window_seconds: int = Field(default=60, ge=1)
 
     @field_validator("environment", mode="before")
     @classmethod
@@ -88,7 +129,9 @@ class Settings(BaseSettings):
             return normalized
         return value
 
-    @field_validator("cors_origins", "trusted_hosts", mode="before")
+    @field_validator(
+        "cors_origins", "trusted_hosts", "allowed_image_mime_types", mode="before"
+    )
     @classmethod
     def _split_csv(cls, value: object) -> object:
         if isinstance(value, str):
@@ -100,6 +143,25 @@ class Settings(BaseSettings):
     def _validate_pool_sizes(cls, value: object) -> object:
         if isinstance(value, int) and value < 1:
             raise ValueError("database pool sizes must be at least 1")
+        return value
+
+    @field_validator(
+        "max_upload_size_bytes",
+        "max_request_body_bytes",
+        "max_image_pixels",
+        "max_image_dimension",
+    )
+    @classmethod
+    def _validate_positive_size(cls, value: object) -> object:
+        if isinstance(value, int) and value < 1:
+            raise ValueError("size limits must be at least 1 byte/pixel")
+        return value
+
+    @field_validator("pipeline_max_concurrency")
+    @classmethod
+    def _validate_pipeline_concurrency(cls, value: object) -> object:
+        if isinstance(value, int) and (value < 1 or value > 64):
+            raise ValueError("pipeline_max_concurrency must be in [1, 64]")
         return value
 
     # Derived helpers ---------------------------------------------------
@@ -117,6 +179,31 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """True when running in the production environment."""
         return self.environment == "production"
+
+    def validate_production_safety(self) -> list[str]:
+        """Return a list of production-unsafe settings, empty when safe.
+
+        Production refuses to rely on development defaults that would weaken
+        the deployment: interactive debug/docs, permissive CORS and a disabled
+        host allowlist are all flagged.
+        """
+        problems: list[str] = []
+        if self.debug:
+            problems.append("CHAI_DEBUG must be false in production")
+        if self.docs_enabled:
+            problems.append("CHAI_DOCS_ENABLED must be false in production")
+        if "*" in self.cors_origins:
+            problems.append("CHAI_CORS_ORIGINS must not contain '*' in production")
+        if "*" in self.trusted_hosts:
+            problems.append("CHAI_TRUSTED_HOSTS must not contain '*' in production")
+        if not self.database_url:
+            problems.append("CHAI_DATABASE_URL must be set in production")
+        if self.rate_limiter in {"memory", "in_memory"}:
+            problems.append(
+                "CHAI_RATE_LIMITER=memory is process-local and inaccurate across "
+                "workers; use a shared backend in production"
+            )
+        return problems
 
     @property
     def effective_database_url(self) -> str:

@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  lint-and-test:
+    name: Lint, format & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.lock.txt
+            backend/requirements-dev.txt
+
+      - name: Install dependencies (pinned runtime + dev)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock.txt -r requirements-dev.txt
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Unit + integration tests
+        run: pytest -q
+
+      - name: Migration smoke test (SQLite)
+        run: |
+          rm -f ci_smoke.db
+          CHAI_DATABASE_URL="sqlite:///./ci_smoke.db" alembic upgrade head
+          python - <<'EOF'
+          import sqlite3
+          c = sqlite3.connect("ci_smoke.db")
+          tables = sorted(r[0] for r in c.execute("select name from sqlite_master where type='table'"))
+          assert "analyses" in tables and "users" in tables and "heatmap_regions" in tables
+          print("migration tables =", tables)
+          EOF
+
+      - name: Application import / startup check
+        run: python -c "from app.main import create_app; app = create_app(); print(app.title, 'imported OK')"
+
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build -t chai-backend:ci -f backend/Dockerfile backend
+
+      - name: Smoke-test image (health endpoint)
+        run: |
+          docker run -d --name chai-smoke -e CHAI_ENVIRONMENT=production \
+            -e CHAI_DATABASE_URL=sqlite:///./smoke.db \
+            -e CHAI_TRUSTED_HOSTS=localhost \
+            -e CHAI_CORS_ORIGINS=http://localhost \
+            -p 8091:8000 chai-backend:ci
+          sleep 20
+          curl -sS -o /dev/null -w "%{http_code}" http://127.0.0.1:8091/v1/health || exit 1
+        shell: bash

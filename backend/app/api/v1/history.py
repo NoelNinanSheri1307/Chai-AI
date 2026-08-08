@@ -29,14 +29,18 @@ router = APIRouter(prefix="/history", tags=["history"])
         "``sort`` field (for example ``-createdAt``)."
     ),
 )
-async def list_history(
+def list_history(
     service: HistoryServiceDep,
     page: int = Query(1, ge=1),
     limit: int = Query(constants.DEFAULT_PAGE_SIZE, ge=1, le=constants.MAX_PAGE_SIZE),
     image_filter: str | None = Query(default=None, alias="filter"),
     sort: str | None = Query(default=None),
 ) -> PageEnvelope[HistoryItemDTO]:
-    """Return a paginated page of history summaries."""
+    """Return a paginated page of history summaries.
+
+    History handlers are declared synchronously so the repositories' sync DB
+    calls run in the worker thread pool rather than blocking the event loop.
+    """
     return service.list_history(
         page=page,
         limit=limit,
@@ -51,7 +55,7 @@ async def list_history(
     summary="Full stored analysis",
     description="Returns the full analysis result for a history entry.",
 )
-async def get_history_item(
+def get_history_item(
     public_id: str,
     service: HistoryServiceDep,
 ) -> AnalysisResultDTO:
@@ -65,7 +69,7 @@ async def get_history_item(
     summary="Delete a history entry",
     description="Soft-deletes the history entry for the given public id.",
 )
-async def delete_history_item(
+def delete_history_item(
     public_id: str,
     service: HistoryServiceDep,
 ) -> Response:

@@ -29,12 +29,18 @@ router = APIRouter(prefix="/analyses", tags=["analyses"])
         "413 file_too_large, 415 unsupported_media_type, 422 invalid_image."
     ),
 )
-async def upload_analysis(
+def upload_analysis(
     service: AnalysisServiceDep,
     file: Annotated[UploadFile, File()],
 ) -> AnalysisResultDTO:
-    """Validate, store, analyze and return a newly uploaded image."""
-    data = await file.read()
+    """Validate, store, analyze and return a newly uploaded image.
+
+    The analysis pipeline is CPU-bound, so the handler is declared synchronously
+    (``def``) and Starlette/FastAPI runs it in a worker thread. This keeps the
+    event loop responsive to other requests (health checks, polls) while a
+    heavy analysis is running, instead of blocking all traffic.
+    """
+    data = file.file.read()
     return service.analyze_upload(
         data=data,
         content_type=file.content_type,

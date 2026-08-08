@@ -63,7 +63,9 @@ class HistoryService:
         user_id: int | None = None,
     ) -> AnalysisResultDTO:
         """Return the stored analysis for ``public_id`` as its result DTO."""
-        analysis = self._history_repo.get_for_user(user_id, public_id)
+        analysis = self._history_repo.get_for_user(
+            user_id, public_id, eager_child_graph=True
+        )
         if analysis is None:
             raise HistoryNotFoundError(public_id)
         return analysis_to_result_dto(analysis)

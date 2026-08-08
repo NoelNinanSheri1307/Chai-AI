@@ -11,6 +11,7 @@ and no forensic logic. The pipeline is injected; it is never instantiated here.
 from __future__ import annotations
 
 import logging
+import time
 
 from app.clients.storage import StorageClient
 from app.core.config import Settings
@@ -18,6 +19,7 @@ from app.core.constants import ANALYSIS_PUBLIC_ID_PREFIX
 from app.core.enums import AnalysisStatus
 from app.core.errors import ErrorCode
 from app.core.exceptions import AnalysisNotFoundError, ChaiError
+from app.core.execution import run_with_timeout
 from app.core.logging import get_request_id
 from app.models.analysis import Analysis
 from app.pipeline.base import AnalysisPipeline, PipelineResult
@@ -61,12 +63,19 @@ class AnalysisService:
         pipeline cannot produce a result.
         """
         mime = validate_image_upload(
-            data, content_type=content_type, filename=file_name
+            data,
+            content_type=content_type,
+            filename=file_name,
+            max_upload_size_bytes=self._settings.max_upload_size_bytes,
+            max_image_pixels=self._settings.max_image_pixels,
+            max_image_dimension=self._settings.max_image_dimension,
         )
 
         public_id = keys.new_public_id(ANALYSIS_PUBLIC_ID_PREFIX)
         original_key = keys.original_storage_key(self._settings.environment, data, mime)
+        store_started = time.perf_counter()
         self._storage.store(original_key, data, content_type=mime)
+        store_ms = (time.perf_counter() - store_started) * 1000.0
 
         analysis = self._analysis_repo.create(
             Analysis(
@@ -86,11 +95,15 @@ class AnalysisService:
                 "analysis_public_id": public_id,
                 "original_key": original_key,
                 "size_bytes": len(data),
+                "store_ms": round(store_ms, 3),
             },
         )
 
         result = self._run_pipeline(analysis, data, mime, file_name)
+
+        persist_started = time.perf_counter()
         self._analysis_repo.persist_result(analysis, result)
+        persist_ms = (time.perf_counter() - persist_started) * 1000.0
 
         logger.info(
             "Analysis completed",
@@ -98,6 +111,11 @@ class AnalysisService:
                 "request_id": get_request_id(),
                 "analysis_public_id": public_id,
                 "verdict": result.verdict.value,
+                "duration_ms": result.duration_ms,
+                "persist_ms": round(persist_ms, 3),
+                "scores": len(result.scores),
+                "indicators": len(result.indicators),
+                "evidence": len(result.evidence),
             },
         )
         return analysis_to_result_dto(analysis)
@@ -124,7 +142,9 @@ class AnalysisService:
         flow needs the persisted entity to link it). Raises
         :class:`AnalysisNotFoundError` (HTTP 404) when missing.
         """
-        analysis = self._analysis_repo.get_for_user(user_id, public_id)
+        analysis = self._analysis_repo.get_for_user(
+            user_id, public_id, eager_child_graph=True
+        )
         if analysis is None:
             raise AnalysisNotFoundError(public_id)
         return analysis
@@ -142,10 +162,32 @@ class AnalysisService:
         """Run the injected pipeline and return its result.
 
         On failure the analysis is stamped ``failed`` and the error is re-raised
-        as a catalog ``pipeline_error`` so the transaction rolls back.
+        as a catalog ``pipeline_error`` so the transaction rolls back. A timeout
+        on the pipeline raises ``timeout`` (504) instead.
         """
         try:
-            return self._pipeline.analyze(data, content_type=mime, file_name=file_name)
+            return run_with_timeout(
+                self._pipeline.analyze,
+                args=(data,),
+                kwargs={"content_type": mime, "file_name": file_name},
+                timeout_seconds=self._settings.analysis_timeout_seconds,
+            )
+        except TimeoutError:
+            analysis.status = AnalysisStatus.FAILED
+            self._analysis_repo.flush()
+            logger.warning(
+                "Analysis pipeline timed out",
+                extra={
+                    "request_id": get_request_id(),
+                    "analysis_public_id": analysis.public_id,
+                    "timeout_seconds": self._settings.analysis_timeout_seconds,
+                },
+            )
+            raise ChaiError(
+                ErrorCode.TIMEOUT,
+                "The analysis did not complete within the allowed time.",
+                retryable=True,
+            ) from None
         except Exception:
             analysis.status = AnalysisStatus.FAILED
             self._analysis_repo.flush()

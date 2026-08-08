@@ -10,6 +10,14 @@ It contains orchestration only: detector execution order is supplied externally
 (via configuration), fusion/heatmap/evidence/explanation generators are injected,
 and no forensic algorithm lives here. Removing a detector, adding one, or
 swapping any framework stage requires no change to this runner.
+
+Detector execution supports bounded, deterministic *parallelism*:
+:class:`PipelineConfig.max_concurrency` controls how many independent detectors
+run concurrently in a thread pool. Detectors are stateless, so concurrent
+execution is safe; results are always collected in the configured detector
+order so the forensic output (fusion ordering, contributions, report snapshot)
+is byte-for-byte identical to the sequential run. A value of ``1`` disables the
+pool and keeps the classic sequential execution.
 """
 
 from __future__ import annotations
@@ -17,7 +25,9 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
 
+from app.core.logging import get_request_id
 from app.pipeline.base import (
     AnalysisPipeline,
     PipelineReportData,
@@ -47,6 +57,7 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         evidence_generator: EvidenceGenerator,
         explanation_generator: ExplanationGenerator,
         pipeline_config: PipelineConfig,
+        max_concurrency: int | None = None,
     ) -> None:
         self._detectors = tuple(detectors)
         self._fusion = fusion
@@ -54,6 +65,35 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         self._evidence_generator = evidence_generator
         self._explanation_generator = explanation_generator
         self._config = pipeline_config
+        if max_concurrency is None:
+            max_concurrency = pipeline_config.max_concurrency
+        # Bounded: 1..pipeline-config-hard-cap; sequential by default.
+        self._max_concurrency = max(
+            1, min(int(max_concurrency or 1), pipeline_config.max_concurrency)
+        )
+
+    # ------------------------------------------------------------------
+    # Component access (used by profiling and observability)
+    # ------------------------------------------------------------------
+    @property
+    def fusion(self) -> FusionEngine:
+        """The injected fusion engine."""
+        return self._fusion
+
+    @property
+    def heatmap_generator(self) -> HeatmapGenerator:
+        """The injected heatmap generator."""
+        return self._heatmap_generator
+
+    @property
+    def evidence_generator(self) -> EvidenceGenerator:
+        """The injected evidence generator."""
+        return self._evidence_generator
+
+    @property
+    def explanation_generator(self) -> ExplanationGenerator:
+        """The injected explanation generator."""
+        return self._explanation_generator
 
     # ------------------------------------------------------------------
     # Versioning
@@ -84,7 +124,7 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         """Run the full stage pipeline and return a :class:`PipelineResult`."""
         started = time.perf_counter()
 
-        signals = self._run_detectors(
+        signals = self.run_detectors(
             image_bytes, content_type=content_type, file_name=file_name
         )
         fusion_result = self._fusion.fuse(signals)
@@ -105,6 +145,23 @@ class ModularAnalysisPipeline(AnalysisPipeline):
 
         duration_ms = max(1, int((time.perf_counter() - started) * 1000))
 
+        logger.info(
+            "pipeline.completed",
+            extra={
+                "event": "pipeline.completed",
+                "request_id": get_request_id(),
+                "verdict": fusion_result.verdict.value,
+                "confidence": round(fusion_result.confidence, 6),
+                "duration_ms": duration_ms,
+                "detector_timings_ms": {
+                    signal.detector_name: signal.processing_time_ms
+                    for signal in signals
+                },
+                "active_detector_count": len(signals),
+                "concurrency": self._max_concurrency,
+            },
+        )
+
         return PipelineResult(
             verdict=fusion_result.verdict,
             confidence=fusion_result.confidence,
@@ -116,29 +173,88 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             evidence=evidence,
             metadata=self._build_metadata(signals),
             heatmap=heatmap,
-            report_data=self._build_report_data(signals, fusion_result),
+            report_data=self.build_report_data(signals, fusion_result),
         )
 
     # ------------------------------------------------------------------
-    # Stage helpers
+    # Detector execution (sequential or bounded parallel)
     # ------------------------------------------------------------------
-    def _run_detectors(
+    def run_detectors(
         self,
         image_bytes: bytes,
         *,
         content_type: str | None,
         file_name: str | None,
     ) -> list[DetectorSignal]:
-        """Execute each detector in configured order, skipping unhealthy ones."""
-        signals: list[DetectorSignal] = []
+        """Execute each detector, preserving the configured order.
+
+        When :attr:`max_concurrency` is 1 the detectors run sequentially
+        (the original behaviour). Otherwise independent detectors run inside a
+        bounded thread pool and results are collected in *configured detector
+        order*, so the concurrent and sequential runs produce identical output.
+        """
+        healthy = self._healthy_detectors(image_bytes)
+        if self._max_concurrency <= 1 or len(healthy) <= 1:
+            return self._run_sequential(
+                healthy, image_bytes, content_type=content_type, file_name=file_name
+            )
+        return self._run_parallel(
+            healthy, image_bytes, content_type=content_type, file_name=file_name
+        )
+
+    def _healthy_detectors(self, image_bytes: bytes) -> list[Detector]:
+        """Return the detectors that are healthy to run for this image."""
+        healthy: list[Detector] = []
         for detector in self._detectors:
             if not detector.health().is_healthy:
                 logger.warning("Skipping unhealthy detector %s", detector.name)
                 continue
+            healthy.append(detector)
+        return healthy
+
+    def _run_sequential(
+        self,
+        detectors: Sequence[Detector],
+        image_bytes: bytes,
+        *,
+        content_type: str | None,
+        file_name: str | None,
+    ) -> list[DetectorSignal]:
+        """Execute detectors one after another in the given order."""
+        signals: list[DetectorSignal] = []
+        for detector in detectors:
             signal = detector.execute(
                 image_bytes, content_type=content_type, file_name=file_name
             )
             signals.append(signal)
+        return signals
+
+    def _run_parallel(
+        self,
+        detectors: Sequence[Detector],
+        image_bytes: bytes,
+        *,
+        content_type: str | None,
+        file_name: str | None,
+    ) -> list[DetectorSignal]:
+        """Execute healthy detectors concurrently with bounded workers.
+
+        Results are ordered by the *configured* detector sequence, not by
+        completion order, keeping the fused output deterministic.
+        """
+        workers = min(self._max_concurrency, len(detectors))
+        with ThreadPoolExecutor(
+            max_workers=workers, thread_name_prefix="chai-detector"
+        ) as executor:
+            futures: dict[str, Future[DetectorSignal]] = {}
+            for detector in detectors:
+                futures[detector.name] = executor.submit(
+                    detector.execute,
+                    image_bytes,
+                    content_type=content_type,
+                    file_name=file_name,
+                )
+            signals = [futures[detector.name].result() for detector in detectors]
         return signals
 
     def _build_metadata(self, signals: Sequence[DetectorSignal]) -> dict[str, str]:
@@ -148,7 +264,7 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             metadata.update(signal.metadata)
         return metadata
 
-    def _build_report_data(
+    def build_report_data(
         self,
         signals: Sequence[DetectorSignal],
         fusion_result: FusionResult,

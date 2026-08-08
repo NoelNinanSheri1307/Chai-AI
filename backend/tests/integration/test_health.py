@@ -11,17 +11,26 @@ def test_health(client: TestClient) -> None:
     assert response.json() == {"status": "ok"}
 
 
-def test_readiness_reports_not_configured_checks(client: TestClient) -> None:
+def test_readiness_reports_real_subsystem_checks(client: TestClient) -> None:
     response = client.get("/v1/health/ready")
     assert response.status_code == 200
     body = response.json()
-    assert body["status"] == "degraded"
-    assert body["checks"] == {
-        "database": "not configured",
-        "storage": "not configured",
-        "cache": "not configured",
-        "models": "not configured",
-    }
+    # Cache and models are not yet deployed in this milestone.
+    assert body["checks"]["cache"] == "not configured"
+    assert body["checks"]["models"] == "not configured"
+    # Storage is a real, probed dependency; with a writable local root it is ok.
+    assert body["checks"]["storage"] in {"ok", "unavailable"}
+    # Database reflects the configured environment.
+    assert body["checks"]["database"] in {"ok", "not configured", "unavailable"}
+    assert body["status"] in {"ok", "degraded", "unavailable"}
+
+
+def test_readiness_reports_ok_when_dependencies_wired(api_client: TestClient) -> None:
+    response = api_client.get("/v1/health/ready")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["checks"]["database"] == "ok"
+    assert body["checks"]["storage"] == "ok"
 
 
 def test_openapi_document_is_configured(client: TestClient) -> None:

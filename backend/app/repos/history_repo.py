@@ -16,6 +16,7 @@ from sqlmodel import Session
 
 from app.core.enums import AnalysisStatus, RiskLevel, Verdict
 from app.models.analysis import Analysis
+from app.repos.analysis_repo import _analysis_graph_loads
 from app.repos.base import BaseRepository, Page, PageParams
 
 
@@ -63,12 +64,19 @@ class HistoryRepository(BaseRepository[Analysis]):
         public_id: str,
         *,
         include_deleted: bool = False,
+        eager_child_graph: bool = False,
     ) -> Analysis | None:
-        """Return one of the user's analyses by public id, or ``None``."""
+        """Return one of the user's analyses by public id, or ``None``.
+
+        ``eager_child_graph`` loads the analysis child graph in a bounded
+        number of queries (avoiding N+1 on detail reads).
+        """
         statement = self._base_select(include_deleted=include_deleted).where(
             Analysis.public_id == public_id,
             Analysis.user_id == user_id,
         )
+        if eager_child_graph:
+            statement = statement.options(*_analysis_graph_loads())
         return self.session.scalars(statement).first()
 
     def soft_delete_for_user(self, user_id: int, public_id: str) -> bool:

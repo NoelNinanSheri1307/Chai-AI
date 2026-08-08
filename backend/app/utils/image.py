@@ -4,6 +4,11 @@ Validators here are pure functions over the raw uploaded bytes. They raise the
 catalog error hierarchy (``app.core.exceptions``) so the API layer renders the
 correct status: 413 file_too_large, 415 unsupported_media_type, 422
 invalid_image. No image decoding or forensic processing is performed.
+
+Resource hardening (Milestone 10): images whose *declared* dimensions exceed
+the configured caps (decompression bombs / pathological dimensions) are
+rejected with ``invalid_image`` at validation time. Only the image header is
+parsed, never full pixel data.
 """
 
 from __future__ import annotations
@@ -14,6 +19,7 @@ from app.core.exceptions import (
     InvalidImageError,
     UnsupportedMediaTypeError,
 )
+from app.utils.safety import check_image_dimensions
 
 _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -45,17 +51,21 @@ def validate_image_upload(
     *,
     content_type: str | None = None,
     filename: str | None = None,
+    max_upload_size_bytes: int = constants.MAX_UPLOAD_SIZE_BYTES,
+    max_image_pixels: int = constants.MAX_IMAGE_PIXELS,
+    max_image_dimension: int = constants.MAX_IMAGE_DIMENSION,
 ) -> str:
     """Validate uploaded ``data`` and return its sniffed MIME type.
 
     Checks run in order: size limit, magic-byte sniffing, declared-MIME
-    allowlist, then declared-vs-sniffed agreement. The caller never trusts the
+    allowlist, declared-vs-sniffed agreement, then a header-only dimension
+    guard against decompression bombs. The caller never trusts the
     client-supplied type on its own; the sniffed type is authoritative and is
     what the rest of the pipeline sees.
     """
-    if len(data) > constants.MAX_UPLOAD_SIZE_BYTES:
+    if len(data) > max_upload_size_bytes:
         raise FileTooLargeError(
-            f"File exceeds the {constants.MAX_UPLOAD_SIZE_BYTES} byte upload limit."
+            f"File exceeds the {max_upload_size_bytes} byte upload limit."
         )
 
     sniffed = sniff_image_type(data)
@@ -73,4 +83,9 @@ def validate_image_upload(
             f"Declared media type {declared!r} does not match the detected "
             f"type {sniffed!r}."
         )
+    check_image_dimensions(
+        data,
+        max_pixels=max_image_pixels,
+        max_dimension=max_image_dimension,
+    )
     return sniffed

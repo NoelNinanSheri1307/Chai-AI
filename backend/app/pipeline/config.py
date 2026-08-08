@@ -51,6 +51,13 @@ class PipelineConfig(BaseSettings):
     )
     # Detectors removed from this set are simply skipped by the runner.
     disabled_detectors: list[str] = Field(default_factory=list)
+    # Maximum number of detectors executed concurrently. Detectors are
+    # independent and stateless, so concurrent execution is safe as long as
+    # results are collected in the configured detector order (preserving
+    # deterministic output). ``1`` keeps the classic sequential execution.
+    # The pipeline is CPU-heavy (numpy/OpenCV), so higher values may help or
+    # hurt depending on hardware; profile before enabling.
+    max_concurrency: int = Field(default=1, ge=1, le=64)
 
     # Fusion -------------------------------------------------------------
     # Per-category weights used by the fusion engine when aggregating signals.

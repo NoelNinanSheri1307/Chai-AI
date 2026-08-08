@@ -44,6 +44,15 @@ COMPARISON_PUBLIC_ID_PREFIX = "cm_"
 MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024
 ALLOWED_IMAGE_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
 
+# Resource-safety limits (Milestone 10) ---------------------------------
+# Coarse HTTP-level bound on the whole request body. Uploads are additionally
+# validated against ``MAX_UPLOAD_SIZE_BYTES``; this guards the framing layer.
+MAX_REQUEST_BODY_BYTES = 33 * 1024 * 1024
+# Decompression-bomb guard: reject images that claim more pixels than this or
+# any single dimension larger than this, before a detector decodes them.
+MAX_IMAGE_PIXELS = 40_000_000  # e.g. roughly a 6324x6324 image
+MAX_IMAGE_DIMENSION = 10000
+
 # Background job timeouts (enforced from the jobs milestone onward) ----
 DEFAULT_ANALYSIS_TIMEOUT_SECONDS = 60
 DEFAULT_COMPARE_TIMEOUT_SECONDS = 45

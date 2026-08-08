@@ -7,16 +7,24 @@ Chai AI scans images and detects whether they are AI-generated, AI-edited, or au
 ```
 .
 ├── frontend/     Flutter application (see frontend/README.md)
-├── backend/      Backend API (not yet implemented)
-├── docs/         Project documentation
+├── backend/      FastAPI backend: forensic analysis API (see backend/README.md)
+├── docs/         Project documentation (architecture, API contract, operations)
 └── README.md
 ```
 
 ## Components
 
-- **frontend/** — Cross-platform Flutter app: image analysis, results, dashboard, history, file safety checks, PDF reports, and theme support. `cd frontend && flutter pub get && flutter run` to launch.
-- **backend/** — Reserved for the AI forensic analysis backend. Not implemented yet.
-- **docs/** — Project documentation.
+- **frontend/** — Cross-platform Flutter app: image analysis, results, dashboard,
+  history, file safety checks, PDF reports, and theme support.
+  `cd frontend && flutter pub get && flutter run` to launch.
+- **backend/** — FastAPI backend implementing the deterministic forensic pipeline
+  (uploads, detector signals, fusion, heatmaps, reports, comparisons), database
+  persistence, object storage and hardened production configuration.
+  `cd backend && uvicorn app.main:app --reload` to launch. See
+  `backend/README.md` and `docs/operations/deployment.md`.
+- **docs/** — Project documentation: architecture spec, API contract,
+  forensic report spec, implementation roadmap, and the Milestone 10
+  deployment/operations guide.
 
 ## Getting started
 
@@ -27,4 +35,15 @@ flutter pub get
 flutter run
 ```
 
-The analysis and safety-check features require the backend service (see `frontend/README.md` for the API contract).
+The analysis and safety-check features require the backend service (see `frontend/README.md` for the API contract). Start the backend with:
+
+```bash
+cd backend
+python -m venv .venv                 # activate per your platform
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload
+```
+
+Backend API docs: `http://localhost:8000/docs` (development), liveness
+`/v1/health`, readiness `/v1/health/ready`.

@@ -28,7 +28,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
         "Returns the deterministic, shareable plain-text report of an analysis."
     ),
 )
-async def share_text(
+def share_text(
     analysis_public_id: str,
     service: ReportServiceDep,
 ) -> ShareTextResponse:
@@ -46,7 +46,7 @@ async def share_text(
         "heatmap summary, metadata and processing information)."
     ),
 )
-async def json_report(
+def json_report(
     analysis_public_id: str,
     service: ReportServiceDep,
 ) -> ForensicReportDTO:
@@ -60,7 +60,7 @@ async def json_report(
     summary="Human-readable Markdown report",
     description=("Returns the complete human-readable forensic report in Markdown."),
 )
-async def markdown_report(
+def markdown_report(
     analysis_public_id: str,
     service: ReportServiceDep,
 ) -> Response:
@@ -82,7 +82,7 @@ async def markdown_report(
     ),
     include_in_schema=False,
 )
-async def share_text_shortcut(
+def share_text_shortcut(
     analysis_public_id: str,
     service: ReportServiceDep,
 ) -> ShareTextResponse:

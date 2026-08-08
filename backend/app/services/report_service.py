@@ -52,7 +52,9 @@ class ReportService:
         An incomplete analysis has no verdict to report, so it is returned as
         an invalid-request error rather than an internal failure.
         """
-        analysis = self._analysis_repo.get_for_user(user_id, public_id)
+        analysis = self._analysis_repo.get_for_user(
+            user_id, public_id, eager_child_graph=True
+        )
         if analysis is None:
             raise AnalysisNotFoundError(public_id)
         if analysis.status is not AnalysisStatus.COMPLETED or analysis.verdict is None:
