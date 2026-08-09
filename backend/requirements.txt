@@ -1,9 +1,8 @@
 # Chai AI backend — runtime dependencies.
 # Install with:  pip install -r requirements.txt
 # (Run from the backend/ directory, with your virtual environment active.)
-# A fully pinned set for reproducible builds lives in requirements.lock.txt
-# (used by the production Docker image); requirements.txt expresses the same
-# set with version bounds.
+# Versions are expressed as bounds; the installed environment is pinned by the
+# already-resolved set actually used for development and local verification.
 
 # Web framework
 fastapi>=0.115,<1.0

@@ -19,3 +19,8 @@ htmlcov/
 # Build / distribution artifacts
 build/
 dist/
+
+# Local runtime artifacts (dev database and stored uploads)
+chai.db
+*.db
+storage/

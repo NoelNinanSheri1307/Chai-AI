@@ -91,38 +91,59 @@ residual limitation (see §9).
 Probes are cheap (one pooled DB round-trip, one temp file). Do not run heavy
 checks here.
 
-## 6. Containerization
+## 6. Running directly (no container)
 
-- `backend/Dockerfile` — `python:3.10-slim`, non-root `chai` user, pinned
-  `requirements.lock.txt`, uvicorn workers, `HEALTHCHECK` on `/v1/health`.
-- `backend/docker-compose.yml` — PostgreSQL + `api` for local development;
-  replaces insecure defaults out-of-the-box for local runs.
-- `.dockerignore` keeps the image lean and never ships `.env`, code caches,
-  databases, storage or frontend.
-
-Build / run:
+The application runs directly with Python/Uvicorn; there is **no container
+dependency**. Development starts one uvicorn process:
 
 ```bash
-docker build -t chai-backend:1.0 -f backend/Dockerfile backend
-docker run -p 8000:8000 -e CHAI_ENVIRONMENT=production \
-  -e CHAI_DATABASE_URL=postgresql+psycopg://... chai-backend:1.0
-# or
-cd backend && docker compose up -d
+cd backend
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload   # Windows
+# or, on macOS/Linux:  uvicorn app.main:app --reload
 ```
 
-## 7. CI
+For production, run the ASGI app directly. Scale by running several uvicorn
+worker processes (each bound to a port) behind your load balancer / reverse
+proxy:
 
-See `.github/workflows/ci.yml`. The pipeline runs, on each push/PR to `main`:
+```bash
+# production-style (4 workers, one process each)
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
 
-1. pinned dependency install,
-2. `ruff check .`,
-3. `ruff format --check .`,
-4. `pytest` (unit + integration),
-5. Alembic migration smoke test on a fresh SQLite DB,
-6. application import/startup check,
-7. production Docker image build + health smoke test.
+Requirements come from `requirements.txt` (runtime) and
+`requirements-dev.txt` (tooling). Create the environment and install:
 
-CI must fail on genuine errors; never weaken tests to make the pipeline green.
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate            # per platform
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
+Production configuration is exactly §2: set the `CHAI_` environment variables,
+run migrations (`alembic upgrade head`), then start the ASGI app. A process
+supervisor (systemd unit, supervisord, or the equivalent) is the operator's
+choice — nothing in the application requires one.
+
+## 7. Local verification
+
+All checks are run locally — there is no CI pipeline, so verification is
+entirely under your control and must be repeated before shipping:
+
+```bash
+cd backend
+ruff check .                       # lint
+ruff format --check .              # formatting
+pytest                             # unit + integration tests
+alembic upgrade head               # migration smoke test on dev DB
+python -m tests.fixtures.forensic.generate  # only when a forensic model changes
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+# then exercise /v1/health and /v1/health/ready
+```
+
+That is the full pre-deploy gate. Verify each item; never skip tests to make a
+deployment faster.
 
 ## 8. Logging & observability
 
@@ -147,7 +168,7 @@ CI must fail on genuine errors; never weaken tests to make the pipeline green.
 2. **Rate limiting** (`memory` only) is process-local and inaccurate across
    uvicorn workers; distributed limiting needs a shared store (Redis).
 3. **Local storage only.** A S3/MinIO adapter is a later milestone; the
-   filesystem adapter is container-scoped and storage is not shared across
+   filesystem adapter is host-scoped and storage is not shared across
    replicas.
 4. **Uvicorn-in-process concurrency:** the analysis path is synchronous
    request-scope (`def` endpoints run in the threadpool). Scale out by adding
@@ -178,7 +199,7 @@ when a deliberately approved forensic model change is merged:
 
 ```bash
 cd backend
-python -m tests.fixtures.forensic.generate   # NEVER for CI fixes
+python -m tests.fixtures.forensic.generate   # only when a forensic model changes
 ```
 
 Forensic outputs include: classification, confidence, risk, hypothesis scores,

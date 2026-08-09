@@ -5,7 +5,7 @@ This milestone (M10) delivers the hardening and production-readiness layer on
 top of a complete forensic pipeline: performance profiling, bounded detector
 concurrency, resource-safety limits, request timeouts, production
 configuration validation, API security hardening, real readiness checks,
-structured observability, Docker/Compose support and CI.
+structured observability and forensic regression protection.
 
 ## Layout
 
@@ -28,10 +28,8 @@ backend/
 │   └── utils/             # image/safety/keys/pagination helpers
 ├── tests/                 # unit/, integration/, fixtures/ forensic snapshots
 ├── alembic/               # Migrations
-├── Dockerfile             # Production ASGI image
-├── docker-compose.yml     # Local Postgres + API stack
 ├── pyproject.toml         # Packaging, deps, Ruff, Pytest
-├── requirements.lock.txt  # Fully pinned runtime deps (production/CI)
+├── requirements.txt       # Runtime dependencies (version bounds)
 ├── .env.example           # Configuration template (copy to .env)
 └── README.md
 ```
@@ -39,8 +37,8 @@ backend/
 ## Requirements
 
 - Python 3.10+
-- Dependencies come from `requirements.lock.txt` (pinned, reproducible) or the
-  bounded `requirements.txt`; development tooling in `requirements-dev.txt`.
+- Runtime dependencies come from `requirements.txt` (version-bounded);
+  development/testing tooling in `requirements-dev.txt`.
 
 ## Setup
 
@@ -112,8 +110,7 @@ the snapshot to make a failing test pass — investigate the behavioural change.
 ruff check .
 ruff format --check .
 pytest
-alembic upgrade head          # migration smoke
-docker build -t chai-backend:ci -f Dockerfile .
+alembic upgrade head          # migration smoke test
 ```
 
 ## Milestone status
@@ -121,8 +118,8 @@ docker build -t chai-backend:ci -f Dockerfile .
 - **M1–M9:** foundation, persistence, storage, auth, analyses, AI pipeline +
   fusion, history, compare, reports & forensic explainability — complete.
 - **M10 (this):** hardening — profiling, bounded concurrency, resource safety,
-  timeouts, production config, API security, readiness, observability, Docker,
-  CI, forensic regression protection.
+  timeouts, production config, API security, readiness, observability,
+  forensic regression protection.
 
 See `docs/architecture/`, `docs/operations/deployment.md`, and
 `docs/architecture/backend-architecture-spec-v1.md` for the full contract.

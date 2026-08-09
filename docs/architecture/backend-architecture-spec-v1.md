@@ -386,7 +386,8 @@ backend/
 - Alembic manages schema versions.
 - The **initial migration** creates every table, enum, index, FK, and constraint.
 - Forward-only migrations; destructive changes (drops) are gated and reviewed.
-- Every migration is smoke-tested in CI against a clean database.
+- Every migration is smoke-tested against a clean database during local
+  verification (`alembic upgrade head`).
 
 ### 6.4 Soft delete policy
 
