@@ -24,3 +24,8 @@ dist/
 chai.db
 *.db
 storage/
+
+# Local benchmark artifacts
+benchmark/data/
+benchmark/results/
+benchmark/reports/
