@@ -50,8 +50,10 @@ from app.repos.history_repo import HistoryRepository
 from app.repos.job_repo import JobRepository
 from app.repos.token_repo import TokenRepository
 from app.repos.user_repo import UserRepository
+from app.clients.external_detection.manager import ExternalDetectionManager
 from app.services.analysis_service import AnalysisService
 from app.services.compare_service import ComparisonService
+from app.services.external_benchmark_service import ExternalBenchmarkService
 from app.services.history_service import HistoryService
 from app.services.report_service import ReportService
 
@@ -209,6 +211,28 @@ def get_report_service(session: SessionDep) -> ReportService:
     return ReportService(analysis_repo=AnalysisRepository(session))
 
 
+def get_external_detection_manager(
+    settings: SettingsDep,
+) -> ExternalDetectionManager:
+    """Provide the :class:`ExternalDetectionManager` with registered providers."""
+    return ExternalDetectionManager(settings=settings)
+
+
+def get_external_benchmark_service(
+    session: SessionDep,
+    storage: StorageDep,
+    manager: Annotated[ExternalDetectionManager, Depends(get_external_detection_manager)],
+    settings: SettingsDep,
+) -> ExternalBenchmarkService:
+    """Provide an :class:`ExternalBenchmarkService` wired with dependencies."""
+    return ExternalBenchmarkService(
+        analysis_repo=AnalysisRepository(session),
+        storage=storage,
+        manager=manager,
+        settings=settings,
+    )
+
+
 # Common dependency aliases. They are declared after the functions they wrap so
 # that ``Depends(...)`` resolves the callables at import time.
 SettingsDep = Annotated[Settings, Depends(get_settings_dependency)]
@@ -228,6 +252,9 @@ AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
 HistoryServiceDep = Annotated[HistoryService, Depends(get_history_service)]
 ComparisonServiceDep = Annotated[ComparisonService, Depends(get_comparison_service)]
 ReportServiceDep = Annotated[ReportService, Depends(get_report_service)]
+ExternalBenchmarkServiceDep = Annotated[
+    ExternalBenchmarkService, Depends(get_external_benchmark_service)
+]
 
 
 # ---------------------------------------------------------------------------

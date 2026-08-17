@@ -253,6 +253,55 @@ format) and/or `HeatmapData` JSON depending on content negotiation.
 
 **Errors:** `404 analysis_not_found`.
 
+### 3.6 External check and benchmark
+
+`POST /v1/analyses/{public_id}/external-check`
+
+**Auth:** optional.
+
+**Response `200`**
+
+```json
+{
+  "analysisId": "ana_512",
+  "chaiVerdict": "aiGenerated",
+  "chaiConfidence": 0.91,
+  "chaiRiskLevel": "high",
+  "externalResults": [
+    {
+      "provider": "sightengine",
+      "providerVersion": "1.0",
+      "isConfigured": true,
+      "status": "success",
+      "detectedAsAi": true,
+      "confidence": 0.94,
+      "classificationLabel": "ai_generated",
+      "rawCategory": "genai_0.94",
+      "processingTimeMs": 240,
+      "errorMessage": null,
+      "metadata": { "request_id": "req_123" }
+    }
+  ],
+  "benchmarkItems": [
+    {
+      "provider": "sightengine",
+      "providerVersion": "1.0",
+      "status": "success",
+      "detectedAsAi": true,
+      "confidence": 0.94,
+      "classificationLabel": "ai_generated",
+      "agreement": true,
+      "compatibilityNote": "Both Chai and external provider detected AI synthetic content.",
+      "confidenceDelta": 0.03
+    }
+  ],
+  "overallAgreementRatio": 1.0,
+  "summary": "Full agreement: external providers corroborate Chai's forensic verdict."
+}
+```
+
+**Errors:** `404 analysis_not_found`.
+
 ---
 
 ## 4. History

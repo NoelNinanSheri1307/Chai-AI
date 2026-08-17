@@ -12,8 +12,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile, status
 
-from app.api.deps import AnalysisServiceDep
+from app.api.deps import AnalysisServiceDep, ExternalBenchmarkServiceDep
 from app.schemas.analysis import AnalysisResultDTO
+from app.schemas.external_detection import ExternalBenchmarkResponseDTO
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
 
@@ -60,3 +61,22 @@ async def get_analysis(
 ) -> AnalysisResultDTO:
     """Return the stored analysis result for ``public_id``."""
     return service.get_analysis(public_id)
+
+
+@router.post(
+    "/{public_id}/external-check",
+    response_model=ExternalBenchmarkResponseDTO,
+    status_code=status.HTTP_200_OK,
+    summary="External AI detection check and benchmark",
+    description=(
+        "Queries optional external AI-detection providers for the stored analysis "
+        "and returns a normalized comparison benchmark against Chai's verdict. "
+        "Fails gracefully when no providers are configured."
+    ),
+)
+def external_check_analysis(
+    public_id: str,
+    benchmark_service: ExternalBenchmarkServiceDep,
+) -> ExternalBenchmarkResponseDTO:
+    """Run external AI detection benchmark for an existing analysis."""
+    return benchmark_service.benchmark_analysis(public_id)
