@@ -111,6 +111,15 @@ class Settings(BaseSettings):
     rate_limiter_limit: int = Field(default=100, ge=1)
     rate_limiter_window_seconds: int = Field(default=60, ge=1)
 
+    # External detection & benchmarking ----------------------------------
+    # Global toggle for optional external detection providers (disabled by default).
+    external_detection_enabled: bool = False
+    # Provider-specific settings (API credentials from environment variables).
+    sightengine_enabled: bool = False
+    sightengine_api_user: str | None = None
+    sightengine_api_secret: str | None = None
+    external_timeout_seconds: float = Field(default=10.0, ge=1.0)
+
     @field_validator("environment", mode="before")
     @classmethod
     def _normalize_environment(cls, value: object) -> object:

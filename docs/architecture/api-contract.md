@@ -342,8 +342,8 @@ Auth required (bearer token).
 
 | Field | Type | Required |
 | --- | --- | --- |
-| `fileA` | file (binary) | yes |
-| `fileB` | file (binary) | yes |
+| `file_a` | file (binary) | yes |
+| `file_b` | file (binary) | yes |
 
 **Response `202`**
 

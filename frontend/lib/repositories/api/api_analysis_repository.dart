@@ -61,13 +61,13 @@ class ApiAnalysisRepository implements AnalysisRepository {
     final request =
         http.MultipartRequest('POST', Uri.parse('$baseUrl/v1/compare'))
           ..files.add(http.MultipartFile.fromBytes(
-            'fileA',
+            'file_a',
             bytesA ?? const [],
             filename: nameA ?? 'image-a',
             contentType: MediaType.parse(sniffImageType(bytesA)),
           ))
           ..files.add(http.MultipartFile.fromBytes(
-            'fileB',
+            'file_b',
             bytesB ?? const [],
             filename: nameB ?? 'image-b',
             contentType: MediaType.parse(sniffImageType(bytesB)),
