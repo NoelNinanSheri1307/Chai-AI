@@ -1,7 +1,8 @@
 """Data models and schemas for the automated benchmark dataset and evaluation harness.
 
 Provides strong typing for ground-truth labels, manifest entries, benchmark
-image results, confusion matrices, and run evaluation reports.
+image results, 2x2 confusion matrices, detector statistics, confidence analysis,
+and evaluation reports.
 """
 
 from __future__ import annotations
@@ -13,23 +14,17 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class GroundTruthLabel(str, Enum):
-    """Authoritative ground-truth label categories for benchmark images."""
+    """Authoritative ground-truth label categories for benchmark images (2-Class)."""
 
     ORIGINAL = "original"
     AI_GENERATED = "ai_generated"
-    AI_EDITED = "ai_edited"
-    REAL_TRANSFORMED = "real_transformed"
-    SCREENSHOTS = "screenshots"
-    DIFFICULT_CASES = "difficult_cases"
-    REAL_MANIPULATED = "real_manipulated"
 
     @property
-    def is_three_class_compatible(self) -> bool:
-        """Return True if label directly maps to Chai's 3-class classifier."""
+    def is_two_class_compatible(self) -> bool:
+        """Return True if label maps to Chai's 2-class classifier."""
         return self in {
             GroundTruthLabel.ORIGINAL,
             GroundTruthLabel.AI_GENERATED,
-            GroundTruthLabel.AI_EDITED,
         }
 
 
@@ -58,7 +53,7 @@ class BenchmarkManifest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    version: str = "1.0"
+    version: str = "2.0"
     created_at: str
     description: str
     entries: list[ManifestEntry] = Field(default_factory=list)
@@ -88,25 +83,37 @@ class ImageBenchmarkResult(BaseModel):
     dataset: str
     ground_truth: GroundTruthLabel
     file_path: str
-    chai_verdict: str
-    chai_confidence: float
-    chai_risk_level: str
+    predicted_class: str
+    correct: bool
+    confidence: float
+    risk_level: str
     analysis_duration_ms: int
     detector_scores: dict[str, float] = Field(default_factory=dict)
+    detector_confidences: dict[str, float] = Field(default_factory=dict)
     detector_details: list[DetectorScoreRecord] = Field(default_factory=list)
     evidence: list[str] = Field(default_factory=list)
     heatmap_region_count: int = 0
     overall_manipulation_score: float = 0.0
+    error: str | None = None
     external_result: dict[str, Any] | None = None
-    is_binary_match: bool | None = None
-    is_three_class_match: bool | None = None
 
 
 class ConfusionMatrixData(BaseModel):
-    """3x3 or 2x2 confusion matrix counts."""
+    """2x2 confusion matrix counts: rows = Actual, cols = Predicted."""
 
-    labels: list[str]
-    matrix: list[list[int]]
+    labels: list[str] = Field(default_factory=lambda: ["original", "ai_generated"])
+    matrix: list[list[int]] = Field(default_factory=lambda: [[0, 0], [0, 0]])
+
+
+class ConfidenceAnalysis(BaseModel):
+    """Confidence statistics across correct and incorrect predictions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    mean_confidence_correct: float = 0.0
+    mean_confidence_incorrect: float = 0.0
+    high_confidence_failures_count: int = 0
+    low_confidence_correct_count: int = 0
 
 
 class BenchmarkRunResult(BaseModel):
@@ -119,14 +126,29 @@ class BenchmarkRunResult(BaseModel):
     pipeline_version: str
     manifest_hash: str
     total_images: int
+    real_count: int = 0
+    ai_generated_count: int = 0
     successful_analyses: int
     failed_analyses: int
+    skipped_count: int = 0
+    duplicate_count: int = 0
+    cross_category_duplicates: list[str] = Field(default_factory=list)
     duration_seconds: float
     results: list[ImageBenchmarkResult] = Field(default_factory=list)
-    overall_accuracy: float = 0.0
+    accuracy: float = 0.0
+    precision: float = 0.0
+    recall: float = 0.0
+    f1: float = 0.0
     macro_f1: float = 0.0
     weighted_f1: float = 0.0
+    tp: int = 0
+    tn: int = 0
+    fp: int = 0
+    fn: int = 0
     per_class_metrics: dict[str, dict[str, float]] = Field(default_factory=dict)
-    confusion_matrix: ConfusionMatrixData
+    confusion_matrix: ConfusionMatrixData = Field(default_factory=ConfusionMatrixData)
+    confidence_analysis: ConfidenceAnalysis = Field(default_factory=ConfidenceAnalysis)
     detector_statistics: dict[str, dict[str, Any]] = Field(default_factory=dict)
     failure_cases: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
+    calibration_candidates: list[str] = Field(default_factory=list)
+

@@ -48,12 +48,23 @@ def inspect_and_validate_image(data: bytes) -> dict[str, str | int]:
             width, height = img.size
             fmt = (img.format or "UNKNOWN").upper()
             mime = f"image/{fmt.lower()}"
-            if fmt == "JPEG":
+            if fmt in {"JPEG", "JPG"}:
                 mime = "image/jpeg"
+                fmt = "JPEG"
             elif fmt == "PNG":
                 mime = "image/png"
             elif fmt == "WEBP":
                 mime = "image/webp"
+            elif fmt == "AVIF":
+                mime = "image/avif"
+
+            # Verify actual pixel decodeability (e.g. for AVIF or exotic formats)
+            try:
+                img.load()
+            except Exception as dec_exc:
+                raise ImageValidationError(
+                    f"Image format {fmt} cannot be decoded by installed decoder: {dec_exc!s}"
+                ) from dec_exc
 
             return {
                 "width": width,
@@ -62,5 +73,8 @@ def inspect_and_validate_image(data: bytes) -> dict[str, str | int]:
                 "mime_type": mime,
                 "file_size_bytes": len(data),
             }
+    except ImageValidationError:
+        raise
     except Exception as exc:
         raise ImageValidationError(f"Failed to read image attributes: {exc!s}") from exc
+

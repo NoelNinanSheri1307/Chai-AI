@@ -29,3 +29,5 @@ storage/
 benchmark/data/
 benchmark/results/
 benchmark/reports/
+chai_benchmark/
+chai-benchmark/
