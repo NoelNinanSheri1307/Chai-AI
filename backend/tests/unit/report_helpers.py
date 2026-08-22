@@ -33,8 +33,8 @@ def vt_analysis(
     confidence: float = 0.85,
     risk: RiskLevel = RiskLevel.HIGH,
     margin: float | None = 0.50,
-    runner_up: Verdict | None = Verdict.AI_EDITED,
-    hypothesis: tuple[float, float, float] = (0.08, 0.21, 0.71),
+    runner_up: Verdict | None = Verdict.ORIGINAL,
+    hypothesis: tuple[float, float] = (0.15, 0.85),
     duration_ms: int = 2100,
 ) -> Analysis:
     """Build a completed analysis stamped with classification results."""
@@ -50,8 +50,8 @@ def vt_analysis(
         duration_ms=duration_ms,
         status=AnalysisStatus.COMPLETED,
         hypothesis_original=hypothesis[0],
-        hypothesis_edited=hypothesis[1],
-        hypothesis_generated=hypothesis[2],
+        hypothesis_edited=0.0,
+        hypothesis_generated=hypothesis[1],
         runner_up_verdict=runner_up,
         classification_margin=margin,
     )
@@ -74,7 +74,7 @@ def add_contribution(
     confidence: float = 0.9,
     reliability: float = 0.1,
     contribution: float = 0.1,
-    weights: tuple[float, float, float] = (1.0, 0.0, 0.0),
+    weights: tuple[float, float] = (0.0, 1.0),
     preferred: str = "AI Generated",
     processing_time_ms: int = 100,
     category: str = "frequency",
@@ -98,8 +98,8 @@ def add_contribution(
                 else "supports:original"
             ),
             hypothesis_original=weights[0],
-            hypothesis_edited=weights[1],
-            hypothesis_generated=weights[2],
+            hypothesis_edited=0.0,
+            hypothesis_generated=weights[1],
             preferred_hypothesis=preferred,
             processing_time_ms=processing_time_ms,
         )
@@ -182,7 +182,7 @@ def ai_generated_report_fixture(db_session) -> Analysis:
         detector="frequency",
         normalized_score=0.83,
         contribution=0.30,
-        weights=(0.05, 0.20, 0.75),
+        weights=(0.15, 0.85),
         preferred="AI Generated",
         position=0,
     )
@@ -191,7 +191,7 @@ def ai_generated_report_fixture(db_session) -> Analysis:
         detector="texture",
         normalized_score=0.78,
         contribution=0.24,
-        weights=(0.10, 0.25, 0.65),
+        weights=(0.20, 0.80),
         preferred="AI Generated",
         position=1,
     )
@@ -200,7 +200,7 @@ def ai_generated_report_fixture(db_session) -> Analysis:
         detector="metadata",
         normalized_score=0.05,
         contribution=0.15,
-        weights=(0.90, 0.05, 0.05),
+        weights=(0.95, 0.05),
         preferred="Original",
         position=2,
         confidence=0.95,

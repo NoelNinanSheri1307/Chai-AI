@@ -54,14 +54,23 @@ class HistoryItem {
         'isFavorite': isFavorite,
       };
 
-  factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-        id: json['id'] as String,
-        imagePath: json['imagePath'] as String?,
-        fileName: json['fileName'] as String?,
-        verdict: Verdict.values.byName(json['verdict'] as String),
-        confidence: (json['confidence'] as num).toDouble(),
-        riskLevel: RiskLevel.values.byName(json['riskLevel'] as String),
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        isFavorite: json['isFavorite'] as bool? ?? false,
-      );
+  factory HistoryItem.fromJson(Map<String, dynamic> json) {
+    Verdict parsedVerdict;
+    final vStr = json['verdict'] as String;
+    try {
+      parsedVerdict = Verdict.values.byName(vStr);
+    } catch (_) {
+      parsedVerdict = Verdict.fromLabel(vStr);
+    }
+    return HistoryItem(
+      id: json['id'] as String,
+      imagePath: json['imagePath'] as String?,
+      fileName: json['fileName'] as String?,
+      verdict: parsedVerdict,
+      confidence: (json['confidence'] as num).toDouble(),
+      riskLevel: RiskLevel.values.byName(json['riskLevel'] as String),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      isFavorite: json['isFavorite'] as bool? ?? false,
+    );
+  }
 }

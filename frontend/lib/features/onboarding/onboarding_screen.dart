@@ -29,7 +29,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _Slide(
       Icons.verified_outlined,
       'Authenticity, verified',
-      'Determine whether an image is original, AI-edited, or fully AI-generated in seconds.',
+      'Determine whether an image is real or AI-generated in seconds.',
     ),
     _Slide(
       Icons.center_focus_strong,

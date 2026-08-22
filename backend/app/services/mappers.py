@@ -32,7 +32,6 @@ _SEVERITY_LABELS = {
 
 _VERDICT_LABELS = {
     Verdict.ORIGINAL: "Original",
-    Verdict.AI_EDITED: "AI Edited",
     Verdict.AI_GENERATED: "AI Generated",
 }
 
@@ -149,4 +148,4 @@ def comparison_to_result_dto(comparison: Comparison) -> CompareResultDTO:
 
 def verdict_label(verdict: Verdict) -> str:
     """Return the human-readable label for a verdict enum."""
-    return _VERDICT_LABELS[verdict]
+    return _VERDICT_LABELS.get(verdict, verdict.value if hasattr(verdict, "value") else str(verdict))

@@ -61,8 +61,8 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Chai AI determines whether an uploaded image is original, '
-                    'AI-edited, or AI-generated. It runs a forensic pipeline across '
+                    'Chai AI determines whether an uploaded image is real '
+                    'or AI-generated. It runs a forensic pipeline across '
                     'texture, metadata, lighting, frequency, noise, compression, '
                     'edge consistency and color distribution, then explains every '
                     'verdict with detected indicators, confidence scores and a '

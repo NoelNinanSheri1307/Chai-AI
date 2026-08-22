@@ -106,9 +106,6 @@ class PipelineConfig(BaseSettings):
     # Verdict decision thresholds -------------------------------------
     # A fused manipulation score at or below this ceiling maps to ORIGINAL.
     original_max_manipulation: float = 0.30
-    # AI_GENERATED requires both a strong manipulation score and coherent
-    # detector agreement (see ``generated_min_agreement``); everything else that
-    # is not clearly ORIGINAL is AI_EDITED (localized / partial / conflicting).
     generated_min_manipulation: float = 0.55
     generated_min_agreement: float = 0.60
 
@@ -126,68 +123,60 @@ class PipelineConfig(BaseSettings):
     manipulation_support_threshold: float = 0.5
 
     # ------------------------------------------------------------------
-    # Three-class forensic classification (Original | AI Edited | AI Generated)
+    # Two-class forensic classification (Original | AI Generated)
     # ------------------------------------------------------------------
     # Per-hypothesis response curve centres on the normalized manipulation
-    # score: Original evidence peaks at a clean (low) reading, AI Edited peaks
-    # at a localized/partial (mid) reading, AI Generated peaks at a strongly
-    # synthetic (high) reading. The response is a Gaussian ``e^(-d^2/2sigma^2)``
-    # over the signed distance from each centre, so the same score produces a
-    # *soft* amount of evidence for every hypothesis rather than a hard cut.
+    # score: Original evidence peaks at a clean (low) reading, AI Generated
+    # peaks at a strongly synthetic (high) reading. The response is a Gaussian
+    # ``e^(-d^2/2sigma^2)`` over the signed distance from each centre, so the
+    # same score produces a *soft* amount of evidence for every hypothesis
+    # rather than a hard cut.
     classifier_original_center: float = 0.0
-    classifier_edited_center: float = 0.5
     classifier_generated_center: float = 1.0
     # Gaussian standard deviation (in score units) controlling how quickly
     # evidence for a hypothesis fades as the reading moves away from its center.
     classifier_resolution: float = 0.15
 
     # Detector contribution matrix. For each detector, how strongly its signal
-    # may support each of the three hypotheses, given the score it measured.
+    # may support each of the two hypotheses, given the score it measured.
     # High coefficients mark detectors whose evidence *naturally* speaks to a
-    # hypothesis (e.g. ELA -> AI Edited, frequency -> AI Generated); low values
-    # mean the detector rarely implies that hypothesis. All values are used as
-    # relative weights and normalised at evaluation time.
+    # hypothesis (e.g. metadata -> Original, frequency -> AI Generated); low
+    # values mean the detector rarely implies that hypothesis. All values are
+    # used as relative weights and normalised at evaluation time.
     classifier_contribution_matrix: dict[str, dict[str, float]] = Field(
         default_factory=lambda: {
             "metadata": {
                 "original": 0.90,
-                "ai_edited": 0.20,
                 "ai_generated": 0.25,
             },
             "frequency": {
                 "original": 0.15,
-                "ai_edited": 0.30,
                 "ai_generated": 1.00,
             },
             "ela": {
-                "original": 0.15,
-                "ai_edited": 1.00,
-                "ai_generated": 0.40,
+                "original": 0.20,
+                "ai_generated": 0.50,
             },
             "noise": {
                 "original": 0.85,
-                "ai_edited": 0.50,
                 "ai_generated": 0.45,
             },
             "compression": {
-                "original": 0.50,
-                "ai_edited": 0.90,
-                "ai_generated": 0.40,
+                "original": 0.60,
+                "ai_generated": 0.45,
             },
             "texture": {
-                "original": 0.40,
-                "ai_edited": 0.70,
-                "ai_generated": 0.80,
+                "original": 0.35,
+                "ai_generated": 0.85,
             },
             "lighting": {
-                "original": 0.40,
-                "ai_edited": 0.60,
-                "ai_generated": 0.60,
+                "original": 0.45,
+                "ai_generated": 0.65,
             },
         }
     )
     # Weight applied to a detector missing from ``classifier_contribution_matrix``.
-    # All three hypotheses receive this same fallback so partial configuration
+    # Both hypotheses receive this same fallback so partial configuration
     # never fails (the detector still contributes proportionally to its reading).
     classifier_contribution_default: float = 0.5
 
@@ -207,10 +196,6 @@ class PipelineConfig(BaseSettings):
         "frequency analysis found no periodic artifacts, and lighting remains "
         "physically coherent."
     )
-    reasoning_intro_edited: str = (
-        "Localized ELA artifacts, inconsistent noise patterns, and compression "
-        "discontinuities indicate modification of an authentic photograph."
-    )
     reasoning_intro_generated: str = (
         "Strong frequency artifacts, globally uniform texture, inconsistent lighting, "
         "and synthetic noise characteristics strongly support AI generation."
@@ -218,9 +203,8 @@ class PipelineConfig(BaseSettings):
     reasoning_support_line: str = "{detector} supported {hypothesis_label}."
     reasoning_oppose_line: str = "{detector} opposed the winning hypothesis."
     reasoning_detailed_line: str = (
-        "{detector} weighted {original:.0%} toward {original_label}, "
-        "{edited:.0%} toward {edited_label}, and {generated:.0%} toward "
-        "{generated_label}."
+        "{detector} weighted {original:.0%} toward {original_label} and "
+        "{generated:.0%} toward {generated_label}."
     )
 
     # Deterministic placeholder decision ---------------------------------
@@ -291,29 +275,28 @@ class PipelineConfig(BaseSettings):
         return sum(self.confidence_weights().values())
 
     # ------------------------------------------------------------------
-    # Three-class classification helpers
+    # Two-class classification helpers
     # ------------------------------------------------------------------
     def contribution_weights_for(self, detector: str) -> list[float]:
         """Return the per-hypothesis contribution weights for ``detector``.
 
-        The order matches :data:`HYPOTHESES` (original, AI edited, AI generated)
+        The order matches :data:`HYPOTHESES` (original, AI generated)
         and every value is non-negative. Unknown detectors fall back to
         ``classifier_contribution_default`` for each hypothesis so partial
         configuration never drops a signal.
         """
         row = self.classifier_contribution_matrix.get(detector)
         if row is None:
-            return [self.classifier_contribution_default] * 3
+            return [self.classifier_contribution_default] * 2
         return [
             max(0.0, row.get(name, self.classifier_contribution_default))
-            for name in ("original", "ai_edited", "ai_generated")
+            for name in ("original", "ai_generated")
         ]
 
     def classifier_centers(self) -> list[float]:
         """Return the response-curve centres in hypothesis order."""
         return [
             self.classifier_original_center,
-            self.classifier_edited_center,
             self.classifier_generated_center,
         ]
 
@@ -348,8 +331,6 @@ class PipelineConfig(BaseSettings):
         * ``ORIGINAL`` — no manipulation evidence, so always low risk.
         * ``AI_GENERATED`` — synthetic content is inherently risky; high risk
           whenever the confidence reaches at least the medium band.
-        * ``AI_EDITED`` — risk tracks the confidence bands (strong editing
-          evidence is high risk, weak evidence low risk).
         """
         if verdict is Verdict.ORIGINAL:
             return RiskLevel.LOW

@@ -1,6 +1,6 @@
 # Chai AI — Frontend
 
-Chai AI is a cross-platform app that determines whether an uploaded image is **Original**, **AI Edited**, or **AI Generated**. It runs a forensic pipeline and explains every verdict.
+Chai AI is a cross-platform app that determines whether an uploaded image is **Real** or **AI Generated**. It runs a forensic pipeline and explains every verdict.
 
 This folder contains the Flutter application. It is fully self-contained: it runs on a **mock repository layer** that simulates the future analysis backend, so the entire product can be explored without a server.
 

@@ -1,9 +1,9 @@
 """Forensic hypotheses and the contribution matrix.
 
 A detector never decides the verdict. Instead every detector signal is mapped,
-through a *contribution matrix*, onto the three competing forensic hypotheses:
+through a *contribution matrix*, onto the two competing forensic hypotheses:
 
-    ORIGINAL, AI_EDITED, AI_GENERATED
+    ORIGINAL, AI_GENERATED
 
 The matrix is configuration-driven (see ``PipelineConfig.classifier_*``) and
 anchors the whole classifier: it tells us how strongly a detector *naturally*
@@ -23,26 +23,23 @@ from app.pipeline.config import PipelineConfig
 
 
 class Hypothesis(IntEnum):
-    """The three mutually-exclusive forensic classes, in display order.
+    """The two mutually-exclusive forensic classes, in display order.
 
     Using an :class:`IntEnum` keeps opinions out of the code; the numeric values
     only order tuple positions that mirror :data:`HYPOTHESES`.
     """
 
     ORIGINAL = 0
-    AI_EDITED = 1
-    AI_GENERATED = 2
+    AI_GENERATED = 1
 
 
 HYPOTHESES: tuple[Hypothesis, ...] = (
     Hypothesis.ORIGINAL,
-    Hypothesis.AI_EDITED,
     Hypothesis.AI_GENERATED,
 )
 
 _HYPOTHESIS_LABELS = {
     Hypothesis.ORIGINAL: "Original",
-    Hypothesis.AI_EDITED: "AI Edited",
     Hypothesis.AI_GENERATED: "AI Generated",
 }
 
@@ -53,20 +50,18 @@ def hypothesis_label(hypothesis: Hypothesis) -> str:
 
 
 class HypothesisScores(NamedTuple):
-    """The three raw support totals for one set of signals, pre-normalization."""
+    """The two raw support totals for one set of signals, pre-normalization."""
 
     original: float = 0.0
-    edited: float = 0.0
     generated: float = 0.0
 
     def __getitem__(self, hypothesis: Hypothesis) -> float:  # type: ignore[override]
-        return (self.original, self.edited, self.generated)[hypothesis]
+        return (self.original, self.generated)[hypothesis]
 
     def as_dict(self) -> dict[str, float]:
         """Return the scores keyed by hypothesis label."""
         return {
             "original": self.original,
-            "edited": self.edited,
             "generated": self.generated,
         }
 
@@ -82,10 +77,10 @@ class GaussianResponse:
 
     This yields a deterministic, smooth amount of evidence for *every*
     hypothesis — never a hard threshold — so a single reading can support a
-    primary hypothesis while still weakly supporting the others.
+    primary hypothesis while still weakly supporting the other.
     """
 
-    centers: tuple[float, float, float]
+    centers: tuple[float, float]
     resolution: float
 
     def support(self, score: float, hypothesis: Hypothesis) -> float:
@@ -100,6 +95,6 @@ def build_response(config: PipelineConfig) -> GaussianResponse:
     """Construct the configured response curves for the classifier."""
     centers = config.classifier_centers()
     return GaussianResponse(
-        centers=(centers[0], centers[1], centers[2]),
+        centers=(centers[0], centers[1]),
         resolution=max(1e-6, config.classifier_resolution),
     )

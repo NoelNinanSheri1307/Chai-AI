@@ -1,4 +1,4 @@
-"""Deterministic three-class evidence and explanation generators.
+"""Deterministic two-class evidence and explanation generators.
 
 Replaces the placeholder generators with a real, deterministic explainer driven
 entirely by the classified :class:`FusionResult` and configuration templates.
@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 _VERDICT_LABELS = {
     Verdict.ORIGINAL: "Original",
-    Verdict.AI_EDITED: "AI Edited",
     Verdict.AI_GENERATED: "AI Generated",
 }
 
@@ -154,8 +153,8 @@ class ClassificationExplanationGenerator(ExplanationGenerator):
         row = fusion.hypothesis_scores
         return (
             "Detector contribution percentages: "
-            f"{row[0]:.0%} Original, {row[1]:.0%} AI Edited, "
-            f"{row[2]:.0%} AI Generated."
+            f"{row[0]:.0%} Original, "
+            f"{row[1]:.0%} AI Generated."
         )
 
     def _reasoning_detail(self, fusion: FusionResult) -> str:
@@ -167,10 +166,8 @@ class ClassificationExplanationGenerator(ExplanationGenerator):
                 self._config.reasoning_detailed_line.format(
                     detector=contribution.detector,
                     original=max(0.0, w[0]),
-                    edited=max(0.0, w[1]),
-                    generated=max(0.0, w[2]),
+                    generated=max(0.0, w[1]),
                     original_label="Original",
-                    edited_label="AI Edited",
                     generated_label="AI Generated",
                 )
             )
@@ -187,7 +184,7 @@ class ClassificationExplanationGenerator(ExplanationGenerator):
     @staticmethod
     def _top_supporting(fusion: FusionResult) -> list[str]:
         winner_probs = fusion.hypothesis_scores
-        winner_index = max(range(3), key=lambda i: winner_probs[i])
+        winner_index = max(range(2), key=lambda i: winner_probs[i])
         ranked = sorted(
             fusion.contributions,
             key=lambda c: c.hypothesis_weights[winner_index],
@@ -207,9 +204,11 @@ class ClassificationExplanationGenerator(ExplanationGenerator):
             for c in fusion.contributions
             if c.preferred_hypothesis and c.preferred_hypothesis != winner_label
         ]
+        # Sort opposing by their non-winning hypothesis weight
+        opposing_index = 0 if fusion.verdict == Verdict.AI_GENERATED else 1
         ranked = sorted(
             opposing,
-            key=lambda c: c.hypothesis_weights[1],
+            key=lambda c: c.hypothesis_weights[opposing_index],
             reverse=True,
         )
         return [f"{c.detector} favoured {c.preferred_hypothesis}" for c in ranked[:3]]

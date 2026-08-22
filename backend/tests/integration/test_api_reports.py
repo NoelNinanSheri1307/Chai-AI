@@ -25,7 +25,7 @@ def test_share_text_returns_report(api_client: TestClient) -> None:
     assert "Chai AI" in body["text"]
     assert "Verdict:" in body["text"]
     assert any(
-        label in body["text"] for label in ("Original", "AI Edited", "AI Generated")
+        label in body["text"] for label in ("Original", "AI Generated")
     )
 
 
@@ -50,7 +50,6 @@ def test_json_report_endpoint(api_client: TestClient) -> None:
     assert report["analysis_id"] == public_id
     assert report["classification"]["verdict"] in (
         "original",
-        "aiEdited",
         "aiGenerated",
     )
     assert "supporting_evidence" in report

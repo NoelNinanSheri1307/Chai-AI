@@ -1,10 +1,10 @@
-"""Fusion decision logic: three-class classification, confidence and risk.
+"""Fusion decision logic: two-class classification, confidence and risk.
 
 This module turns the normalized detector signals into the executable decision
 the rest of the application consumes. It replaces the earlier manipulation-score
-thresholding with a genuine three-class comparison:
+thresholding with a genuine two-class comparison:
 
-* **verdict** — the hypothesis (Original / AI Edited / AI Generated) that the
+* **verdict** — the hypothesis (Original / AI Generated) that the
   accumulated detector evidence supports most strongly. Confidence is *not* a
   single manipulation gate; each detector contributes different evidence to each
   hypothesis via the contribution matrix.
@@ -33,13 +33,11 @@ from .hypotheses import Hypothesis
 
 _VERDICT_TO_LABEL = {
     Verdict.ORIGINAL: "Original",
-    Verdict.AI_EDITED: "AI Edited",
     Verdict.AI_GENERATED: "AI Generated",
 }
 
 _HYPOTHESIS_TO_VERDICT = {
     Hypothesis.ORIGINAL: Verdict.ORIGINAL,
-    Hypothesis.AI_EDITED: Verdict.AI_EDITED,
     Hypothesis.AI_GENERATED: Verdict.AI_GENERATED,
 }
 
@@ -52,8 +50,8 @@ class FusionDecision:
     confidence: float
     risk_level: RiskLevel
     reason: str
-    # Three-class transparency (also mirrored onto FusionResult).
-    hypothesis_scores: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    # Two-class transparency (also mirrored onto FusionResult).
+    hypothesis_scores: tuple[float, float] = (0.0, 0.0)
     runner_up_verdict: Verdict | None = None
     classification_margin: float = 0.0
     detector_contributions: list[DetectorHypothesisContribution] = field(
@@ -75,7 +73,6 @@ def _intro_for(verdict: Verdict, config: PipelineConfig) -> str:
     """Return the configured reasoning intro paragraph for a verdict."""
     return {
         Verdict.ORIGINAL: config.reasoning_intro_original,
-        Verdict.AI_EDITED: config.reasoning_intro_edited,
         Verdict.AI_GENERATED: config.reasoning_intro_generated,
     }[verdict]
 
@@ -108,7 +105,6 @@ def make_decision(
         reason=_reason(classification, config),
         hypothesis_scores=(
             classification.scores.original,
-            classification.scores.edited,
             classification.scores.generated,
         ),
         runner_up_verdict=_HYPOTHESIS_TO_VERDICT[classification.runner_up],

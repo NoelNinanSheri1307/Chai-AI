@@ -48,9 +48,6 @@ def test_risk_is_verdict_aware() -> None:
     assert config.risk_for(Verdict.ORIGINAL, 0.99) == RiskLevel.LOW
     # Generated content is high risk once confidence reaches the medium band.
     assert config.risk_for(Verdict.AI_GENERATED, 0.9) == RiskLevel.HIGH
-    # Edited risk tracks the confidence bands.
-    assert config.risk_for(Verdict.AI_EDITED, 0.8) == RiskLevel.HIGH
-    assert config.risk_for(Verdict.AI_EDITED, 0.2) == RiskLevel.LOW
     assert config.risk_for(Verdict.AI_GENERATED, 0.2) == RiskLevel.MEDIUM
 
 

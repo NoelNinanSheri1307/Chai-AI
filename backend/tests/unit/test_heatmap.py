@@ -44,7 +44,7 @@ def _signal(
 
 def _fusion(**overrides) -> FusionResult:
     args = dict(
-        verdict=Verdict.AI_EDITED,
+        verdict=Verdict.AI_GENERATED,
         confidence=0.6,
         risk_level=RiskLevel.MEDIUM,
         manipulation=0.55,

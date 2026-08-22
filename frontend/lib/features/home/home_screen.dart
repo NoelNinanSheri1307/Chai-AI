@@ -146,7 +146,7 @@ class _UploadHero extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Upload to check if it is original, edited, or AI-generated.',
+                'Upload to check if it is real or AI-generated.',
                 textAlign: TextAlign.center,
                 style: AppTypography.caption(colors.textSecondary),
               ),

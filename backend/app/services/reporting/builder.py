@@ -28,11 +28,10 @@ from app.schemas.report import (
 )
 from app.services.mappers import format_utc_timestamp, verdict_label
 
-#: The three hypothesis support scores are in (original, ai_edited, ai_generated).
+#: The two hypothesis support scores are in (original, ai_generated).
 _VERDICT_INDEX = {
     Verdict.ORIGINAL: 0,
-    Verdict.AI_EDITED: 1,
-    Verdict.AI_GENERATED: 2,
+    Verdict.AI_GENERATED: 1,
 }
 
 #: Version-trail keys stored inside the persisted image-metadata map; the
@@ -111,19 +110,18 @@ def _build_contributions(
 ) -> tuple[list[DetectorContributionDTO], list[DetectorExecutionDTO]]:
     """Build the per-detector contribution breakdown and processing times."""
     winner = analysis.verdict
-    winner_index = _VERDICT_INDEX[winner] if winner else 0
+    winner_index = _VERDICT_INDEX.get(winner, 0) if winner else 0
     contributions: list[DetectorContributionDTO] = []
     executions: list[DetectorExecutionDTO] = []
     for row in _ordered_contributions(analysis):
         weights = (
             row.hypothesis_original,
-            row.hypothesis_edited,
             row.hypothesis_generated,
         )
         reasoning = (
             f"measured normalized score {row.normalized_score:.2f}; allocated "
-            f"support {weights[0]:.0%} Original, {weights[1]:.0%} AI Edited, "
-            f"{weights[2]:.0%} AI Generated; prefers "
+            f"support {weights[0]:.0%} Original, "
+            f"{weights[1]:.0%} AI Generated; prefers "
             f"{row.preferred_hypothesis or 'no hypothesis'}."
         )
         contributions.append(
@@ -136,8 +134,7 @@ def _build_contributions(
                 weight_share=_round(row.weight_share),
                 contribution=_round(row.contribution),
                 contribution_original=_round(weights[0]),
-                contribution_ai_edited=_round(weights[1]),
-                contribution_ai_generated=_round(weights[2]),
+                contribution_ai_generated=_round(weights[1]),
                 contribution_winning_class=_round(weights[winner_index]),
                 direction=row.direction,
                 preferred_hypothesis=row.preferred_hypothesis,
@@ -158,7 +155,6 @@ def _preferred_weight(contribution: DetectorContributionDTO) -> float:
     """The detector's confidence in the hypothesis it prefers."""
     return max(
         contribution.contribution_original,
-        contribution.contribution_ai_edited,
         contribution.contribution_ai_generated,
     )
 
@@ -546,27 +542,25 @@ def build_forensic_report(analysis: Analysis) -> ForensicReportDTO:
 
     hypothesis = (
         analysis.hypothesis_original or 0.0,
-        analysis.hypothesis_edited or 0.0,
         analysis.hypothesis_generated or 0.0,
     )
-    winner_index = _VERDICT_INDEX[analysis.verdict]
+    winner_index = _VERDICT_INDEX.get(analysis.verdict, 0)
     stored_margin = analysis.classification_margin
     if stored_margin is None:
-        rest = [hypothesis[i] for i in range(3) if i != winner_index]
-        stored_margin = hypothesis[winner_index] - max(rest)
+        other_index = 1 - winner_index
+        stored_margin = hypothesis[winner_index] - hypothesis[other_index]
 
     runner_up = _runner_label(analysis.runner_up_verdict)
 
     comparison = ClassificationComparisonDTO(
         original=_round(hypothesis[0]),
-        ai_edited=_round(hypothesis[1]),
-        ai_generated=_round(hypothesis[2]),
+        ai_generated=_round(hypothesis[1]),
         winner=verdict_label(analysis.verdict),
         runner_up=runner_up,
         margin=_round(max(0.0, stored_margin or 0.0)),
         note=(
             "Values are normalized support scores from the deterministic "
-            "three-class classifier; they are not calibrated posterior "
+            "two-class classifier; they are not calibrated posterior "
             "probabilities."
         ),
     )

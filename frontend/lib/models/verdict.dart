@@ -1,22 +1,22 @@
 enum Verdict {
   original,
-  aiEdited,
   aiGenerated;
 
   String get label {
     switch (this) {
       case Verdict.original:
-        return 'Original';
-      case Verdict.aiEdited:
-        return 'AI Edited';
+        return 'Real';
       case Verdict.aiGenerated:
         return 'AI Generated';
     }
   }
 
   static Verdict fromLabel(String label) {
+    final lower = label.toLowerCase();
+    if (lower == 'real' || lower == 'original') return Verdict.original;
+    if (lower == 'ai generated' || lower == 'aigenerated') return Verdict.aiGenerated;
     for (final v in Verdict.values) {
-      if (v.label.toLowerCase() == label.toLowerCase()) return v;
+      if (v.label.toLowerCase() == lower || v.name.toLowerCase() == lower) return v;
     }
     return Verdict.original;
   }

@@ -1,4 +1,4 @@
-"""Three-class forensic classification engine.
+"""Two-class forensic classification engine.
 
 This module builds the decision the rest of the application consumes. It answers
 *"which hypothesis does the detector evidence most strongly support?"* rather
@@ -7,7 +7,7 @@ than *"how manipulated is the image?"*.
 The flow is fully deterministic:
 
     1. **accumulate** — every normalized detector signal contributes a soft
-       amount of evidence to each of the three hypotheses through the
+       amount of evidence to each of the two hypotheses through the
        contribution matrix (``hypotheses.GaussianResponse``).
     2. **normalize** — the raw hypothesis totals are mapped to probabilities that
        sum to ``1`` (when any evidence exists).
@@ -39,14 +39,13 @@ from .normalize import NormalizedSignal, clamp01
 
 _HYPOTHESIS_TO_VERDICT = {
     Hypothesis.ORIGINAL: Verdict.ORIGINAL,
-    Hypothesis.AI_EDITED: Verdict.AI_EDITED,
     Hypothesis.AI_GENERATED: Verdict.AI_GENERATED,
 }
 
 
 @dataclass(frozen=True)
 class DetectorHypothesisContribution:
-    """A single detector's support allocation across the three hypotheses.
+    """A single detector's support allocation across the two hypotheses.
 
     ``weights`` holds this detector's (already weighted) share across
     ``HYPOTHESES`` summing to ``1.0`` when the detector contributed nothing else;
@@ -54,13 +53,13 @@ class DetectorHypothesisContribution:
     """
 
     detector: str
-    weights: tuple[float, float, float]
+    weights: tuple[float, float]
     normalized_score: float
 
     @property
     def preferred(self) -> Hypothesis:
         """The hypothesis this detector most strongly supports."""
-        return HYPOTHESES[max(range(3), key=lambda i: self.weights[i])]
+        return HYPOTHESES[max(range(2), key=lambda i: self.weights[i])]
 
     def share_of(self, hypothesis: Hypothesis) -> float:
         """Return this detector's normalized support for ``hypothesis``."""
@@ -69,7 +68,7 @@ class DetectorHypothesisContribution:
 
 @dataclass(frozen=True)
 class ClassificationResult:
-    """The normalized, ranked outcome of the three-class classifier."""
+    """The normalized, ranked outcome of the two-class classifier."""
 
     scores: HypothesisScores  # probabilities summing to ~1
     winner: Hypothesis
@@ -118,26 +117,24 @@ def _evaluate_response(
         detector_rows.append(
             DetectorHypothesisContribution(
                 detector=signal.detector,
-                weights=normalized_row,
+                weights=(normalized_row[0], normalized_row[1]),
                 normalized_score=signal.score,
             )
         )
 
     return HypothesisScores(
         original=totals[Hypothesis.ORIGINAL],
-        edited=totals[Hypothesis.AI_EDITED],
         generated=totals[Hypothesis.AI_GENERATED],
     ), detector_rows
 
 
 def _probabilify(raw: HypothesisScores) -> HypothesisScores:
     """Normalize the raw hypothesis totals into probabilities summing to 1."""
-    total = raw.original + raw.edited + raw.generated
+    total = raw.original + raw.generated
     if total <= 0.0:
-        return HypothesisScores(0.0, 0.0, 0.0)
+        return HypothesisScores(0.0, 0.0)
     return HypothesisScores(
         raw.original / total,
-        raw.edited / total,
         raw.generated / total,
     )
 
@@ -181,7 +178,7 @@ def compute_classification(
     config: PipelineConfig,
     total_capacity: int,
 ) -> ClassificationResult:
-    """Run the deterministic three-class classifier over ``signals``.
+    """Run the deterministic two-class classifier over ``signals``.
 
     ``total_capacity`` is how many detectors the pipeline intended to run; it
     drives the coverage factor of the confidence model. No signals yields a
@@ -192,11 +189,11 @@ def compute_classification(
     scores = _probabilify(raw)
     winner, runner, winner_score, runner_score, margin = _rank(scores)
 
-    if not signals or (scores.original + scores.edited + scores.generated) == 0.0:
+    if not signals or (scores.original + scores.generated) == 0.0:
         return ClassificationResult(
             scores=scores,
             winner=Hypothesis.ORIGINAL,
-            runner_up=Hypothesis.AI_EDITED,
+            runner_up=Hypothesis.AI_GENERATED,
             winner_score=0.0,
             runner_up_score=0.0,
             margin=0.0,

@@ -34,11 +34,10 @@ from .evidence import aggregate_evidence, build_contributions
 from .metrics import compute_metrics
 from .normalize import normalize_signal
 
-# Index of each verdict inside the (original, ai_edited, ai_generated) tuple.
+# Index of each verdict inside the (original, ai_generated) tuple.
 _VERDICT_HYPOTHESIS_INDEX = {
     Verdict.ORIGINAL: 0,
-    Verdict.AI_EDITED: 1,
-    Verdict.AI_GENERATED: 2,
+    Verdict.AI_GENERATED: 1,
 }
 
 
@@ -128,8 +127,7 @@ def _build_detector_reasoning(
                 "preferred_hypothesis": contribution.preferred_hypothesis,
                 "hypothesis_weights": {
                     "original": round(weights[0], 4),
-                    "ai_edited": round(weights[1], 4),
-                    "ai_generated": round(weights[2], 4),
+                    "ai_generated": round(weights[1], 4),
                 },
                 "supports_winner": weights[winning_index] == max(weights),
             }

@@ -62,8 +62,7 @@ class MockData {
 
   static Verdict _pickVerdict(Random rng) {
     final roll = rng.nextInt(100);
-    if (roll < 28) return Verdict.original;
-    if (roll < 68) return Verdict.aiEdited;
+    if (roll < 45) return Verdict.original;
     return Verdict.aiGenerated;
   }
 
@@ -84,9 +83,6 @@ class MockData {
       case Verdict.original:
         confidence = 0.82 + rng.nextDouble() * 0.17;
         riskLevel = rng.nextInt(100) < 12 ? RiskLevel.medium : RiskLevel.low;
-      case Verdict.aiEdited:
-        confidence = 0.74 + rng.nextDouble() * 0.22;
-        riskLevel = rng.nextInt(100) < 22 ? RiskLevel.high : RiskLevel.medium;
       case Verdict.aiGenerated:
         confidence = 0.86 + rng.nextDouble() * 0.13;
         riskLevel = rng.nextInt(100) < 18 ? RiskLevel.medium : RiskLevel.high;
@@ -104,9 +100,7 @@ class MockData {
     final indicators = <DetectedIndicator>[];
     final indicatorCount = verdict == Verdict.original
         ? (rng.nextInt(100) < 30 ? 1 : 0)
-        : verdict == Verdict.aiEdited
-            ? 2 + rng.nextInt(3)
-            : 3 + rng.nextInt(3);
+        : 3 + rng.nextInt(3);
     final shuffledTypes = List<IndicatorType>.of(IndicatorType.values)
       ..shuffle(rng);
     for (var i = 0; i < indicatorCount && i < shuffledTypes.length; i++) {
@@ -131,16 +125,12 @@ class MockData {
           width: w,
           height: h,
           intensity: (0.45 + rng.nextDouble() * 0.5).clamp(0.0, 1.0),
-          label: verdict == Verdict.aiGenerated
-              ? 'Synthesized region'
-              : 'Edited region',
+          label: 'Synthesized region',
         );
       });
       heatmap = HeatmapData(
         regions: regions,
-        overallManipulation: verdict == Verdict.aiEdited
-            ? 0.4 + rng.nextDouble() * 0.3
-            : 0.7 + rng.nextDouble() * 0.25,
+        overallManipulation: 0.7 + rng.nextDouble() * 0.25,
       );
     }
 
@@ -190,8 +180,6 @@ class MockData {
     switch (verdict) {
       case Verdict.original:
         return 0.82 + rng.nextDouble() * 0.12;
-      case Verdict.aiEdited:
-        return 0.4 + rng.nextDouble() * 0.42;
       case Verdict.aiGenerated:
         return 0.18 + rng.nextDouble() * 0.4;
     }
@@ -201,8 +189,6 @@ class MockData {
     switch (verdict) {
       case Verdict.original:
         return 'No significant manipulation detected. The image appears authentic.';
-      case Verdict.aiEdited:
-        return 'Evidence of AI-assisted editing detected. Parts of this image may have been altered.';
       case Verdict.aiGenerated:
         return 'Image appears to be fully or largely AI-generated.';
     }

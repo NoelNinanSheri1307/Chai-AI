@@ -8,8 +8,6 @@ extension VerdictX on Verdict {
     switch (this) {
       case Verdict.original:
         return colors.success;
-      case Verdict.aiEdited:
-        return colors.warning;
       case Verdict.aiGenerated:
         return colors.danger;
     }
@@ -19,8 +17,6 @@ extension VerdictX on Verdict {
     switch (this) {
       case Verdict.original:
         return Icons.verified_outlined;
-      case Verdict.aiEdited:
-        return Icons.auto_fix_high_outlined;
       case Verdict.aiGenerated:
         return Icons.smart_toy_outlined;
     }
@@ -30,8 +26,6 @@ extension VerdictX on Verdict {
     switch (this) {
       case Verdict.original:
         return 'No significant manipulation detected. The image appears authentic.';
-      case Verdict.aiEdited:
-        return 'Evidence of AI-assisted editing detected. Parts of this image may have been altered.';
       case Verdict.aiGenerated:
         return 'Image appears to be fully or largely AI-generated.';
     }
@@ -41,8 +35,6 @@ extension VerdictX on Verdict {
     switch (this) {
       case Verdict.original:
         return 'Appears authentic';
-      case Verdict.aiEdited:
-        return 'AI editing detected';
       case Verdict.aiGenerated:
         return 'Fully AI generated';
     }

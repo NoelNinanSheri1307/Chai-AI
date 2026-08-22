@@ -45,42 +45,28 @@ def test_original_report_shape(db_session) -> None:
         confidence=0.90,
         risk=RiskLevel.LOW,
         margin=0.60,
-        runner_up=Verdict.AI_EDITED,
-        hypothesis=(0.82, 0.11, 0.07),
+        runner_up=Verdict.AI_GENERATED,
+        hypothesis=(0.80, 0.20),
     )
     assert report.classification.verdict == Verdict.ORIGINAL
     assert report.comparison.winner == "Original"
-    assert report.comparison.original == pytest.approx(0.82)
-    assert report.comparison.runner_up == "AI Edited"
+    assert report.comparison.original == pytest.approx(0.80)
+    assert report.comparison.runner_up == "AI Generated"
     assert report.heatmap is not None
     assert report.heatmap.present is False or report.heatmap.region_count >= 0
-
-
-def test_ai_edited_report_shape(db_session) -> None:
-    report = _report_for(
-        db_session,
-        verdict=Verdict.AI_EDITED,
-        risk=RiskLevel.MEDIUM,
-        margin=0.12,
-        runner_up=Verdict.ORIGINAL,
-        hypothesis=(0.31, 0.52, 0.17),
-    )
-    assert report.classification.verdict == Verdict.AI_EDITED
-    assert report.comparison.ai_edited == pytest.approx(0.52)
-    assert report.comparison.runner_up == "Original"
 
 
 def test_ai_generated_report_shape(db_session) -> None:
     report = _report_for(
         db_session,
         verdict=Verdict.AI_GENERATED,
-        hypothesis=(0.08, 0.21, 0.71),
-        margin=0.50,
-        runner_up=Verdict.AI_EDITED,
+        hypothesis=(0.20, 0.80),
+        margin=0.60,
+        runner_up=Verdict.ORIGINAL,
     )
-    assert report.comparison.ai_generated == pytest.approx(0.71)
-    assert report.comparison.margin == pytest.approx(0.50)
-    assert report.comparison.runner_up == "AI Edited"
+    assert report.comparison.ai_generated == pytest.approx(0.80)
+    assert report.comparison.margin == pytest.approx(0.60)
+    assert report.comparison.runner_up == "Original"
 
 
 def test_supporting_and_contradicting_evidence(db_session) -> None:
@@ -90,7 +76,7 @@ def test_supporting_and_contradicting_evidence(db_session) -> None:
         detector="frequency",
         normalized_score=0.83,
         contribution=0.3,
-        weights=(0.05, 0.20, 0.75),
+        weights=(0.15, 0.85),
         preferred="AI Generated",
     )
     add_contribution(
@@ -98,7 +84,7 @@ def test_supporting_and_contradicting_evidence(db_session) -> None:
         detector="metadata",
         normalized_score=0.05,
         contribution=0.15,
-        weights=(0.90, 0.05, 0.05),
+        weights=(0.95, 0.05),
         preferred="Original",
     )
     add_evidence(analysis, "frequency", "Spectral anomalies are present.")
@@ -123,8 +109,8 @@ def test_detector_contributions_breakdown(db_session) -> None:
         detector="lighting",
         normalized_score=0.66,
         contribution=0.22,
-        weights=(0.20, 0.40, 0.40),
-        preferred="AI Edited",
+        weights=(0.30, 0.70),
+        preferred="AI Generated",
         processing_time_ms=140,
     )
     report = build_forensic_report(commit_analysis(db_session, analysis))
@@ -133,11 +119,10 @@ def test_detector_contributions_breakdown(db_session) -> None:
     assert row.detector == "lighting"
     assert row.detector_version == "0.1.0"
     assert row.normalized_score == pytest.approx(0.66)
-    assert row.contribution_original == pytest.approx(0.20)
-    assert row.contribution_ai_edited == pytest.approx(0.40)
-    assert row.contribution_ai_generated == pytest.approx(0.40)
-    assert row.contribution_winning_class == pytest.approx(0.40)
-    assert row.preferred_hypothesis == "AI Edited"
+    assert row.contribution_original == pytest.approx(0.30)
+    assert row.contribution_ai_generated == pytest.approx(0.70)
+    assert row.contribution_winning_class == pytest.approx(0.70)
+    assert row.preferred_hypothesis == "AI Generated"
     assert row.processing_time_ms == 140
 
 
@@ -287,12 +272,12 @@ def test_why_summary_is_evidence_traceable(db_session) -> None:
 def test_low_confidence_classification(db_session) -> None:
     report = _report_for(
         db_session,
-        verdict=Verdict.AI_EDITED,
+        verdict=Verdict.AI_GENERATED,
         confidence=0.31,
         risk=RiskLevel.MEDIUM,
         margin=0.04,
         runner_up=Verdict.ORIGINAL,
-        hypothesis=(0.34, 0.38, 0.28),
+        hypothesis=(0.48, 0.52),
     )
     assert report.classification.confidence_percent == 31
     assert report.comparison.margin == pytest.approx(0.04)
@@ -306,7 +291,7 @@ def test_empty_evidence_degrades_gracefully(db_session) -> None:
         confidence=0.5,
         risk=RiskLevel.MEDIUM,
         margin=0.05,
-        hypothesis=(0.35, 0.30, 0.35),
+        hypothesis=(0.55, 0.45),
     )
     assert report.supporting_evidence == []
     assert report.contradicting_evidence == []
@@ -320,7 +305,7 @@ def test_conflicting_detector_evidence_is_honest(db_session) -> None:
         analysis,
         detector="frequency",
         normalized_score=0.85,
-        weights=(0.05, 0.10, 0.85),
+        weights=(0.10, 0.90),
         preferred="AI Generated",
         contribution=0.30,
     )
@@ -328,7 +313,7 @@ def test_conflicting_detector_evidence_is_honest(db_session) -> None:
         analysis,
         detector="metadata",
         normalized_score=0.05,
-        weights=(0.92, 0.03, 0.05),
+        weights=(0.95, 0.05),
         preferred="Original",
         contribution=0.15,
     )

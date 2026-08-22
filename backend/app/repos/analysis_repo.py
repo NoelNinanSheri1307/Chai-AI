@@ -164,8 +164,8 @@ class AnalysisRepository(BaseRepository[Analysis]):
         if result.report_data is not None:
             scores = result.report_data.hypothesis_scores
             analysis.hypothesis_original = scores[0]
-            analysis.hypothesis_edited = scores[1]
-            analysis.hypothesis_generated = scores[2]
+            analysis.hypothesis_edited = 0.0
+            analysis.hypothesis_generated = scores[1]
             analysis.runner_up_verdict = result.report_data.runner_up_verdict
             analysis.classification_margin = result.report_data.classification_margin
             for position, contribution in enumerate(result.report_data.contributions):
@@ -184,8 +184,8 @@ class AnalysisRepository(BaseRepository[Analysis]):
                         contribution=contribution.contribution,
                         direction=contribution.direction,
                         hypothesis_original=weights[0],
-                        hypothesis_edited=weights[1],
-                        hypothesis_generated=weights[2],
+                        hypothesis_edited=0.0,
+                        hypothesis_generated=weights[1],
                         preferred_hypothesis=contribution.preferred_hypothesis,
                         processing_time_ms=contribution.processing_time_ms,
                     )

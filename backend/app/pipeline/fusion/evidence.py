@@ -27,7 +27,6 @@ from .normalize import NormalizedSignal
 
 _HYPOTHESIS_ORDER = (
     Hypothesis.ORIGINAL,
-    Hypothesis.AI_EDITED,
     Hypothesis.AI_GENERATED,
 )
 
@@ -41,9 +40,9 @@ def _direction(score: float, support_threshold: float) -> str:
     return "supports:neutral"
 
 
-def _preferred_hypothesis(weights: tuple[float, float, float]) -> Hypothesis:
+def _preferred_hypothesis(weights: tuple[float, float]) -> Hypothesis:
     """Return the hypothesis with the largest allocation."""
-    return _HYPOTHESIS_ORDER[max(range(3), key=lambda i: weights[i])]
+    return _HYPOTHESIS_ORDER[max(range(2), key=lambda i: weights[i])]
 
 
 def build_contributions(
@@ -56,7 +55,7 @@ def build_contributions(
     Returns contributions ordered by descending absolute importance so the head
     of the list is always the most influential detector. When ``hypothesis_rows``
     is provided (matching ``signals`` in order), each contribution is enriched
-    with the detector's three-class hypothesis allocation.
+    with the detector's two-class hypothesis allocation.
     """
     total_weight = sum(s.reliability for s in signals) or 0.0
     total_manipulation = sum(s.reliability * s.score for s in signals) or 0.0
@@ -70,7 +69,7 @@ def build_contributions(
             (weight_share * s.score / total_manipulation) if total_manipulation else 0.0
         )
         row = hypothesis_by_detector.get(s.detector)
-        weights = row.weights if row else (0.0, 0.0, 0.0)
+        weights = row.weights if row else (0.0, 0.0)
         preferred = _preferred_hypothesis(weights) if row else Hypothesis.ORIGINAL
         contributions.append(
             DetectorContribution(

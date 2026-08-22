@@ -15,7 +15,7 @@ def test_upload_analysis_returns_completed_result(api_client: TestClient) -> Non
     assert response.status_code == 200
     body = response.json()
     assert body["id"].startswith("ana_")
-    assert body["verdict"] in {"original", "aiEdited", "aiGenerated"}
+    assert body["verdict"] in {"original", "aiGenerated"}
     assert 0.0 <= body["confidence"] <= 1.0
     assert "scores" in body
     assert "indicators" in body

@@ -51,7 +51,7 @@ class ClassificationSummaryDTO(BaseModel):
 
 
 class ClassificationComparisonDTO(BaseModel):
-    """The three-class comparison: winner, runner-up and margin.
+    """The two-class comparison: winner, runner-up and margin.
 
     Values are the classifier's normalized support scores, not calibrated
     posterior probabilities; ``note`` states this explicitly.
@@ -60,7 +60,6 @@ class ClassificationComparisonDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     original: float = Field(ge=0.0, le=1.0)
-    ai_edited: float = Field(ge=0.0, le=1.0)
     ai_generated: float = Field(ge=0.0, le=1.0)
     winner: str
     runner_up: str | None = None
@@ -84,7 +83,6 @@ class DetectorContributionDTO(BaseModel):
     weight_share: float = Field(ge=0.0, le=1.0)
     contribution: float = Field(ge=0.0, le=1.0)
     contribution_original: float = Field(ge=0.0, le=1.0)
-    contribution_ai_edited: float = Field(ge=0.0, le=1.0)
     contribution_ai_generated: float = Field(ge=0.0, le=1.0)
     contribution_winning_class: float = Field(ge=0.0, le=1.0)
     direction: str

@@ -80,7 +80,7 @@ class ReportContribution:
     weight_share: float
     contribution: float
     direction: str
-    hypothesis_weights: tuple[float, float, float]
+    hypothesis_weights: tuple[float, float]
     preferred_hypothesis: str
     processing_time_ms: int = 0
 
@@ -91,11 +91,11 @@ class PipelineReportData:
 
     Built by the pipeline from the fused decision so the report layer never
     needs to re-run fusion. ``hypothesis_scores`` holds the normalized support
-    for (original, ai_edited, ai_generated); ``contributions`` are ordered by
+    for (original, ai_generated); ``contributions`` are ordered by
     decreasing influence (strongest first).
     """
 
-    hypothesis_scores: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    hypothesis_scores: tuple[float, float] = (0.0, 0.0)
     runner_up_verdict: Verdict | None = None
     classification_margin: float = 0.0
     contributions: tuple[ReportContribution, ...] = ()

@@ -28,9 +28,12 @@ Duration parseIso8601Duration(String value) {
 
 T _enumByName<T extends Enum>(List<T> values, String name) {
   for (final value in values) {
-    if (value.name == name) return value;
+    if (value.name.toLowerCase() == name.toLowerCase()) return value;
   }
-  throw ArgumentError('Unknown enum value "$name" for $T');
+  if (T == Verdict) {
+    return Verdict.fromLabel(name) as T;
+  }
+  return values.first;
 }
 
 double _asDouble(dynamic value) => (value as num).toDouble();

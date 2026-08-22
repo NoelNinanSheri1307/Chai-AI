@@ -161,8 +161,6 @@ class PdfReportBuilder {
     switch (verdict) {
       case Verdict.original:
         return '0E9F6E';
-      case Verdict.aiEdited:
-        return 'B45309';
       case Verdict.aiGenerated:
         return 'DC2626';
     }

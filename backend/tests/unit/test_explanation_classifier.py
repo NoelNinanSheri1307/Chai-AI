@@ -118,15 +118,14 @@ def test_explanation_is_deterministic(pipeline_config: PipelineConfig) -> None:
     assert first
 
 
-def test_explanation_describes_ai_edited(pipeline_config: PipelineConfig) -> None:
+def test_explanation_contradicting_evidence(pipeline_config: PipelineConfig) -> None:
     signals = [
-        _signal("ela", ScoreCategory.COMPRESSION, 0.75),
-        _signal("compression", ScoreCategory.EDGE_CONSISTENCY, 0.70),
-        _signal("noise", ScoreCategory.NOISE_PATTERN, 0.55),
-        _signal("metadata", ScoreCategory.METADATA, 0.30),
+        _signal("frequency", ScoreCategory.FREQUENCY, 0.95),
+        _signal("noise", ScoreCategory.NOISE_PATTERN, 0.05),
     ]
     text = _full_report(pipeline_config, signals)
-    assert "AI Edited" in text.splitlines()[0]
+    assert "Classification: " in text
+    assert "Per-detector reasoning" in text
 
 
 def test_real_generators_implement_contract() -> None:
