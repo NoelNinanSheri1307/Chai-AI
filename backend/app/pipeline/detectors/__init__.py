@@ -13,6 +13,13 @@ without any pipeline changes.
 
 from app.pipeline.detectors.base import Detector
 from app.pipeline.detectors.compression import CompressionDetector
+from app.pipeline.detectors.decode import (
+    ImageDecodeError,
+    decode_image_to_cv_bgr,
+    decode_image_to_cv_gray,
+    decode_image_to_cv_rgb,
+    decode_image_to_pil,
+)
 from app.pipeline.detectors.ela import ELADetector
 from app.pipeline.detectors.frequency import FrequencyDetector
 from app.pipeline.detectors.lighting import LightingDetector
@@ -25,8 +32,14 @@ __all__ = [
     "Detector",
     "ELADetector",
     "FrequencyDetector",
+    "ImageDecodeError",
     "LightingDetector",
     "MetadataDetector",
     "NoiseDetector",
     "TextureDetector",
+    "decode_image_to_cv_bgr",
+    "decode_image_to_cv_gray",
+    "decode_image_to_cv_rgb",
+    "decode_image_to_pil",
 ]
+

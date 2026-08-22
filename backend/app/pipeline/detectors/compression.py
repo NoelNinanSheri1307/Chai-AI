@@ -10,6 +10,7 @@ import numpy as np
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
+from app.pipeline.detectors.decode import decode_image_to_cv_gray
 from app.pipeline.heatmap.spatial import normalize_pixel_box
 from app.pipeline.signals import DetectorHealth, DetectorSignal, SpatialRegion
 
@@ -37,11 +38,7 @@ class CompressionDetector(Detector):
         start_time = time.perf_counter()
 
         try:
-            img_np = np.frombuffer(image_bytes, np.uint8)
-            img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
-            if img is None:
-                raise ValueError("Failed to decode image from bytes.")
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            gray = decode_image_to_cv_gray(image_bytes)
         except Exception:
             processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
             return DetectorSignal(

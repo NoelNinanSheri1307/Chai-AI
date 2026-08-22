@@ -11,6 +11,7 @@ from PIL.ExifTags import TAGS
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
+from app.pipeline.detectors.decode import decode_image_to_pil
 from app.pipeline.signals import DetectorHealth, DetectorSignal
 
 
@@ -37,8 +38,8 @@ class MetadataDetector(Detector):
 
         # 1. Load image and try to parse EXIF
         try:
-            image = Image.open(io.BytesIO(image_bytes))
-            exif_data = image._getexif()
+            image = decode_image_to_pil(image_bytes)
+            exif_data = image._getexif() if hasattr(image, "_getexif") else None
         except Exception:
             processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
             return DetectorSignal(

@@ -11,6 +11,7 @@ from PIL import Image, ImageChops
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult
 from app.pipeline.detectors.base import Detector
+from app.pipeline.detectors.decode import decode_image_to_pil
 from app.pipeline.heatmap.spatial import mask_to_regions
 from app.pipeline.signals import DetectorHealth, DetectorSignal
 
@@ -37,7 +38,7 @@ class ELADetector(Detector):
         start_time = time.perf_counter()
 
         try:
-            original = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+            original = decode_image_to_pil(image_bytes).convert("RGB")
         except Exception:
             processing_time_ms = max(1, int((time.perf_counter() - start_time) * 1000))
             return DetectorSignal(
