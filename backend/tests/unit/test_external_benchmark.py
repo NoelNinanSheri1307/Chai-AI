@@ -483,5 +483,112 @@ def test_reports_and_json_contain_no_credentials(tmp_path: Path) -> None:
     assert md_p.is_file()
     assert json_p.is_file()
     saved_md = md_p.read_text(encoding="utf-8")
-    assert "# Chai AI vs Sightengine External Benchmark Report" in saved_md
-    assert "## 5. Three-Way Ground-Truth Comparison" in saved_md
+    assert "Milestone 16" in saved_md
+    assert "## 7. Ground Truth × Chai × Sightengine" in saved_md
+
+
+# ---------------------------------------------------------------------------
+# 8. Milestone 16 Advanced Analytics Tests
+# ---------------------------------------------------------------------------
+
+
+def test_detailed_error_taxonomy() -> None:
+    from app.benchmark.external_metrics import compute_detailed_error_taxonomy
+
+    results = [
+        # Both correct (Real)
+        _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False),
+        # Chai FP (Real -> AI), Ext Correct (Real -> Real)
+        _build_mock_image_result("r2", GroundTruthLabel.ORIGINAL, "ai_generated", ext_ai=False),
+        # Ext FP (Real -> AI), Chai Correct (Real -> Real)
+        _build_mock_image_result("r3", GroundTruthLabel.ORIGINAL, "original", ext_ai=True),
+        # Both correct (AI)
+        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True),
+        # Chai FN (AI -> Real), Ext Correct (AI -> AI)
+        _build_mock_image_result("a2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True),
+    ]
+
+    tax = compute_detailed_error_taxonomy(results)
+    assert tax.total_compared == 5
+    assert tax.both_correct_count == 2
+    assert tax.chai_fp_count == 1
+    assert tax.chai_fn_count == 1
+    assert tax.ext_fp_count == 1
+    assert tax.chai_correct_ext_wrong_count == 1
+    assert tax.ext_correct_chai_wrong_count == 2
+
+
+def test_detector_forensic_analysis_and_ranking() -> None:
+    from app.benchmark.external_metrics import compute_detector_analysis
+
+    r1 = _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False)
+    r1.detector_scores = {"frequency": 0.20, "lighting": 0.85, "texture": 0.80, "compression": 0.15, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+
+    a1 = _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True)
+    a1.detector_scores = {"frequency": 0.90, "lighting": 0.70, "texture": 0.75, "compression": 0.20, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+
+    stats = compute_detector_analysis([r1, a1])
+    assert len(stats) == 7
+
+    # Frequency should have highest positive separation (+0.70) and rank #1
+    freq = next(s for s in stats if s.detector_name == "frequency")
+    assert freq.empirical_rank == 1
+    assert freq.separation_margin == 0.70
+    assert freq.direction_correct is True
+
+    # Lighting should show inverted separation (-0.15)
+    light = next(s for s in stats if s.detector_name == "lighting")
+    assert light.separation_margin == -0.15
+    assert light.direction_correct is False
+
+
+def test_ai_subgroup_analysis() -> None:
+    from app.benchmark.external_metrics import compute_ai_subgroup_analysis
+
+    results = [
+        _build_mock_image_result("a_avif_1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True, file_path="gen1.avif"),
+        _build_mock_image_result("a_avif_2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True, file_path="gen2.avif"),
+        _build_mock_image_result("a_png_1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True, file_path="gen3.png"),
+    ]
+
+    sub = compute_ai_subgroup_analysis(results)
+    assert sub.total_ai_images == 3
+    assert sub.format_distribution == {"AVIF": 2, "PNG": 1}
+    assert sub.format_recall_chai["AVIF"] == 0.50
+    assert sub.format_recall_chai["PNG"] == 1.00
+    assert sub.format_recall_ext["AVIF"] == 1.00
+
+
+def test_baseline_comparison_and_calibration_decision() -> None:
+    from app.benchmark.external_metrics import (
+        compute_baseline_comparison,
+        compute_detector_analysis,
+        formulate_calibration_decision,
+    )
+    from app.benchmark.metrics import compute_benchmark_run_result
+
+    r1 = _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False)
+    r1.detector_scores = {"frequency": 0.20, "lighting": 0.85, "texture": 0.80, "compression": 0.15, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+    a1 = _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True)
+    a1.detector_scores = {"frequency": 0.90, "lighting": 0.70, "texture": 0.75, "compression": 0.20, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+
+    run_res = compute_benchmark_run_result(
+        run_id="test_run",
+        timestamp="2026-08-23T00:00:00Z",
+        manifest_hash="hash",
+        duration_seconds=1.0,
+        successful_count=2,
+        failed_count=0,
+        results=[r1, a1],
+    )
+
+    base = compute_baseline_comparison(run_res)
+    assert base.m12_accuracy == 0.6347
+    assert base.current_tp == 1
+
+    det_stats = compute_detector_analysis([r1, a1])
+    dec = formulate_calibration_decision(base, det_stats)
+    assert "OPTION B" in dec.recommended_option
+    assert len(dec.rationale) >= 3
+    assert len(dec.next_steps) >= 3
+
