@@ -11,39 +11,10 @@ import '../../widgets/app_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/segmented_control.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  late final TextEditingController _endpointController;
-
-  @override
-  void initState() {
-    super.initState();
-    _endpointController = TextEditingController(
-      text: context.read<SettingsService>().endpoint,
-    );
-  }
-
-  @override
-  void dispose() {
-    _endpointController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveEndpoint() async {
-    final value = _endpointController.text.trim();
-    if (value.isEmpty) return;
-    final settings = context.read<SettingsService>();
-    await settings.setEndpoint(value);
-    if (mounted) context.showSnack('Backend endpoint updated');
-  }
-
-  void _showModelInfo() {
+  void _showModelInfo(BuildContext context) {
     final colors = context.colors;
     showDialog(
       context: context,
@@ -86,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Divider(color: colors.border),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Scores are simulated by a mock repository until the analysis backend is available.',
+              'Multi-signal forensic processing backed by Chai AI production cluster.',
               style: AppTypography.caption(colors.textTertiary),
             ),
           ],
@@ -101,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showPrivacy() {
+  void _showPrivacy(BuildContext context) {
     final colors = context.colors;
     showModalBottomSheet(
       context: context,
@@ -115,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text('Privacy', style: AppTypography.title(colors.textPrimary)),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Uploaded images are processed for analysis and are not shared with third parties. Analysis history is stored locally on your device. When the analysis backend is enabled, images will be transmitted to the configured endpoint only.',
+              'Uploaded images are processed for authenticity verification and are not shared with third parties. Analysis history is stored locally on your device.',
               style: AppTypography.body(colors.textSecondary),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -175,33 +146,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            SectionHeader(
-              title: 'Backend',
-              subtitle: 'Active backend analysis endpoint',
-            ),
-
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _endpointController,
-                    keyboardType: TextInputType.url,
-                    decoration: const InputDecoration(
-                      labelText: 'API endpoint',
-                      hintText: 'https://api.example.com',
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: 'Save Endpoint',
-                    variant: AppButtonVariant.outline,
-                    onPressed: _saveEndpoint,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
 
             SectionHeader(title: 'About'),
             const SizedBox(height: AppSpacing.md),
@@ -216,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: AppTypography.label(colors.textPrimary),
                     ),
                     trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: _showModelInfo,
+                    onTap: () => _showModelInfo(context),
                   ),
                   Divider(color: colors.border, indent: AppSpacing.md),
                   ListTile(
@@ -226,8 +170,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: AppTypography.label(colors.textPrimary),
                     ),
                     trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: _showPrivacy,
+                    onTap: () => _showPrivacy(context),
                   ),
+
                   Divider(color: colors.border, indent: AppSpacing.md),
                   ListTile(
                     leading: Icon(Icons.info_outline, color: colors.accent),

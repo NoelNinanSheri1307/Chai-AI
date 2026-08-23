@@ -7,12 +7,14 @@ import '../../core/utils/context_ext.dart';
 import '../../features/history/history_controller.dart';
 import '../../navigation/app_routes.dart';
 import '../../repositories/history_repository.dart';
+import '../../services/quota_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/fade_in.dart';
 import '../../widgets/history_tile.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/skeleton.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -150,12 +152,39 @@ class _UploadHero extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AppTypography.caption(colors.textSecondary),
               ),
+              const SizedBox(height: AppSpacing.md),
+              Consumer<QuotaService>(
+                builder: (context, quota, _) {
+                  final isLow = quota.remainingUploads <= 2;
+                  final badgeColor = isLow ? colors.warning : colors.accent;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      border: Border.all(color: badgeColor.withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bolt, size: 14, color: badgeColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Daily Free Scans: ${quota.remainingUploads}/${quota.maxUploads} remaining',
+                          style: AppTypography.caption(badgeColor).copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: AppSpacing.lg),
               AppButton(
                 label: 'Start Analysis',
                 icon: Icons.arrow_forward,
                 onPressed: onTap,
               ),
+
             ],
           ),
         ),

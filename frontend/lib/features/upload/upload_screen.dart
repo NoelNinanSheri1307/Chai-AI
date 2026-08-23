@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/theme/app_dimensions.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/context_ext.dart';
 import '../../navigation/app_routes.dart';
+import '../../services/quota_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/drop_zone.dart';
@@ -49,6 +51,17 @@ class _UploadScreenState extends State<UploadScreen> {
 
   Future<void> _startAnalysis() async {
     if (_bytes == null || _loading) return;
+    final quota = context.read<QuotaService>();
+    if (!quota.hasRemainingQuota) {
+      _showQuotaExceededDialog();
+      return;
+    }
+    final allowed = await quota.consumeScan();
+    if (!allowed) {
+      if (mounted) _showQuotaExceededDialog();
+      return;
+    }
+
     setState(() => _loading = true);
     await Future<void>.delayed(const Duration(milliseconds: 120));
     if (!mounted) return;
@@ -58,10 +71,36 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+  void _showQuotaExceededDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.bolt, color: Colors.amber),
+            SizedBox(width: 8),
+            Text('Daily Limit Reached'),
+          ],
+        ),
+        content: const Text(
+          'You have reached your daily quota of 10 free scans.\n\nYour scan limit will reset automatically tomorrow.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final quota = context.watch<QuotaService>();
     final hasImage = _bytes != null;
+    final canAnalyze = hasImage && quota.hasRemainingQuota;
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Analysis')),
@@ -71,16 +110,61 @@ class _UploadScreenState extends State<UploadScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Upload an image',
-                style: AppTypography.headline(colors.textPrimary),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Upload an image',
+                      style: AppTypography.headline(colors.textPrimary),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: (quota.hasRemainingQuota ? colors.accent : colors.warning)
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Text(
+                      '${quota.remainingUploads}/${quota.maxUploads} left today',
+                      style: AppTypography.caption(
+                        quota.hasRemainingQuota ? colors.accent : colors.warning,
+                      ).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'We run a forensic pipeline and explain every verdict.',
                 style: AppTypography.body(colors.textSecondary),
               ),
+              if (!quota.hasRemainingQuota) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: colors.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: colors.warning.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: colors.warning, size: 20),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          'Daily limit reached (10/10 scans). Quota resets tomorrow.',
+                          style: AppTypography.caption(colors.warning),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
+
 
               if (_isDesktopOrWeb)
                 DragDropZone(
@@ -169,8 +253,9 @@ class _UploadScreenState extends State<UploadScreen> {
                 label: 'Analyze Image',
                 icon: Icons.auto_awesome,
                 loading: _loading,
-                onPressed: hasImage ? _startAnalysis : null,
+                onPressed: canAnalyze ? _startAnalysis : null,
               ),
+
             ],
           ),
         ),

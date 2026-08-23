@@ -11,6 +11,7 @@ import 'repositories/api/api_history_repository.dart';
 import 'repositories/history_repository.dart';
 import 'repositories/mock/mock_report_repository.dart';
 import 'repositories/report_repository.dart';
+import 'services/quota_service.dart';
 import 'services/settings_service.dart';
 import 'services/share_service.dart';
 
@@ -25,6 +26,7 @@ class ChaiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = SettingsService();
+    final quota = QuotaService();
     return MultiProvider(
       providers: [
         // The frontend talks to the running backend over HTTP.
@@ -38,6 +40,7 @@ class ChaiApp extends StatelessWidget {
         Provider<ReportRepository>(create: (_) => MockReportRepository()),
 
         ChangeNotifierProvider<SettingsService>(create: (_) => settings),
+        ChangeNotifierProvider<QuotaService>(create: (_) => quota),
         ChangeNotifierProvider<HistoryController>(
           create: (ctx) => HistoryController(ctx.read<HistoryRepository>()),
         ),
@@ -47,6 +50,7 @@ class ChaiApp extends StatelessWidget {
     );
   }
 }
+
 
 class ChaiAppRoot extends StatelessWidget {
   const ChaiAppRoot({super.key});
