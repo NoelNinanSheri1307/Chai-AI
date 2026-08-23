@@ -151,4 +151,3 @@ class BenchmarkRunResult(BaseModel):
     detector_statistics: dict[str, dict[str, Any]] = Field(default_factory=dict)
     failure_cases: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
     calibration_candidates: list[str] = Field(default_factory=list)
-

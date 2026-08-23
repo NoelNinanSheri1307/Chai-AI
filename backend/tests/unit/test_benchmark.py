@@ -2,23 +2,20 @@
 
 from __future__ import annotations
 
-import tempfile
+import io
 from pathlib import Path
-import pytest
 
-from app.benchmark.downloader import DATASET_SOURCES
+import pytest
+from PIL import Image
+
 from app.benchmark.manifest import (
     compute_manifest_hash,
     create_manifest,
     discover_benchmark_images,
-    load_manifest,
     sample_manifest,
-    save_manifest,
 )
 from app.benchmark.metrics import compute_benchmark_run_result
 from app.benchmark.models import (
-    BenchmarkManifest,
-    BenchmarkRunResult,
     GroundTruthLabel,
     ImageBenchmarkResult,
     ManifestEntry,
@@ -31,24 +28,34 @@ from app.benchmark.validation import (
     calculate_sha256,
     inspect_and_validate_image,
 )
-from tests.sample_images import GARBAGE_BYTES, JPEG_BYTES, PNG_BYTES
+from tests.sample_images import GARBAGE_BYTES, JPEG_BYTES
+
+
+def _make_valid_image(format_name: str) -> bytes:
+    img = Image.new("RGB", (32, 32), color="blue")
+    buf = io.BytesIO()
+    img.save(buf, format=format_name)
+    return buf.getvalue()
 
 
 def test_image_validation_and_metadata_extraction() -> None:
-    meta = inspect_and_validate_image(JPEG_BYTES)
+    jpeg_bytes = _make_valid_image("JPEG")
+    meta = inspect_and_validate_image(jpeg_bytes)
     assert meta["width"] > 0
     assert meta["height"] > 0
     assert meta["format"] in {"JPEG", "PNG", "WEBP"}
-    assert meta["file_size_bytes"] == len(JPEG_BYTES)
+    assert meta["file_size_bytes"] == len(jpeg_bytes)
 
     with pytest.raises(ImageValidationError):
         inspect_and_validate_image(GARBAGE_BYTES)
 
 
 def test_duplicate_sha256_hash_calculation(tmp_path: Path) -> None:
-    hash1 = calculate_sha256(JPEG_BYTES)
-    hash2 = calculate_sha256(JPEG_BYTES)
-    hash3 = calculate_sha256(PNG_BYTES)
+    jpeg_bytes = _make_valid_image("JPEG")
+    png_bytes = _make_valid_image("PNG")
+    hash1 = calculate_sha256(jpeg_bytes)
+    hash2 = calculate_sha256(jpeg_bytes)
+    hash3 = calculate_sha256(png_bytes)
 
     assert len(hash1) == 64
     assert hash1 == hash2
@@ -56,7 +63,7 @@ def test_duplicate_sha256_hash_calculation(tmp_path: Path) -> None:
 
     # File SHA-256
     file_p = tmp_path / "sample.jpg"
-    file_p.write_bytes(JPEG_BYTES)
+    file_p.write_bytes(jpeg_bytes)
     assert calculate_file_sha256(file_p) == hash1
 
 
@@ -105,10 +112,13 @@ def test_dataset_discovery_and_deduplication(tmp_path: Path) -> None:
     real_dir.mkdir(parents=True)
     ai_dir.mkdir(parents=True)
 
+    jpeg_bytes = _make_valid_image("JPEG")
+    png_bytes = _make_valid_image("PNG")
+
     # 1 Real image, 1 AI Gen image, 1 duplicate Real image
-    (real_dir / "img1.jpg").write_bytes(JPEG_BYTES)
-    (real_dir / "img1_dup.jpg").write_bytes(JPEG_BYTES)
-    (ai_dir / "aigen1.png").write_bytes(PNG_BYTES)
+    (real_dir / "img1.jpg").write_bytes(jpeg_bytes)
+    (real_dir / "img1_dup.jpg").write_bytes(jpeg_bytes)
+    (ai_dir / "aigen1.png").write_bytes(png_bytes)
 
     manifest, stats = discover_benchmark_images(tmp_path)
     assert stats["real_count"] == 1
@@ -124,9 +134,11 @@ def test_cross_category_collision_detection(tmp_path: Path) -> None:
     real_dir.mkdir(parents=True)
     ai_dir.mkdir(parents=True)
 
+    jpeg_bytes = _make_valid_image("JPEG")
+
     # Same exact image placed in both real and ai_generated
-    (real_dir / "conflict.jpg").write_bytes(JPEG_BYTES)
-    (ai_dir / "conflict.jpg").write_bytes(JPEG_BYTES)
+    (real_dir / "conflict.jpg").write_bytes(jpeg_bytes)
+    (ai_dir / "conflict.jpg").write_bytes(jpeg_bytes)
 
     manifest, stats = discover_benchmark_images(tmp_path)
     assert len(stats["cross_category_duplicates"]) == 1
@@ -153,8 +165,13 @@ def test_metrics_and_2x2_confusion_matrix() -> None:
         risk_level="low",
         analysis_duration_ms=100,
         detector_scores={
-            "metadata": 0.1, "frequency": 0.2, "ela": 0.1,
-            "noise": 0.15, "compression": 0.1, "texture": 0.2, "lighting": 0.1
+            "metadata": 0.1,
+            "frequency": 0.2,
+            "ela": 0.1,
+            "noise": 0.15,
+            "compression": 0.1,
+            "texture": 0.2,
+            "lighting": 0.1,
         },
     )
     res2 = ImageBenchmarkResult(
@@ -169,8 +186,13 @@ def test_metrics_and_2x2_confusion_matrix() -> None:
         risk_level="high",
         analysis_duration_ms=120,
         detector_scores={
-            "metadata": 0.8, "frequency": 0.9, "ela": 0.85,
-            "noise": 0.9, "compression": 0.8, "texture": 0.85, "lighting": 0.9
+            "metadata": 0.8,
+            "frequency": 0.9,
+            "ela": 0.85,
+            "noise": 0.9,
+            "compression": 0.8,
+            "texture": 0.85,
+            "lighting": 0.9,
         },
     )
     res3 = ImageBenchmarkResult(
@@ -185,8 +207,13 @@ def test_metrics_and_2x2_confusion_matrix() -> None:
         risk_level="high",
         analysis_duration_ms=110,
         detector_scores={
-            "metadata": 0.7, "frequency": 0.8, "ela": 0.75,
-            "noise": 0.7, "compression": 0.7, "texture": 0.8, "lighting": 0.7
+            "metadata": 0.7,
+            "frequency": 0.8,
+            "ela": 0.75,
+            "noise": 0.7,
+            "compression": 0.7,
+            "texture": 0.8,
+            "lighting": 0.7,
         },
     )
 
@@ -215,10 +242,20 @@ def test_metrics_and_2x2_confusion_matrix() -> None:
 
     # Confidence analysis
     assert run_res.confidence_analysis.high_confidence_failures_count == 1
-    assert run_res.confidence_analysis.mean_confidence_correct == pytest.approx(0.925, abs=0.01)
+    assert run_res.confidence_analysis.mean_confidence_correct == pytest.approx(
+        0.925, abs=0.01
+    )
 
     # Check detector statistics computed for all 7 detectors
-    for det in ["metadata", "frequency", "ela", "noise", "compression", "texture", "lighting"]:
+    for det in [
+        "metadata",
+        "frequency",
+        "ela",
+        "noise",
+        "compression",
+        "texture",
+        "lighting",
+    ]:
         assert det in run_res.detector_statistics
         assert "original_mean" in run_res.detector_statistics[det]
         assert "ai_generated_mean" in run_res.detector_statistics[det]
@@ -243,8 +280,13 @@ def test_markdown_report_generation() -> None:
         risk_level="low",
         analysis_duration_ms=100,
         detector_scores={
-            "metadata": 0.1, "frequency": 0.2, "ela": 0.1,
-            "noise": 0.15, "compression": 0.1, "texture": 0.2, "lighting": 0.1
+            "metadata": 0.1,
+            "frequency": 0.2,
+            "ela": 0.1,
+            "noise": 0.15,
+            "compression": 0.1,
+            "texture": 0.2,
+            "lighting": 0.1,
         },
     )
     run_res = compute_benchmark_run_result(
@@ -291,4 +333,3 @@ def test_production_pipeline_benchmark_execution(tmp_path: Path) -> None:
     assert result.failed_analyses == 0
     assert result.results[0].predicted_class in {"original", "ai_generated"}
     assert len(result.results[0].detector_scores) == 7
-

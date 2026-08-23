@@ -12,6 +12,7 @@ from app.clients.external_detection.benchmark import compute_benchmark_report
 from app.clients.external_detection.manager import ExternalDetectionManager
 from app.clients.storage import StorageClient
 from app.core.config import Settings
+from app.core.exceptions import AnalysisNotFoundError
 from app.repos.analysis_repo import AnalysisRepository
 from app.schemas.external_detection import (
     ExternalBenchmarkItemDTO,
@@ -38,6 +39,8 @@ class ExternalBenchmarkService:
     def benchmark_analysis(self, public_id: str) -> ExternalBenchmarkResponseDTO:
         """Run external benchmarks for a stored analysis identified by ``public_id``."""
         analysis = self._analysis_repo.get_by_public_id(public_id)
+        if analysis is None:
+            raise AnalysisNotFoundError(public_id)
 
         # Retrieve stored image bytes using storage adapter
         try:

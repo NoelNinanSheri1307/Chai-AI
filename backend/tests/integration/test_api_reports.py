@@ -24,9 +24,7 @@ def test_share_text_returns_report(api_client: TestClient) -> None:
     body = response.json()
     assert "Chai AI" in body["text"]
     assert "Verdict:" in body["text"]
-    assert any(
-        label in body["text"] for label in ("Original", "AI Generated")
-    )
+    assert any(label in body["text"] for label in ("Original", "AI Generated"))
 
 
 def test_share_text_shortcut_path_returns_same(api_client: TestClient) -> None:

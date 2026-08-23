@@ -131,8 +131,10 @@ def test_provider_http_failure_handling(monkeypatch: pytest.MonkeyPatch) -> None
     def mock_post(*args, **kwargs):
         class MockResponse:
             status_code = 500
+
             def json(self):
                 return {"error": "Server error"}
+
         return MockResponse()
 
     monkeypatch.setattr(httpx.Client, "post", mock_post)
@@ -174,12 +176,14 @@ def test_sightengine_successful_parsing(monkeypatch: pytest.MonkeyPatch) -> None
     def mock_post_success(*args, **kwargs):
         class MockResponse:
             status_code = 200
+
             def json(self):
                 return {
                     "status": "success",
                     "request": {"id": "req_abc123"},
                     "type": {"ai_generated": 0.94},
                 }
+
         return MockResponse()
 
     monkeypatch.setattr(httpx.Client, "post", mock_post_success)
@@ -198,8 +202,13 @@ def test_sightengine_successful_parsing(monkeypatch: pytest.MonkeyPatch) -> None
 def test_binary_vs_three_class_matching_agreements() -> None:
     # 1. Chai Original & External detected_as_ai=False -> Match
     res_orig = ExternalDetectionResult(
-        provider="p1", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=False, confidence=0.10, classification_label="authentic"
+        provider="p1",
+        provider_version="1.0",
+        is_configured=True,
+        status="success",
+        detected_as_ai=False,
+        confidence=0.10,
+        classification_label="authentic",
     )
     item1 = compare_verdict("original", 0.90, res_orig)
     assert item1.agreement is True
@@ -207,8 +216,13 @@ def test_binary_vs_three_class_matching_agreements() -> None:
 
     # 2. Chai AI Generated & External detected_as_ai=True -> Match
     res_ai = ExternalDetectionResult(
-        provider="p1", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=True, confidence=0.95, classification_label="ai_generated"
+        provider="p1",
+        provider_version="1.0",
+        is_configured=True,
+        status="success",
+        detected_as_ai=True,
+        confidence=0.95,
+        classification_label="ai_generated",
     )
     item2 = compare_verdict("ai_generated", 0.95, res_ai)
     assert item2.agreement is True
@@ -222,8 +236,13 @@ def test_binary_vs_three_class_matching_agreements() -> None:
 
 def test_genuine_disagreement_cases() -> None:
     res_ai = ExternalDetectionResult(
-        provider="p1", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=True, confidence=0.88, classification_label="ai_generated"
+        provider="p1",
+        provider_version="1.0",
+        is_configured=True,
+        status="success",
+        detected_as_ai=True,
+        confidence=0.88,
+        classification_label="ai_generated",
     )
     # Chai says Original, External says AI -> Disagreement
     item1 = compare_verdict("original", 0.90, res_ai)
@@ -231,8 +250,13 @@ def test_genuine_disagreement_cases() -> None:
     assert "Disagreement" in item1.compatibility_note
 
     res_auth = ExternalDetectionResult(
-        provider="p1", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=False, confidence=0.05, classification_label="authentic"
+        provider="p1",
+        provider_version="1.0",
+        is_configured=True,
+        status="success",
+        detected_as_ai=False,
+        confidence=0.05,
+        classification_label="authentic",
     )
     # Chai says AI Generated, External says Original -> Disagreement
     item2 = compare_verdict("ai_generated", 0.92, res_auth)
@@ -241,14 +265,32 @@ def test_genuine_disagreement_cases() -> None:
 
 
 def test_multiple_providers_benchmark_aggregation() -> None:
-    p1 = MockCustomProvider("prov1", True, ExternalDetectionResult(
-        provider="prov1", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=True, confidence=0.90, classification_label="ai_generated"
-    ))
-    p2 = MockCustomProvider("prov2", True, ExternalDetectionResult(
-        provider="prov2", provider_version="1.0", is_configured=True, status="success",
-        detected_as_ai=False, confidence=0.10, classification_label="authentic"
-    ))
+    p1 = MockCustomProvider(
+        "prov1",
+        True,
+        ExternalDetectionResult(
+            provider="prov1",
+            provider_version="1.0",
+            is_configured=True,
+            status="success",
+            detected_as_ai=True,
+            confidence=0.90,
+            classification_label="ai_generated",
+        ),
+    )
+    p2 = MockCustomProvider(
+        "prov2",
+        True,
+        ExternalDetectionResult(
+            provider="prov2",
+            provider_version="1.0",
+            is_configured=True,
+            status="success",
+            detected_as_ai=False,
+            confidence=0.10,
+            classification_label="authentic",
+        ),
+    )
 
     mgr = ExternalDetectionManager(providers=[p1, p2])
     results = mgr.analyze_all(b"bytes")

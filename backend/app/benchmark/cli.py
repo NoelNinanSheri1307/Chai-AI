@@ -7,6 +7,12 @@ import logging
 import sys
 from pathlib import Path
 
+from app.benchmark.external_cache import ExternalBenchmarkCache
+from app.benchmark.external_metrics import compute_complete_external_benchmark
+from app.benchmark.external_reports import (
+    generate_external_markdown_report,
+    save_external_reports,
+)
 from app.benchmark.manifest import (
     discover_benchmark_images,
     load_manifest,
@@ -15,6 +21,8 @@ from app.benchmark.manifest import (
 )
 from app.benchmark.reports import generate_markdown_report, save_markdown_report
 from app.benchmark.runner import build_benchmark_pipeline, run_benchmark
+from app.clients.external_detection.manager import ExternalDetectionManager
+from app.core.config import Settings
 
 
 def find_default_dataset_dir() -> Path:
@@ -37,7 +45,9 @@ def find_default_dataset_dir() -> Path:
 
 def run_cli() -> None:
     """CLI entry point for running a benchmark evaluation: ``python -m app.benchmark.cli``."""
-    parser = argparse.ArgumentParser(description="Chai AI Real vs AI-Generated Benchmark Harness")
+    parser = argparse.ArgumentParser(
+        description="Chai AI Real vs AI-Generated Benchmark Harness"
+    )
     parser.add_argument(
         "--dataset-dir",
         type=str,
@@ -69,6 +79,23 @@ def run_cli() -> None:
         help="Deterministic sampling random seed (default: 42)",
     )
     parser.add_argument(
+        "--external",
+        action="store_true",
+        help="Enable independent external provider benchmarking (Sightengine)",
+    )
+    parser.add_argument(
+        "--external-delay",
+        type=float,
+        default=0.2,
+        help="Inter-request delay in seconds for external provider calls (default: 0.2s)",
+    )
+    parser.add_argument(
+        "--external-cache",
+        type=str,
+        default="reports/external_cache.json",
+        help="Path to JSON cache file for external provider responses",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Enable detailed logging output",
@@ -77,7 +104,9 @@ def run_cli() -> None:
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=log_level, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=log_level, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
     # Locate dataset directory
     if args.dataset_dir:
@@ -101,7 +130,9 @@ def run_cli() -> None:
             print(f"Error: Manifest file not found at {manifest_p}", file=sys.stderr)
             sys.exit(1)
         full_manifest = load_manifest(manifest_p)
-        print(f"Loaded manifest from {manifest_p} with {len(full_manifest.entries)} entries.")
+        print(
+            f"Loaded manifest from {manifest_p} with {len(full_manifest.entries)} entries."
+        )
     else:
         print(f"Discovering benchmark images in: {dataset_path}...")
         full_manifest, discovery_stats = discover_benchmark_images(dataset_path)
@@ -119,22 +150,39 @@ def run_cli() -> None:
     # 2. Sample manifest if limit is requested
     manifest = sample_manifest(full_manifest, limit=args.limit, seed=args.seed)
     if args.limit:
-        print(f"Sampled {len(manifest.entries)} images using seed {args.seed} (limit={args.limit}).")
+        print(
+            f"Sampled {len(manifest.entries)} images using seed {args.seed} (limit={args.limit})."
+        )
     else:
         print(f"Evaluating complete dataset of {len(manifest.entries)} images...")
 
     # 3. Build production pipeline (isolated, zero database writes)
     pipeline = build_benchmark_pipeline()
 
-    # 4. Execute benchmark
+    # 4. Optional external provider initialization
+    external_manager = None
+    external_cache = None
+    if args.external:
+        settings = Settings()
+        external_manager = ExternalDetectionManager(settings=settings)
+        external_cache = ExternalBenchmarkCache(args.external_cache)
+        print(
+            f"External benchmarking enabled (Sightengine). Using cache: {external_cache.cache_path}"
+        )
+
+    # 5. Execute benchmark
     print("Running production forensic pipeline...")
     result = run_benchmark(
         manifest=manifest,
         pipeline=pipeline,
         discovery_stats=discovery_stats,
+        external_manager=external_manager,
+        run_external=args.external,
+        external_cache=external_cache,
+        external_delay=args.external_delay,
     )
 
-    # 5. Output results and reports
+    # 6. Output results and reports
     if args.output_dir:
         out_dir = Path(args.output_dir).resolve()
     else:
@@ -161,25 +209,71 @@ def run_cli() -> None:
     save_markdown_report(report_md, latest_md)
     save_markdown_report(report_md, run_md)
 
-    # 6. Terminal Summary
+    # 7. External comparative report generation if requested
+    ext_report_md_path = None
+    ext_result_obj = None
+    if args.external:
+        ext_result_obj = compute_complete_external_benchmark(result)
+        ext_md_path, ext_json_path = save_external_reports(ext_result_obj, out_dir)
+        ext_run_md = results_runs_dir / f"{result.run_id}_external.md"
+        ext_run_json = results_runs_dir / f"{result.run_id}_external.json"
+        ext_run_md.write_text(
+            generate_external_markdown_report(ext_result_obj), encoding="utf-8"
+        )
+        ext_run_json.write_text(
+            ext_result_obj.model_dump_json(indent=2), encoding="utf-8"
+        )
+        ext_report_md_path = ext_md_path
+
+    # 8. Terminal Summary
     print("\n" + "=" * 60)
     print(f"CHAI AI BENCHMARK SUMMARY ({result.run_id})")
     print("=" * 60)
-    print(f"Evaluated Images:   {result.total_images} (Real: {result.real_count}, AI Generated: {result.ai_generated_count})")
-    print(f"Overall Accuracy:   {result.accuracy * 100:.2f}%")
-    print(f"Precision (AI Gen): {result.precision * 100:.2f}%")
-    print(f"Recall (AI Gen):    {result.recall * 100:.2f}%")
-    print(f"F1 Score (AI Gen):  {result.f1:.4f}")
-    print(f"Macro F1 Score:     {result.macro_f1:.4f}")
-    print(f"Confusion Matrix:   TN={result.tn}, FP={result.fp}, FN={result.fn}, TP={result.tp}")
-    print(f"High-Conf Failures: {result.confidence_analysis.high_confidence_failures_count}")
-    print(f"Duration:           {result.duration_seconds}s")
+    print(
+        f"Evaluated Images:   {result.total_images} (Real: {result.real_count}, AI Generated: {result.ai_generated_count})"
+    )
+    print(f"Chai Overall Acc:   {result.accuracy * 100:.2f}%")
+    print(f"Chai AI Precision:  {result.precision * 100:.2f}%")
+    print(f"Chai AI Recall:     {result.recall * 100:.2f}%")
+    print(f"Chai AI F1 Score:   {result.f1:.4f}")
+    print(f"Chai Macro F1:      {result.macro_f1:.4f}")
+    print(
+        f"Chai Confusion Mtx: TN={result.tn}, FP={result.fp}, FN={result.fn}, TP={result.tp}"
+    )
+
+    if ext_result_obj is not None:
+        em = ext_result_obj.external_metrics
+        ag = ext_result_obj.agreement
+        print("-" * 60)
+        print("SIGHTENGINE EXTERNAL BENCHMARK COMPARISON")
+        print("-" * 60)
+        print(
+            f"Sightengine Status: {em.successful_analyses} success, {em.failed_analyses} fail, {em.unconfigured_or_disabled} unconfigured"
+        )
+        print(f"Sightengine Acc:    {em.accuracy * 100:.2f}%")
+        print(f"Sightengine AI Rec: {em.recall * 100:.2f}%")
+        print(f"Sightengine AI Prec:{em.precision * 100:.2f}%")
+        print(f"Sightengine AI F1:  {em.f1:.4f}")
+        print(
+            f"Sightengine Mtx:    TN={em.tn}, FP={em.fp}, FN={em.fn}, TP={em.tp}"
+        )
+        print(
+            f"Overall Agreement:  {ag.agree_count}/{ag.total_compared} ({ag.agreement_rate * 100:.2f}%)"
+        )
+        print(
+            f"  - Real Partition: {ag.real_subset_agree_count}/{ag.real_subset_count} ({ag.real_subset_agree_rate * 100:.2f}%)"
+        )
+        print(
+            f"  - AI Partition:   {ag.ai_subset_agree_count}/{ag.ai_subset_count} ({ag.ai_subset_agree_rate * 100:.2f}%)"
+        )
+
     print("=" * 60)
-    print(f"Full Report: {latest_md}")
-    print(f"JSON Result: {latest_json}")
+    print(f"Full Chai Report:       {latest_md}")
+    print(f"Chai JSON Result:       {latest_json}")
+    if ext_report_md_path:
+        print(f"Comparative Ext Report: {ext_report_md_path}")
     print("=" * 60 + "\n")
 
 
 if __name__ == "__main__":
     run_cli()
-

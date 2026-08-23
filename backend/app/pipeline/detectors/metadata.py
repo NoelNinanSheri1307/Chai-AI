@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import io
 import time
 
-from PIL import Image
 from PIL.ExifTags import TAGS
 
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory

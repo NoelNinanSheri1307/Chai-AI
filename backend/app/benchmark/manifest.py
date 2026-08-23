@@ -128,6 +128,12 @@ def discover_benchmark_images(
                 files.append(p)
         return sorted(files)
 
+    # Local counter helper
+    counters = {"dup": 0, "skip": 0}
+
+    def nonlocal_inc(kind: str) -> None:
+        counters[kind] += 1
+
     all_real_files = [f for d in real_dirs for f in _collect_files(d)]
     all_ai_files = [f for d in ai_dirs for f in _collect_files(d)]
 
@@ -135,41 +141,9 @@ def discover_benchmark_images(
         _process_candidate(
             file_path=file_path,
             ground_truth=GroundTruthLabel.ORIGINAL,
-            dataset_name="coco_val2017" if "val2017" in str(file_path).lower() else "real",
-            dataset_dir=dataset_dir,
-            entries_by_sha=entries_by_sha,
-            cross_category_duplicates=cross_category_duplicates,
-            on_duplicate=lambda: nonlocal_inc("dup"),
-            on_skip=lambda: nonlocal_inc("skip"),
-        )
-
-    for file_path in all_ai_files:
-        _process_candidate(
-            file_path=file_path,
-            ground_truth=GroundTruthLabel.AI_GENERATED,
-            dataset_name="ai_generated",
-            dataset_dir=dataset_dir,
-            entries_by_sha=entries_by_sha,
-            cross_category_duplicates=cross_category_duplicates,
-            on_duplicate=lambda: nonlocal_inc("dup"),
-            on_skip=lambda: nonlocal_inc("skip"),
-        )
-
-    # Local counter helper
-    counters = {"dup": 0, "skip": 0}
-
-    def nonlocal_inc(kind: str) -> None:
-        counters[kind] += 1
-
-    # Rerun with counters properly wired
-    entries_by_sha.clear()
-    cross_category_duplicates.clear()
-
-    for file_path in all_real_files:
-        _process_candidate(
-            file_path=file_path,
-            ground_truth=GroundTruthLabel.ORIGINAL,
-            dataset_name="coco_val2017" if "val2017" in str(file_path).lower() else "real",
+            dataset_name="coco_val2017"
+            if "val2017" in str(file_path).lower()
+            else "real",
             dataset_dir=dataset_dir,
             entries_by_sha=entries_by_sha,
             cross_category_duplicates=cross_category_duplicates,
@@ -195,12 +169,18 @@ def discover_benchmark_images(
     # Exclude any cross-category duplicates from the active manifest
     valid_entries = [
         entry
-        for sha, (gt, entry, _) in sorted(entries_by_sha.items(), key=lambda item: item[1][1].id)
+        for sha, (gt, entry, _) in sorted(
+            entries_by_sha.items(), key=lambda item: item[1][1].id
+        )
         if sha not in cross_category_duplicates
     ]
 
-    real_count = sum(1 for e in valid_entries if e.ground_truth == GroundTruthLabel.ORIGINAL)
-    ai_count = sum(1 for e in valid_entries if e.ground_truth == GroundTruthLabel.AI_GENERATED)
+    real_count = sum(
+        1 for e in valid_entries if e.ground_truth == GroundTruthLabel.ORIGINAL
+    )
+    ai_count = sum(
+        1 for e in valid_entries if e.ground_truth == GroundTruthLabel.AI_GENERATED
+    )
 
     stats = {
         "real_count": real_count,
@@ -286,4 +266,3 @@ def _process_candidate(
     )
 
     entries_by_sha[sha] = (ground_truth, entry, file_path)
-

@@ -44,9 +44,10 @@ def inspect_and_validate_image(data: bytes) -> dict[str, str | int]:
     # Re-open for format/dimension reading after verify()
     try:
         with Image.open(BytesIO(data)) as img:
+            fmt = (img.format or "UNKNOWN").upper()
             img = ImageOps.exif_transpose(img)
             width, height = img.size
-            fmt = (img.format or "UNKNOWN").upper()
+
             mime = f"image/{fmt.lower()}"
             if fmt in {"JPEG", "JPG"}:
                 mime = "image/jpeg"
@@ -77,4 +78,3 @@ def inspect_and_validate_image(data: bytes) -> dict[str, str | int]:
         raise
     except Exception as exc:
         raise ImageValidationError(f"Failed to read image attributes: {exc!s}") from exc
-

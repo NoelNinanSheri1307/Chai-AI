@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Generator, Iterator
 from pathlib import Path
 
@@ -38,8 +39,11 @@ from app.pipeline.runner import ModularAnalysisPipeline
 
 
 @pytest.fixture(autouse=True)
-def _reset_settings() -> None:
+def _reset_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Isolate cached settings, databases and pipeline config between tests."""
+    for key in list(os.environ.keys()):
+        if key.startswith("CHAI_"):
+            monkeypatch.delenv(key, raising=False)
     clear_settings_cache()
     clear_database_cache()
     clear_pipeline_config_cache()

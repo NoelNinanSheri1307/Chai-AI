@@ -90,13 +90,13 @@ class PipelineConfig(BaseSettings):
     # them each run.
     detector_reliability: dict[str, float] = Field(
         default_factory=lambda: {
-            "metadata": 0.15,
-            "frequency": 0.50,
-            "ela": 0.02,
-            "noise": 0.02,
+            "metadata": 0.10,
+            "frequency": 0.18,
+            "ela": 0.18,
+            "noise": 0.12,
             "compression": 0.10,
             "texture": 0.15,
-            "lighting": 0.06,
+            "lighting": 0.17,
         }
     )
     # Reliability applied to a detector that is not present in
@@ -135,7 +135,7 @@ class PipelineConfig(BaseSettings):
     classifier_generated_center: float = 1.0
     # Gaussian standard deviation (in score units) controlling how quickly
     # evidence for a hypothesis fades as the reading moves away from its center.
-    classifier_resolution: float = 0.35
+    classifier_resolution: float = 0.15
 
     # Detector contribution matrix. For each detector, how strongly its signal
     # may support each of the two hypotheses, given the score it measured.
@@ -146,32 +146,32 @@ class PipelineConfig(BaseSettings):
     classifier_contribution_matrix: dict[str, dict[str, float]] = Field(
         default_factory=lambda: {
             "metadata": {
-                "original": 0.85,
-                "ai_generated": 0.15,
+                "original": 0.90,
+                "ai_generated": 0.25,
             },
             "frequency": {
-                "original": 0.05,
+                "original": 0.15,
                 "ai_generated": 1.00,
             },
             "ela": {
-                "original": 0.10,
-                "ai_generated": 0.10,
+                "original": 0.20,
+                "ai_generated": 0.50,
             },
             "noise": {
-                "original": 0.10,
-                "ai_generated": 0.10,
+                "original": 0.85,
+                "ai_generated": 0.45,
             },
             "compression": {
-                "original": 0.50,
-                "ai_generated": 0.20,
+                "original": 0.60,
+                "ai_generated": 0.45,
             },
             "texture": {
-                "original": 0.30,
-                "ai_generated": 0.40,
+                "original": 0.35,
+                "ai_generated": 0.85,
             },
             "lighting": {
-                "original": 0.40,
-                "ai_generated": 0.20,
+                "original": 0.45,
+                "ai_generated": 0.65,
             },
         }
     )

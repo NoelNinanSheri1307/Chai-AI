@@ -1,7 +1,7 @@
 [
   {
     "fingerprint": {
-      "confidence": 0.3164,
+      "confidence": 0.7481,
       "evidence": [
         "texture \u2014 Texture sharpness is unusually uniform across all regions, consistent with synthetic or diffusion-generated content.",
         "noise \u2014 Image has an exceptionally low noise floor, typical of synthetic or heavily denoised content.",
@@ -10,16 +10,16 @@
         "ela \u2014 Error Level Analysis shows low, uniform compression error consistent with an original image.",
         "lighting \u2014 Light-gradient direction is highly consistent across all image quadrants, indicating uniform natural illumination.",
         "compression \u2014 Edge and block boundary analysis shows high compression consistency throughout the image.",
-        "Camera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 32% certainty (margin 3% over its runner-up).",
+        "Camera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 75% certainty (margin 65% over its runner-up).",
         "texture supported AI Generated.",
-        "noise supported AI Edited.",
-        "metadata supported AI Edited.",
+        "noise supported Original.",
+        "metadata supported Original.",
         "frequency supported Original.",
         "ela supported Original.",
         "lighting supported Original.",
         "compression supported Original."
       ],
-      "explanation": "Classification: Original (confidence 32%; runner-up AI Edited; margin 3%).\n\nCamera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 32% certainty (margin 3% over its runner-up).\n\nTop supporting evidence:\n- lighting (support 95%)\n- compression (support 94%)\n- frequency (support 60%)\n\nTop contradicting evidence:\n- noise favoured AI Edited\n- metadata favoured AI Edited\n- texture favoured AI Generated\n\nMost influential detectors: texture, noise, metadata.\n\nDetector contribution percentages: 46% Original, 43% AI Edited, 11% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original, 47% toward AI Edited, and 53% toward AI Generated.\n- noise weighted 1% toward Original, 99% toward AI Edited, and 0% toward AI Generated.\n- metadata weighted 14% toward Original, 86% toward AI Edited, and 0% toward AI Generated.\n- frequency weighted 60% toward Original, 40% toward AI Edited, and 0% toward AI Generated.\n- ela weighted 58% toward Original, 42% toward AI Edited, and 0% toward AI Generated.\n- lighting weighted 95% toward Original, 5% toward AI Edited, and 0% toward AI Generated.\n- compression weighted 94% toward Original, 6% toward AI Edited, and 0% toward AI Generated.\nSummarized by the winning hypothesis (Original) and the margin between it and the runner-up.",
+      "explanation": "Classification: Original (confidence 75%; runner-up AI Generated; margin 65%).\n\nCamera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 75% certainty (margin 65% over its runner-up).\n\nTop supporting evidence:\n- compression (support 100%)\n- lighting (support 100%)\n- ela (support 100%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n\nMost influential detectors: texture, noise, metadata.\n\nDetector contribution percentages: 83% Original, 17% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original and 100% toward AI Generated.\n- noise weighted 65% toward Original and 35% toward AI Generated.\n- metadata weighted 100% toward Original and 0% toward AI Generated.\n- frequency weighted 100% toward Original and 0% toward AI Generated.\n- ela weighted 100% toward Original and 0% toward AI Generated.\n- lighting weighted 100% toward Original and 0% toward AI Generated.\n- compression weighted 100% toward Original and 0% toward AI Generated.\nSummarized by the winning hypothesis (Original) and the margin between it and the runner-up.",
       "heatmap": {
         "overall_manipulation": 0.3025,
         "regions": [
@@ -130,7 +130,7 @@
         }
       ],
       "report_data": {
-        "classification_margin": 0.02708984867330727,
+        "classification_margin": 0.6523674107178574,
         "contributions": [
           {
             "category": "texture",
@@ -140,9 +140,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              3.985407723070364e-06,
-              0.46666480680972927,
-              0.5333312077825478
+              6.1539250509422425e-06,
+              0.999993846074949
             ],
             "normalized_score": 0.75,
             "preferred_hypothesis": "AI Generated",
@@ -157,12 +156,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              0.006506663212186599,
-              0.9900486327343029,
-              0.003444704053510553
+              0.6538461538461539,
+              0.3461538461538462
             ],
             "normalized_score": 0.5,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.12,
             "weight_share": 0.12
           },
@@ -174,12 +172,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.1382645458154872,
-              0.8612844187803917,
-              0.0004510354041210807
+              0.9967484878039258,
+              0.0032515121960742226
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -191,9 +188,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.602992007898438,
-              0.39700148140875013,
-              6.510692811882988e-06
+              0.999989202804632,
+              1.079719536806415e-05
             ],
             "normalized_score": 0.2,
             "preferred_hypothesis": "Original",
@@ -208,9 +204,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.580567042975224,
-              0.41943268530004335,
-              2.717247326812065e-07
+              0.9999995612189355,
+              4.387810644696964e-07
             ],
             "normalized_score": 0.15,
             "preferred_hypothesis": "Original",
@@ -225,9 +220,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.9492069683102103,
-              0.05079300460899606,
-              2.7080793618940894e-08
+              0.9999999725267498,
+              2.7473250215035696e-08
             ],
             "normalized_score": 0.1,
             "preferred_hypothesis": "Original",
@@ -242,9 +236,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.9396613356746087,
-              0.060338650027547305,
-              1.4297844019358928e-08
+              0.9999999857350429,
+              1.4264957030838117e-08
             ],
             "normalized_score": 0.1,
             "preferred_hypothesis": "Original",
@@ -253,11 +246,10 @@
           }
         ],
         "hypothesis_scores": [
-          0.460446397753535,
-          0.43335654908022775,
-          0.10619705316623726
+          0.8261837053589287,
+          0.17381629464107123
         ],
-        "runner_up_verdict": "aiEdited"
+        "runner_up_verdict": "aiGenerated"
       },
       "risk_level": "low",
       "scores": [
@@ -296,7 +288,7 @@
   },
   {
     "fingerprint": {
-      "confidence": 0.6883,
+      "confidence": 0.3534,
       "evidence": [
         "texture \u2014 Texture sharpness is unusually uniform across all regions, consistent with synthetic or diffusion-generated content.",
         "lighting \u2014 Moderate lighting-direction inconsistency across image quadrants, suggesting possible compositing or local edits.",
@@ -305,16 +297,16 @@
         "frequency \u2014 Frequency spectrum is broadband and free of concentrated periodic lattices, matching natural camera content.",
         "compression \u2014 Slight edge inconsistencies found in 1 local compression blocks.",
         "ela \u2014 Error Level Analysis shows low, uniform compression error consistent with an original image.",
-        "Localized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 62% over its runner-up).",
+        "Camera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 35% certainty (margin 5% over its runner-up).",
         "texture supported AI Generated.",
-        "lighting supported AI Edited.",
-        "noise supported AI Edited.",
-        "metadata supported AI Edited.",
+        "lighting supported AI Generated.",
+        "noise supported Original.",
+        "metadata supported Original.",
         "frequency supported Original.",
-        "compression supported AI Edited.",
+        "compression supported Original.",
         "ela supported Original."
       ],
-      "explanation": "Classification: AI Edited (confidence 69%; runner-up AI Generated; margin 62%).\n\nLocalized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 62% over its runner-up).\n\nTop supporting evidence:\n- compression (support 94%)\n- noise (support 94%)\n- lighting (support 90%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n- ela favoured Original\n- frequency favoured Original\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 13% Original, 75% AI Edited, 13% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original, 47% toward AI Edited, and 53% toward AI Generated.\n- lighting weighted 0% toward Original, 90% toward AI Edited, and 10% toward AI Generated.\n- noise weighted 6% toward Original, 94% toward AI Edited, and 0% toward AI Generated.\n- metadata weighted 14% toward Original, 86% toward AI Edited, and 0% toward AI Generated.\n- frequency weighted 60% toward Original, 40% toward AI Edited, and 0% toward AI Generated.\n- compression weighted 6% toward Original, 94% toward AI Edited, and 0% toward AI Generated.\n- ela weighted 58% toward Original, 42% toward AI Edited, and 0% toward AI Generated.\nSummarized by the winning hypothesis (AI Edited) and the margin between it and the runner-up.",
+      "explanation": "Classification: Original (confidence 35%; runner-up AI Generated; margin 5%).\n\nCamera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 35% certainty (margin 5% over its runner-up).\n\nTop supporting evidence:\n- ela (support 100%)\n- frequency (support 100%)\n- compression (support 100%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n- lighting favoured AI Generated\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 52% Original, 48% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original and 100% toward AI Generated.\n- lighting weighted 0% toward Original and 100% toward AI Generated.\n- noise weighted 99% toward Original and 1% toward AI Generated.\n- metadata weighted 100% toward Original and 0% toward AI Generated.\n- frequency weighted 100% toward Original and 0% toward AI Generated.\n- compression weighted 100% toward Original and 0% toward AI Generated.\n- ela weighted 100% toward Original and 0% toward AI Generated.\nSummarized by the winning hypothesis (Original) and the margin between it and the runner-up.",
       "heatmap": {
         "overall_manipulation": 0.409,
         "regions": [
@@ -431,7 +423,7 @@
         }
       ],
       "report_data": {
-        "classification_margin": 0.6227514018805065,
+        "classification_margin": 0.046727196351153855,
         "contributions": [
           {
             "category": "texture",
@@ -441,9 +433,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              3.985407723070364e-06,
-              0.46666480680972927,
-              0.5333312077825478
+              6.1539250509422425e-06,
+              0.999993846074949
             ],
             "normalized_score": 0.75,
             "preferred_hypothesis": "AI Generated",
@@ -458,12 +449,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              8.294559640065933e-05,
-              0.9021525643594062,
-              0.09776449004419309
+              0.0008802785970295126,
+              0.9991197214029705
             ],
             "normalized_score": 0.65,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "AI Generated",
             "reliability": 0.17,
             "weight_share": 0.17
           },
@@ -475,12 +465,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.05715785428764553,
-              0.9424867830395667,
-              0.00035536267278776925
+              0.9938211998638115,
+              0.006178800136188591
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.12,
             "weight_share": 0.12
           },
@@ -492,12 +481,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.1382645458154872,
-              0.8612844187803917,
-              0.0004510354041210807
+              0.9967484878039258,
+              0.0032515121960742226
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -509,9 +497,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.602992007898438,
-              0.39700148140875013,
-              6.510692811882988e-06
+              0.999989202804632,
+              1.079719536806415e-05
             ],
             "normalized_score": 0.2,
             "preferred_hypothesis": "Original",
@@ -526,12 +513,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.056782421988123125,
-              0.9431597674282416,
-              5.781058363522085e-05
+              0.9990464348034708,
+              0.0009535651965291906
             ],
             "normalized_score": 0.35,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -543,9 +529,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.580567042975224,
-              0.41943268530004335,
-              2.717247326812065e-07
+              0.9999995612189355,
+              4.387810644696964e-07
             ],
             "normalized_score": 0.15,
             "preferred_hypothesis": "Original",
@@ -554,13 +539,12 @@
           }
         ],
         "hypothesis_scores": [
-          0.12525600513612453,
-          0.748747698372191,
-          0.12599629649168448
+          0.5233635981755769,
+          0.476636401824423
         ],
         "runner_up_verdict": "aiGenerated"
       },
-      "risk_level": "medium",
+      "risk_level": "low",
       "scores": [
         {
           "category": "metadata",
@@ -591,13 +575,13 @@
           "value": 0.65
         }
       ],
-      "verdict": "aiEdited"
+      "verdict": "original"
     },
     "image": "noise.png"
   },
   {
     "fingerprint": {
-      "confidence": 0.6943,
+      "confidence": 0.5987,
       "evidence": [
         "texture \u2014 Texture sharpness is unusually uniform across all regions, consistent with synthetic or diffusion-generated content.",
         "lighting \u2014 Moderate lighting-direction inconsistency across image quadrants, suggesting possible compositing or local edits.",
@@ -606,16 +590,16 @@
         "metadata \u2014 No EXIF metadata was found in the image.",
         "frequency \u2014 Frequency spectrum is broadband and free of concentrated periodic lattices, matching natural camera content.",
         "compression \u2014 Slight edge inconsistencies found in 1 local compression blocks.",
-        "Localized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 65% over its runner-up).",
+        "Strong frequency artifacts, globally uniform texture, inconsistent lighting, and synthetic noise characteristics strongly support AI generation. Classified as AI Generated with 60% certainty (margin 55% over its runner-up).",
         "texture supported AI Generated.",
-        "lighting supported AI Edited.",
+        "lighting supported AI Generated.",
         "noise supported AI Generated.",
-        "ela supported AI Edited.",
-        "metadata supported AI Edited.",
+        "ela supported Original.",
+        "metadata supported Original.",
         "frequency supported Original.",
-        "compression supported AI Edited."
+        "compression supported Original."
       ],
-      "explanation": "Classification: AI Edited (confidence 69%; runner-up AI Generated; margin 65%).\n\nLocalized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 65% over its runner-up).\n\nTop supporting evidence:\n- ela (support 99%)\n- compression (support 94%)\n- lighting (support 90%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n- frequency favoured Original\n- noise favoured AI Generated\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 4% Original, 80% AI Edited, 15% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original, 47% toward AI Edited, and 53% toward AI Generated.\n- lighting weighted 0% toward Original, 90% toward AI Edited, and 10% toward AI Generated.\n- noise weighted 0% toward Original, 27% toward AI Edited, and 73% toward AI Generated.\n- ela weighted 1% toward Original, 99% toward AI Edited, and 0% toward AI Generated.\n- metadata weighted 14% toward Original, 86% toward AI Edited, and 0% toward AI Generated.\n- frequency weighted 60% toward Original, 40% toward AI Edited, and 0% toward AI Generated.\n- compression weighted 6% toward Original, 94% toward AI Edited, and 0% toward AI Generated.\nSummarized by the winning hypothesis (AI Edited) and the margin between it and the runner-up.",
+      "explanation": "Classification: AI Generated (confidence 60%; runner-up Original; margin 55%).\n\nStrong frequency artifacts, globally uniform texture, inconsistent lighting, and synthetic noise characteristics strongly support AI generation. Classified as AI Generated with 60% certainty (margin 55% over its runner-up).\n\nTop supporting evidence:\n- noise (support 100%)\n- texture (support 100%)\n- lighting (support 100%)\n\nTop contradicting evidence:\n- frequency favoured Original\n- compression favoured Original\n- metadata favoured Original\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 22% Original, 78% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original and 100% toward AI Generated.\n- lighting weighted 0% toward Original and 100% toward AI Generated.\n- noise weighted 0% toward Original and 100% toward AI Generated.\n- ela weighted 97% toward Original and 3% toward AI Generated.\n- metadata weighted 100% toward Original and 0% toward AI Generated.\n- frequency weighted 100% toward Original and 0% toward AI Generated.\n- compression weighted 100% toward Original and 0% toward AI Generated.\nSummarized by the winning hypothesis (AI Generated) and the margin between it and the runner-up.",
       "heatmap": {
         "overall_manipulation": 0.502,
         "regions": [
@@ -738,7 +722,7 @@
         }
       ],
       "report_data": {
-        "classification_margin": 0.6529748384280308,
+        "classification_margin": 0.5511612951326605,
         "contributions": [
           {
             "category": "texture",
@@ -748,9 +732,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              3.985407723070364e-06,
-              0.46666480680972927,
-              0.5333312077825478
+              6.1539250509422425e-06,
+              0.999993846074949
             ],
             "normalized_score": 0.75,
             "preferred_hypothesis": "AI Generated",
@@ -765,12 +748,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              8.294559640065933e-05,
-              0.9021525643594062,
-              0.09776449004419309
+              0.0008802785970295126,
+              0.9991197214029705
             ],
             "normalized_score": 0.65,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "AI Generated",
             "reliability": 0.17,
             "weight_share": 0.17
           },
@@ -782,9 +764,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              2.2399317332626075e-06,
-              0.2678116892166413,
-              0.7321860708516255
+              3.059229026568498e-06,
+              0.9999969407709735
             ],
             "normalized_score": 0.8,
             "preferred_hypothesis": "AI Generated",
@@ -799,12 +780,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.005321730098704111,
-              0.9945116127785554,
-              0.00016665712274061003
+              0.9714782994917742,
+              0.028521700508225827
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.18,
             "weight_share": 0.18
           },
@@ -816,12 +796,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.1382645458154872,
-              0.8612844187803917,
-              0.0004510354041210807
+              0.9967484878039258,
+              0.0032515121960742226
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -833,9 +812,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.602992007898438,
-              0.39700148140875013,
-              6.510692811882988e-06
+              0.999989202804632,
+              1.079719536806415e-05
             ],
             "normalized_score": 0.2,
             "preferred_hypothesis": "Original",
@@ -850,24 +828,22 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.056782421988123125,
-              0.9431597674282416,
-              5.781058363522085e-05
+              0.9990464348034708,
+              0.0009535651965291906
             ],
             "normalized_score": 0.35,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           }
         ],
         "hypothesis_scores": [
-          0.04345027662562846,
-          0.8047622809012012,
-          0.1517874424731703
+          0.2244193524336697,
+          0.7755806475663303
         ],
-        "runner_up_verdict": "aiGenerated"
+        "runner_up_verdict": "original"
       },
-      "risk_level": "medium",
+      "risk_level": "high",
       "scores": [
         {
           "category": "metadata",
@@ -898,13 +874,13 @@
           "value": 0.65
         }
       ],
-      "verdict": "aiEdited"
+      "verdict": "aiGenerated"
     },
     "image": "photo.webp"
   },
   {
     "fingerprint": {
-      "confidence": 0.6883,
+      "confidence": 0.3534,
       "evidence": [
         "texture \u2014 Texture sharpness is unusually uniform across all regions, consistent with synthetic or diffusion-generated content.",
         "lighting \u2014 Moderate lighting-direction inconsistency across image quadrants, suggesting possible compositing or local edits.",
@@ -913,16 +889,16 @@
         "frequency \u2014 Frequency spectrum is broadband and free of concentrated periodic lattices, matching natural camera content.",
         "compression \u2014 Slight edge inconsistencies found in 1 local compression blocks.",
         "ela \u2014 Error Level Analysis shows low, uniform compression error consistent with an original image.",
-        "Localized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 62% over its runner-up).",
+        "Camera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 35% certainty (margin 5% over its runner-up).",
         "texture supported AI Generated.",
-        "lighting supported AI Edited.",
-        "noise supported AI Edited.",
-        "metadata supported AI Edited.",
+        "lighting supported AI Generated.",
+        "noise supported Original.",
+        "metadata supported Original.",
         "frequency supported Original.",
-        "compression supported AI Edited.",
+        "compression supported Original.",
         "ela supported Original."
       ],
-      "explanation": "Classification: AI Edited (confidence 69%; runner-up AI Generated; margin 62%).\n\nLocalized ELA artifacts, inconsistent noise patterns, and compression discontinuities indicate modification of an authentic photograph. Classified as AI Edited with 69% certainty (margin 62% over its runner-up).\n\nTop supporting evidence:\n- compression (support 94%)\n- noise (support 94%)\n- lighting (support 90%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n- ela favoured Original\n- frequency favoured Original\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 13% Original, 75% AI Edited, 13% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original, 47% toward AI Edited, and 53% toward AI Generated.\n- lighting weighted 0% toward Original, 90% toward AI Edited, and 10% toward AI Generated.\n- noise weighted 6% toward Original, 94% toward AI Edited, and 0% toward AI Generated.\n- metadata weighted 14% toward Original, 86% toward AI Edited, and 0% toward AI Generated.\n- frequency weighted 60% toward Original, 40% toward AI Edited, and 0% toward AI Generated.\n- compression weighted 6% toward Original, 94% toward AI Edited, and 0% toward AI Generated.\n- ela weighted 58% toward Original, 42% toward AI Edited, and 0% toward AI Generated.\nSummarized by the winning hypothesis (AI Edited) and the margin between it and the runner-up.",
+      "explanation": "Classification: Original (confidence 35%; runner-up AI Generated; margin 5%).\n\nCamera metadata is internally consistent, natural sensor noise is present, frequency analysis found no periodic artifacts, and lighting remains physically coherent. Classified as Original with 35% certainty (margin 5% over its runner-up).\n\nTop supporting evidence:\n- ela (support 100%)\n- frequency (support 100%)\n- compression (support 100%)\n\nTop contradicting evidence:\n- texture favoured AI Generated\n- lighting favoured AI Generated\n\nMost influential detectors: texture, lighting, noise.\n\nDetector contribution percentages: 52% Original, 48% AI Generated.\n\nPer-detector reasoning:\n- texture weighted 0% toward Original and 100% toward AI Generated.\n- lighting weighted 0% toward Original and 100% toward AI Generated.\n- noise weighted 99% toward Original and 1% toward AI Generated.\n- metadata weighted 100% toward Original and 0% toward AI Generated.\n- frequency weighted 100% toward Original and 0% toward AI Generated.\n- compression weighted 100% toward Original and 0% toward AI Generated.\n- ela weighted 100% toward Original and 0% toward AI Generated.\nSummarized by the winning hypothesis (Original) and the margin between it and the runner-up.",
       "heatmap": {
         "overall_manipulation": 0.409,
         "regions": [
@@ -1039,7 +1015,7 @@
         }
       ],
       "report_data": {
-        "classification_margin": 0.6227514018805065,
+        "classification_margin": 0.046727196351153855,
         "contributions": [
           {
             "category": "texture",
@@ -1049,9 +1025,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              3.985407723070364e-06,
-              0.46666480680972927,
-              0.5333312077825478
+              6.1539250509422425e-06,
+              0.999993846074949
             ],
             "normalized_score": 0.75,
             "preferred_hypothesis": "AI Generated",
@@ -1066,12 +1041,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:manipulation",
             "hypothesis_weights": [
-              8.294559640065933e-05,
-              0.9021525643594062,
-              0.09776449004419309
+              0.0008802785970295126,
+              0.9991197214029705
             ],
             "normalized_score": 0.65,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "AI Generated",
             "reliability": 0.17,
             "weight_share": 0.17
           },
@@ -1083,12 +1057,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.05715785428764553,
-              0.9424867830395667,
-              0.00035536267278776925
+              0.9938211998638115,
+              0.006178800136188591
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.12,
             "weight_share": 0.12
           },
@@ -1100,12 +1073,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.1382645458154872,
-              0.8612844187803917,
-              0.0004510354041210807
+              0.9967484878039258,
+              0.0032515121960742226
             ],
             "normalized_score": 0.4,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -1117,9 +1089,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.602992007898438,
-              0.39700148140875013,
-              6.510692811882988e-06
+              0.999989202804632,
+              1.079719536806415e-05
             ],
             "normalized_score": 0.2,
             "preferred_hypothesis": "Original",
@@ -1134,12 +1105,11 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.056782421988123125,
-              0.9431597674282416,
-              5.781058363522085e-05
+              0.9990464348034708,
+              0.0009535651965291906
             ],
             "normalized_score": 0.35,
-            "preferred_hypothesis": "AI Edited",
+            "preferred_hypothesis": "Original",
             "reliability": 0.1,
             "weight_share": 0.1
           },
@@ -1151,9 +1121,8 @@
             "detector_version": "0.1.0",
             "direction": "supports:original",
             "hypothesis_weights": [
-              0.580567042975224,
-              0.41943268530004335,
-              2.717247326812065e-07
+              0.9999995612189355,
+              4.387810644696964e-07
             ],
             "normalized_score": 0.15,
             "preferred_hypothesis": "Original",
@@ -1162,13 +1131,12 @@
           }
         ],
         "hypothesis_scores": [
-          0.12525600513612453,
-          0.748747698372191,
-          0.12599629649168448
+          0.5233635981755769,
+          0.476636401824423
         ],
         "runner_up_verdict": "aiGenerated"
       },
-      "risk_level": "medium",
+      "risk_level": "low",
       "scores": [
         {
           "category": "metadata",
@@ -1199,7 +1167,7 @@
           "value": 0.65
         }
       ],
-      "verdict": "aiEdited"
+      "verdict": "original"
     },
     "image": "reencoded.jpg"
   }

@@ -53,11 +53,10 @@ def test_risk_is_verdict_aware() -> None:
 
 def test_detector_reliability_defaults() -> None:
     config = PipelineConfig()
-    assert config.reliability_for("frequency") == pytest.approx(0.50)
+    assert config.reliability_for("frequency") == pytest.approx(0.18)
     assert config.reliability_for("unknown_detector") == pytest.approx(
         config.default_detector_reliability
     )
-
 
 
 def test_confidence_factors_sum_to_one() -> None:

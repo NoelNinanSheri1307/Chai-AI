@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from pathlib import Path
+
 import pytest
 
 from app.benchmark.calibration.evaluator import (
@@ -145,7 +145,9 @@ def _build_synthetic_benchmark_result() -> BenchmarkRunResult:
 
 def test_distribution_overlap_calculation() -> None:
     # Identical distributions -> overlap 1.0
-    assert compute_distribution_overlap(0.5, 0.1, 0.5, 0.1) == pytest.approx(1.0, abs=0.01)
+    assert compute_distribution_overlap(0.5, 0.1, 0.5, 0.1) == pytest.approx(
+        1.0, abs=0.01
+    )
     # Well-separated distributions -> overlap near 0.0
     assert compute_distribution_overlap(0.1, 0.05, 0.9, 0.05) < 0.01
 
@@ -210,4 +212,6 @@ def test_mathematical_gaussian_resolution_bias() -> None:
     support_orig = math.exp(-d_orig / (2.0 * sigma**2))
     support_gen = math.exp(-d_gen / (2.0 * sigma**2))
     ratio = support_orig / support_gen
-    assert ratio > 80.0  # Confirms mathematical asymmetry responsible for 95.4% false confidence
+    assert (
+        ratio > 80.0
+    )  # Confirms mathematical asymmetry responsible for 95.4% false confidence

@@ -19,6 +19,8 @@ from app.pipeline.detectors.decode import (
     decode_image_to_cv_gray,
     decode_image_to_cv_rgb,
     decode_image_to_pil,
+    is_avif_supported,
+    is_format_supported,
 )
 from app.pipeline.detectors.ela import ELADetector
 from app.pipeline.detectors.frequency import FrequencyDetector
@@ -41,5 +43,6 @@ __all__ = [
     "decode_image_to_cv_gray",
     "decode_image_to_cv_rgb",
     "decode_image_to_pil",
+    "is_avif_supported",
+    "is_format_supported",
 ]
-

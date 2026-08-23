@@ -33,7 +33,9 @@ def find_default_results_json() -> Path:
 
 def run_cli() -> None:
     """Run the forensic investigation and calibration simulation suite."""
-    parser = argparse.ArgumentParser(description="Chai AI Milestone 13 Forensic Investigation & Calibration CLI")
+    parser = argparse.ArgumentParser(
+        description="Chai AI Milestone 13 Forensic Investigation & Calibration CLI"
+    )
     parser.add_argument(
         "--results-json",
         type=str,
@@ -49,9 +51,16 @@ def run_cli() -> None:
 
     args = parser.parse_args()
 
-    results_path = Path(args.results_json).resolve() if args.results_json else find_default_results_json()
+    results_path = (
+        Path(args.results_json).resolve()
+        if args.results_json
+        else find_default_results_json()
+    )
     if not results_path.is_file():
-        print(f"Error: Benchmark results file not found at {results_path}", file=sys.stderr)
+        print(
+            f"Error: Benchmark results file not found at {results_path}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print(f"Loading benchmark dataset results from: {results_path}")
@@ -63,13 +72,21 @@ def run_cli() -> None:
     print("\n" + "=" * 80)
     print(f"MILESTONE 13 — FORENSIC INVESTIGATION REPORT ({inv_report.run_id})")
     print("=" * 80)
-    print(f"Total Evaluated: {inv_report.total_images} (Real: {inv_report.real_count}, AI Generated: {inv_report.ai_count})")
-    print(f"Baseline Accuracy: {inv_report.accuracy * 100:.2f}% | AI F1: {inv_report.f1:.4f} | Macro F1: {inv_report.macro_f1:.4f}")
-    print(f"Confusion Matrix: TN={inv_report.tn}, FP={inv_report.fp}, FN={inv_report.fn}, TP={inv_report.tp}")
+    print(
+        f"Total Evaluated: {inv_report.total_images} (Real: {inv_report.real_count}, AI Generated: {inv_report.ai_count})"
+    )
+    print(
+        f"Baseline Accuracy: {inv_report.accuracy * 100:.2f}% | AI F1: {inv_report.f1:.4f} | Macro F1: {inv_report.macro_f1:.4f}"
+    )
+    print(
+        f"Confusion Matrix: TN={inv_report.tn}, FP={inv_report.fp}, FN={inv_report.fn}, TP={inv_report.tp}"
+    )
     print("-" * 80)
 
     print("\n1. DETECTOR USEFULNESS RANKING & STATISTICAL BREAKDOWN:")
-    print(f"{'Rank':<5} {'Detector':<13} {'Real Mean':<11} {'AI Mean':<10} {'Sep':<6} {'Dir':<5} {'Overlap':<8} {'Tier'}")
+    print(
+        f"{'Rank':<5} {'Detector':<13} {'Real Mean':<11} {'AI Mean':<10} {'Sep':<6} {'Dir':<5} {'Overlap':<8} {'Tier'}"
+    )
     print("-" * 80)
     for s in inv_report.usefulness_ranking:
         dir_flag = "OK" if s.direction_correct else "REV"
@@ -82,7 +99,9 @@ def run_cli() -> None:
         )
 
     print("\n2. FORMAT-SPECIFIC PERFORMANCE BREAKDOWN:")
-    print(f"{'Format':<8} {'Total':<7} {'Real':<6} {'AI':<5} {'Acc':<8} {'Fallback Rate':<15} {'Notes'}")
+    print(
+        f"{'Format':<8} {'Total':<7} {'Real':<6} {'AI':<5} {'Acc':<8} {'Fallback Rate':<15} {'Notes'}"
+    )
     print("-" * 80)
     for fmt, fa in inv_report.format_analysis.items():
         note_str = fa.notes[0] if fa.notes else "Normal processing"
@@ -167,14 +186,22 @@ def run_cli() -> None:
         },
         disabled_detectors=["ela", "noise"],
     )
-    res_promoted = evaluate_calibration(cand_promoted, raw_data, baseline_result=res_base)
+    res_promoted = evaluate_calibration(
+        cand_promoted, raw_data, baseline_result=res_base
+    )
 
     candidates_evaluated = [res_base, res_wider, res_dampen, res_promoted]
 
-    print(f"{'Configuration':<26} {'Accuracy':<10} {'AI F1':<8} {'Macro F1':<10} {'FP':<5} {'FN':<5} {'TP':<5} {'Delta Macro F1'}")
+    print(
+        f"{'Configuration':<26} {'Accuracy':<10} {'AI F1':<8} {'Macro F1':<10} {'FP':<5} {'FN':<5} {'TP':<5} {'Delta Macro F1'}"
+    )
     print("-" * 80)
     for c in candidates_evaluated:
-        delta_str = f"{c.delta_macro_f1_vs_baseline:+.4f}" if c.name != "BASELINE_M12" else "BASELINE"
+        delta_str = (
+            f"{c.delta_macro_f1_vs_baseline:+.4f}"
+            if c.name != "BASELINE_M12"
+            else "BASELINE"
+        )
         print(
             f"{c.name:<26} {c.accuracy * 100:>6.2f}%   {c.f1:>6.4f}  {c.macro_f1:>7.4f}    "
             f"{c.fp:<5} {c.fn:<5} {c.tp:<5} {delta_str}"

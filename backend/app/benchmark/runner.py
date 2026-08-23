@@ -14,7 +14,6 @@ from app.benchmark.models import (
     BenchmarkManifest,
     BenchmarkRunResult,
     DetectorScoreRecord,
-    GroundTruthLabel,
     ImageBenchmarkResult,
 )
 from app.pipeline.config import PipelineConfig, get_pipeline_config
@@ -30,7 +29,9 @@ from app.pipeline.runner import ModularAnalysisPipeline
 logger = logging.getLogger(__name__)
 
 
-def build_benchmark_pipeline(config: PipelineConfig | None = None) -> ModularAnalysisPipeline:
+def build_benchmark_pipeline(
+    config: PipelineConfig | None = None,
+) -> ModularAnalysisPipeline:
     """Instantiate the exact production forensic pipeline for benchmark execution."""
     cfg = config or get_pipeline_config()
     detectors = build_detectors(cfg.enabled_detector_names())
@@ -65,6 +66,8 @@ def run_benchmark(
     discovery_stats: dict[str, Any] | None = None,
     external_manager: Any = None,
     run_external: bool = False,
+    external_cache: Any = None,
+    external_delay: float = 0.0,
 ) -> BenchmarkRunResult:
     """Execute all images in ``manifest`` through Chai's production pipeline and evaluate performance."""
     run_start_time = time.perf_counter()
@@ -116,7 +119,11 @@ def run_benchmark(
                 det_scores[s.category.value] = s.value
 
             # Extract details from fusion contributions if available
-            if hasattr(result, "report_data") and result.report_data and result.report_data.contributions:
+            if (
+                hasattr(result, "report_data")
+                and result.report_data
+                and result.report_data.contributions
+            ):
                 for c in result.report_data.contributions:
                     det_confidences[c.category.value] = c.detector_confidence
                     det_details.append(
@@ -131,27 +138,62 @@ def run_benchmark(
                     )
 
             # Fallback for confidences if not populated from contributions
-            for cat_val, score_val in det_scores.items():
+            for cat_val in det_scores:
                 if cat_val not in det_confidences:
                     det_confidences[cat_val] = 1.0
 
             predicted = normalize_verdict_label(result.verdict.value)
             gt_val = entry.ground_truth.value
-            is_correct = (predicted == gt_val)
+            is_correct = predicted == gt_val
 
-            # Optional external provider evaluation (for future milestones)
+            # External provider evaluation (isolated from Chai pipeline)
             ext_data = None
             if run_external and external_manager is not None:
                 try:
-                    ext_results = external_manager.analyze_all(
-                        image_bytes=data,
-                        filename=path.name,
-                        content_type=entry.metadata.get("mime_type", "image/jpeg"),
+                    providers = getattr(external_manager, "providers", [])
+                    main_provider = providers[0] if providers else None
+                    provider_name = (
+                        main_provider.provider_name if main_provider else "sightengine"
                     )
-                    if ext_results:
-                        ext_data = ext_results[0].model_dump()
+                    provider_ver = (
+                        main_provider.provider_version if main_provider else "1.0"
+                    )
+
+                    cached_res = None
+                    if external_cache is not None:
+                        cached_res = external_cache.get(
+                            entry.sha256, provider_name, provider_ver
+                        )
+
+                    if cached_res is not None:
+                        ext_data = cached_res.model_dump()
+                    else:
+                        ext_results = external_manager.analyze_all(
+                            image_bytes=data,
+                            filename=path.name,
+                            content_type=entry.metadata.get("mime_type", "image/jpeg"),
+                        )
+                        if ext_results:
+                            ext_res = ext_results[0]
+                            ext_data = ext_res.model_dump()
+                            if external_cache is not None and ext_res.status in {
+                                "success",
+                                "disabled",
+                                "unconfigured",
+                            }:
+                                external_cache.set(
+                                    entry.sha256,
+                                    provider_name,
+                                    provider_ver,
+                                    ext_res,
+                                )
+
+                        if external_delay > 0.0:
+                            time.sleep(external_delay)
                 except Exception as ext_exc:
-                    logger.warning("External evaluation failed for %s: %s", path.name, ext_exc)
+                    logger.warning(
+                        "External evaluation failed for %s: %s", path.name, ext_exc
+                    )
 
             img_res = ImageBenchmarkResult(
                 image_id=entry.id,
@@ -168,12 +210,17 @@ def run_benchmark(
                 detector_confidences=det_confidences,
                 detector_details=det_details,
                 evidence=list(result.evidence),
-                heatmap_region_count=len(result.heatmap.regions) if result.heatmap else 0,
-                overall_manipulation_score=result.heatmap.overall_manipulation if result.heatmap else 0.0,
+                heatmap_region_count=len(result.heatmap.regions)
+                if result.heatmap
+                else 0,
+                overall_manipulation_score=result.heatmap.overall_manipulation
+                if result.heatmap
+                else 0.0,
                 external_result=ext_data,
             )
             image_results.append(img_res)
             success_count += 1
+
 
         except Exception as exc:
             logger.exception("Analysis failed for image %s: %s", path.name, exc)
@@ -194,7 +241,14 @@ def run_benchmark(
                 )
             )
 
+    if external_cache is not None:
+        try:
+            external_cache.save()
+        except Exception as cache_exc:
+            logger.warning("Failed to persist external benchmark cache: %s", cache_exc)
+
     total_duration = time.perf_counter() - run_start_time
+
     run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
     return compute_benchmark_run_result(
@@ -207,4 +261,3 @@ def run_benchmark(
         results=image_results,
         discovery_stats=discovery_stats,
     )
-

@@ -9,9 +9,8 @@ from typing import Any
 
 from app.benchmark.models import (
     BenchmarkRunResult,
-    GroundTruthLabel,
-    ImageBenchmarkResult,
 )
+from app.core.enums import ScoreCategory
 from app.pipeline.config import PipelineConfig
 from app.pipeline.fusion.classify import compute_classification
 from app.pipeline.fusion.normalize import NormalizedSignal
@@ -100,7 +99,6 @@ def evaluate_calibration(
         gt_val = r.ground_truth.value
         # Reconstruct normalized signals from recorded detector scores
         signals: list[NormalizedSignal] = []
-
         for det_name, raw_score in r.detector_scores.items():
             if det_name in test_config.disabled_detectors:
                 continue
@@ -109,6 +107,8 @@ def evaluate_calibration(
             signals.append(
                 NormalizedSignal(
                     detector=det_name,
+                    detector_version="1.0",
+                    category=ScoreCategory.METADATA,
                     score=raw_score,
                     confidence=det_conf,
                     reliability=reliability,
@@ -125,7 +125,7 @@ def evaluate_calibration(
         )
 
         pred = "original" if res.winner.value == 0 else "ai_generated"
-        is_correct = (pred == gt_val)
+        is_correct = pred == gt_val
         conf = res.confidence
 
         total_valid += 1
@@ -169,9 +169,13 @@ def evaluate_calibration(
         else 0.0
     )
 
-    delta_acc = round(accuracy - baseline_result.accuracy, 4) if baseline_result else 0.0
+    delta_acc = (
+        round(accuracy - baseline_result.accuracy, 4) if baseline_result else 0.0
+    )
     delta_f1 = round(f1 - baseline_result.f1, 4) if baseline_result else 0.0
-    delta_macro = round(macro_f1 - baseline_result.macro_f1, 4) if baseline_result else 0.0
+    delta_macro = (
+        round(macro_f1 - baseline_result.macro_f1, 4) if baseline_result else 0.0
+    )
 
     return CandidateEvaluationResult(
         name=candidate.name,

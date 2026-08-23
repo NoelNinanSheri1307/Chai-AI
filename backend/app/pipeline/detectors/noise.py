@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 
 import cv2
-import numpy as np
 
 from app.core.enums import IndicatorSeverity, IndicatorType, ScoreCategory
 from app.pipeline.base import IndicatorResult

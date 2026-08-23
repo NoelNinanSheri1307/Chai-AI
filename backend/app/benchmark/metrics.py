@@ -40,7 +40,9 @@ def compute_benchmark_run_result(
     real_count = 0
     ai_gen_count = 0
 
-    valid_evaluated = [r for r in results if r.predicted_class in {"original", "ai_generated"}]
+    valid_evaluated = [
+        r for r in results if r.predicted_class in {"original", "ai_generated"}
+    ]
 
     for r in valid_evaluated:
         gt_val = r.ground_truth.value
@@ -161,7 +163,9 @@ def _compute_confidence_analysis(
     mean_corr = round(statistics.mean(correct_confs), 4) if correct_confs else 0.0
     mean_inc = round(statistics.mean(incorrect_confs), 4) if incorrect_confs else 0.0
 
-    high_conf_failures = sum(1 for r in results if not r.correct and r.confidence >= 0.80)
+    high_conf_failures = sum(
+        1 for r in results if not r.correct and r.confidence >= 0.80
+    )
     low_conf_correct = sum(1 for r in results if r.correct and r.confidence <= 0.60)
 
     return ConfidenceAnalysis(
@@ -207,7 +211,9 @@ def _compute_detector_statistics(
                     ai_confs.append(conf)
 
         orig_mean = round(statistics.mean(real_scores), 4) if real_scores else 0.0
-        orig_std = round(statistics.stdev(real_scores), 4) if len(real_scores) > 1 else 0.0
+        orig_std = (
+            round(statistics.stdev(real_scores), 4) if len(real_scores) > 1 else 0.0
+        )
         orig_min = round(min(real_scores), 4) if real_scores else 0.0
         orig_max = round(max(real_scores), 4) if real_scores else 0.0
         orig_conf_mean = round(statistics.mean(real_confs), 4) if real_confs else 0.0
@@ -305,4 +311,3 @@ def _extract_failure_cases(
         "high_confidence_failures": high_conf_failures,
         "low_confidence_correct": low_conf_correct,
     }
-

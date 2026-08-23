@@ -1,0 +1,82 @@
+{
+  "1d859c4fc86ee75a33bb8c95ea3776d6cbbe5714e2b670947e1753512e31cc7c:sightengine:1.0": {
+    "classification_label": "authentic",
+    "confidence": 0.001,
+    "detected_as_ai": false,
+    "error_message": null,
+    "is_configured": true,
+    "metadata": {
+      "model": "genai",
+      "request_id": "req_lh3lJ7KXycybCmbGLavpD"
+    },
+    "processing_time_ms": 1227,
+    "provider": "sightengine",
+    "provider_version": "1.0",
+    "raw_category": "genai_0.00",
+    "status": "success"
+  },
+  "547ee9c5c2f5a1b0da558c30f01a92818961999392d205e88422bd4d5bb2e54e:sightengine:1.0": {
+    "classification_label": "authentic",
+    "confidence": 0.001,
+    "detected_as_ai": false,
+    "error_message": null,
+    "is_configured": true,
+    "metadata": {
+      "model": "genai",
+      "request_id": "req_lh3lxid5MYhadw6Yr4RO1"
+    },
+    "processing_time_ms": 1373,
+    "provider": "sightengine",
+    "provider_version": "1.0",
+    "raw_category": "genai_0.00",
+    "status": "success"
+  },
+  "5f7990e5edb8b8ab72faeef5ad6391976b24c2ab14d1c05d178fba70fadfd435:sightengine:1.0": {
+    "classification_label": "authentic",
+    "confidence": 0.001,
+    "detected_as_ai": false,
+    "error_message": null,
+    "is_configured": true,
+    "metadata": {
+      "model": "genai",
+      "request_id": "req_lh3laPqrfzAmluLOcurqU"
+    },
+    "processing_time_ms": 2389,
+    "provider": "sightengine",
+    "provider_version": "1.0",
+    "raw_category": "genai_0.00",
+    "status": "success"
+  },
+  "78e47172aeb818d3856733351360cca6639259d02b01616f0f6e01c7d38882f5:sightengine:1.0": {
+    "classification_label": "ai_generated",
+    "confidence": 0.99,
+    "detected_as_ai": true,
+    "error_message": null,
+    "is_configured": true,
+    "metadata": {
+      "model": "genai",
+      "request_id": "req_lh3kYXgJLNmgqgurg9yJL"
+    },
+    "processing_time_ms": 1856,
+    "provider": "sightengine",
+    "provider_version": "1.0",
+    "raw_category": "genai_0.99",
+    "status": "success"
+  },
+  "fba9c21e16adb27446e532e7ec8f6cc9b0065fc45c8e688a66fed7a3808d3b8f:sightengine:1.0": {
+    "classification_label": "authentic",
+    "confidence": 0.001,
+    "detected_as_ai": false,
+    "error_message": null,
+    "is_configured": true,
+    "metadata": {
+      "model": "genai",
+      "request_id": "req_lh3lUGOMwtRBA4nhILhrn"
+    },
+    "processing_time_ms": 1023,
+    "provider": "sightengine",
+    "provider_version": "1.0",
+    "raw_category": "genai_0.00",
+    "status": "success"
+  }
+}

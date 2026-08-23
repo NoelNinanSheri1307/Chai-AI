@@ -17,7 +17,6 @@ from app.benchmark.models import (
 )
 from app.benchmark.validation import calculate_sha256, inspect_and_validate_image
 
-
 DATASET_SOURCES: dict[str, dict[str, Any]] = {
     "coco_val2017": {
         "name": "MS-COCO 2017 Validation Set (Authentic Photographic Subset)",
@@ -34,7 +33,6 @@ DATASET_SOURCES: dict[str, dict[str, Any]] = {
         "ground_truth": GroundTruthLabel.AI_GENERATED,
     },
 }
-
 
 
 def ingest_local_directory(

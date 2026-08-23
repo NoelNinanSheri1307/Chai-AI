@@ -20,6 +20,7 @@ from typing import Annotated, Any
 from fastapi import Depends
 from sqlmodel import Session
 
+from app.clients.external_detection.manager import ExternalDetectionManager
 from app.clients.storage import StorageClient, create_storage_client
 from app.core.config import Settings, get_settings
 from app.core.db import get_session as _get_db_session
@@ -50,7 +51,6 @@ from app.repos.history_repo import HistoryRepository
 from app.repos.job_repo import JobRepository
 from app.repos.token_repo import TokenRepository
 from app.repos.user_repo import UserRepository
-from app.clients.external_detection.manager import ExternalDetectionManager
 from app.services.analysis_service import AnalysisService
 from app.services.compare_service import ComparisonService
 from app.services.external_benchmark_service import ExternalBenchmarkService
@@ -221,7 +221,9 @@ def get_external_detection_manager(
 def get_external_benchmark_service(
     session: SessionDep,
     storage: StorageDep,
-    manager: Annotated[ExternalDetectionManager, Depends(get_external_detection_manager)],
+    manager: Annotated[
+        ExternalDetectionManager, Depends(get_external_detection_manager)
+    ],
     settings: SettingsDep,
 ) -> ExternalBenchmarkService:
     """Provide an :class:`ExternalBenchmarkService` wired with dependencies."""

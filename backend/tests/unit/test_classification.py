@@ -312,8 +312,18 @@ def test_classification_weight_sum_is_one(pipeline_config: PipelineConfig) -> No
 def test_classifier_never_returns_ai_edited(
     pipeline_config: PipelineConfig, score: float
 ) -> None:
-    for detector in ["metadata", "frequency", "ela", "noise", "compression", "texture", "lighting"]:
-        result = _engine(pipeline_config).fuse([_signal(detector, ScoreCategory.TEXTURE, score)])
+    for detector in [
+        "metadata",
+        "frequency",
+        "ela",
+        "noise",
+        "compression",
+        "texture",
+        "lighting",
+    ]:
+        result = _engine(pipeline_config).fuse(
+            [_signal(detector, ScoreCategory.TEXTURE, score)]
+        )
         assert result.verdict in {Verdict.ORIGINAL, Verdict.AI_GENERATED}
         assert result.verdict.value != "aiEdited"
 

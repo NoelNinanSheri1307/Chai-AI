@@ -45,7 +45,7 @@ def test_markdown_methodology_describes_actual_detectors(db_session) -> None:
     assert "frequency" in markdown
     assert "texture" in markdown
     assert "Gaussian response" in markdown
-    assert "Original, AI Edited, AI Generated" in markdown
+    assert "Original, AI Generated" in markdown
 
 
 def test_share_text_is_concise_and_deterministic(db_session) -> None:

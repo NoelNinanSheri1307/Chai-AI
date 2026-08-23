@@ -83,9 +83,7 @@ def compare_verdict(
     ext_conf = external.confidence
 
     confidence_delta = (
-        abs(round(chai_confidence - ext_conf, 4))
-        if ext_conf is not None
-        else None
+        abs(round(chai_confidence - ext_conf, 4)) if ext_conf is not None else None
     )
 
     if ext_ai is None:
@@ -151,13 +149,10 @@ def compute_benchmark_report(
 ) -> ExternalBenchmarkResult:
     """Build a complete benchmark report from external provider results."""
     items = [
-        compare_verdict(chai_verdict, chai_confidence, res)
-        for res in external_results
+        compare_verdict(chai_verdict, chai_confidence, res) for res in external_results
     ]
 
-    valid_agreements = [
-        item.agreement for item in items if item.agreement is not None
-    ]
+    valid_agreements = [item.agreement for item in items if item.agreement is not None]
 
     if valid_agreements:
         agreement_ratio = round(
@@ -169,7 +164,9 @@ def compute_benchmark_report(
     if agreement_ratio is None:
         summary = "No active external providers were available for comparison."
     elif agreement_ratio == 1.0:
-        summary = "Full agreement: external providers corroborate Chai's forensic verdict."
+        summary = (
+            "Full agreement: external providers corroborate Chai's forensic verdict."
+        )
     elif agreement_ratio == 0.0:
         summary = "Disagreement: external providers contradict Chai's forensic verdict."
     else:

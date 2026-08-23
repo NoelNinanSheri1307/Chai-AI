@@ -23,7 +23,9 @@ class DetectorEmpiricalStats:
     real_std: float
     real_min: float
     real_max: float
-    real_default_rate: float  # Percentage of readings at fallback/constant values (e.g. 0.40, 0.00)
+    real_default_rate: (
+        float  # Percentage of readings at fallback/constant values (e.g. 0.40, 0.00)
+    )
 
     ai_count: int
     ai_mean: float
@@ -62,7 +64,9 @@ class FailureAnalysisSummary:
 
     total_fps: int
     fp_format_breakdown: dict[str, int]
-    fp_dominant_detectors: dict[str, int]  # Detector with highest score on misclassified real image
+    fp_dominant_detectors: dict[
+        str, int
+    ]  # Detector with highest score on misclassified real image
     fp_mean_scores: dict[str, float]
 
     total_fns: int
@@ -163,7 +167,11 @@ def run_forensic_investigation(
             if score is None:
                 continue
             # Default/fallback indicator checks
-            is_fallback = score in {0.40, 0.00} or (det == "metadata" and score == 0.40) or (det == "compression" and score == 0.15)
+            is_fallback = (
+                score in {0.40, 0.00}
+                or (det == "metadata" and score == 0.40)
+                or (det == "compression" and score == 0.15)
+            )
             if r.ground_truth.value == "original":
                 real_scores.append(score)
                 if is_fallback:
@@ -191,21 +199,29 @@ def run_forensic_investigation(
         a_def_rate = round(ai_defaults / a_cnt, 4) if a_cnt else 0.0
 
         sep = round(abs(a_mean - r_mean), 4)
-        direction_correct = (a_mean > r_mean)
+        direction_correct = a_mean > r_mean
         overlap = compute_distribution_overlap(r_mean, r_std, a_mean, a_std)
 
         # Composite usefulness metric: rewards separation & correct direction, penalizes overlap & default rate
         direction_multiplier = 1.0 if direction_correct else -0.5
-        usefulness_raw = direction_multiplier * (sep / (overlap + 0.1)) * (1.0 - 0.5 * a_def_rate)
+        usefulness_raw = (
+            direction_multiplier * (sep / (overlap + 0.1)) * (1.0 - 0.5 * a_def_rate)
+        )
         usefulness = round(max(-1.0, min(1.0, usefulness_raw)), 4)
 
         findings: list[str] = []
         if not direction_correct and sep >= 0.05:
-            findings.append("INVERTED DIRECTION: Real images score HIGHER than AI-generated images.")
+            findings.append(
+                "INVERTED DIRECTION: Real images score HIGHER than AI-generated images."
+            )
         if sep < 0.05:
-            findings.append("ZERO SEPARATION: Real and AI distributions are virtually identical.")
+            findings.append(
+                "ZERO SEPARATION: Real and AI distributions are virtually identical."
+            )
         if a_def_rate >= 0.50:
-            findings.append(f"HIGH FALLBACK RATE: {a_def_rate * 100:.1f}% of AI images returned default/constant values.")
+            findings.append(
+                f"HIGH FALLBACK RATE: {a_def_rate * 100:.1f}% of AI images returned default/constant values."
+            )
 
         if usefulness > 0.35 and direction_correct:
             tier = "Primary Discriminator"
@@ -264,20 +280,34 @@ def run_forensic_investigation(
         # Measure mean detector scores for this format
         f_means: dict[str, float] = {}
         for det in detector_names:
-            s_list = [get_detector_score(r, det) for r in f_results if get_detector_score(r, det) is not None]
+            s_list = [
+                get_detector_score(r, det)
+                for r in f_results
+                if get_detector_score(r, det) is not None
+            ]
             f_means[det] = round(statistics.mean(s_list), 4) if s_list else 0.0
 
         # Check fallback rate on AVIF
         f_notes: list[str] = []
         if fmt == "AVIF":
-            f_notes.append("OpenCV (cv2.imdecode) fails to decode raw AVIF bytes, forcing detectors into default 0.40 fallback paths.")
-            f_notes.append("Metadata detector returns 0.40 because AVIF EXIF tags are unparsed by standard PIL EXIF.")
+            f_notes.append(
+                "OpenCV (cv2.imdecode) fails to decode raw AVIF bytes, forcing detectors into default 0.40 fallback paths."
+            )
+            f_notes.append(
+                "Metadata detector returns 0.40 because AVIF EXIF tags are unparsed by standard PIL EXIF."
+            )
         elif fmt == "JPEG":
-            f_notes.append("COCO validation set consists of real JPEGs. High spatial texture and lighting variance triggered frequent false alarms (score >= 0.80).")
+            f_notes.append(
+                "COCO validation set consists of real JPEGs. High spatial texture and lighting variance triggered frequent false alarms (score >= 0.80)."
+            )
 
         fb_count = sum(
-            1 for r in f_results
-            if any(get_detector_score(r, d) == 0.40 for d in ["frequency", "texture", "lighting"])
+            1
+            for r in f_results
+            if any(
+                get_detector_score(r, d) == 0.40
+                for d in ["frequency", "texture", "lighting"]
+            )
         )
         fb_rate = round(fb_count / len(f_results), 4) if f_results else 0.0
 
@@ -293,8 +323,16 @@ def run_forensic_investigation(
         )
 
     # 4. Failure Analysis (197 False Positives and 47 False Negatives)
-    fps = [r for r in results if r.ground_truth.value == "original" and r.predicted_class == "ai_generated"]
-    fns = [r for r in results if r.ground_truth.value == "ai_generated" and r.predicted_class == "original"]
+    fps = [
+        r
+        for r in results
+        if r.ground_truth.value == "original" and r.predicted_class == "ai_generated"
+    ]
+    fns = [
+        r
+        for r in results
+        if r.ground_truth.value == "ai_generated" and r.predicted_class == "original"
+    ]
 
     fp_formats: dict[str, int] = {}
     fp_dominant: dict[str, int] = {}
@@ -304,12 +342,18 @@ def run_forensic_investigation(
         fmt = Path(r.file_path).suffix.upper().replace(".", "")
         fp_formats[fmt] = fp_formats.get(fmt, 0) + 1
         # Find dominant detector (>0.60)
-        high_dets = [d for d in detector_names if (get_detector_score(r, d) or 0.0) >= 0.60]
+        high_dets = [
+            d for d in detector_names if (get_detector_score(r, d) or 0.0) >= 0.60
+        ]
         for d in high_dets:
             fp_dominant[d] = fp_dominant.get(d, 0) + 1
 
     for det in detector_names:
-        fp_scores = [get_detector_score(r, det) for r in fps if get_detector_score(r, det) is not None]
+        fp_scores = [
+            get_detector_score(r, det)
+            for r in fps
+            if get_detector_score(r, det) is not None
+        ]
         fp_means[det] = round(statistics.mean(fp_scores), 4) if fp_scores else 0.0
 
     fn_formats: dict[str, int] = {}
@@ -322,7 +366,11 @@ def run_forensic_investigation(
         fn_formats[fmt] = fn_formats.get(fmt, 0) + 1
 
     for det in detector_names:
-        fn_scores = [get_detector_score(r, det) for r in fns if get_detector_score(r, det) is not None]
+        fn_scores = [
+            get_detector_score(r, det)
+            for r in fns
+            if get_detector_score(r, det) is not None
+        ]
         fn_means[det] = round(statistics.mean(fn_scores), 4) if fn_scores else 0.0
 
     failures_summary = FailureAnalysisSummary(
