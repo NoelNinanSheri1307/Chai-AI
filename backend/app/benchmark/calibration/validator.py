@@ -101,9 +101,7 @@ class PromotionValidationReport(BaseModel):
     # Detailed breakdowns
     transitions: ValidationTransitions
     format_comparison: dict[str, dict[str, Any]] = Field(default_factory=dict)
-    ai_subgroup_comparison: dict[str, dict[str, Any]] = Field(
-        default_factory=dict
-    )
+    ai_subgroup_comparison: dict[str, dict[str, Any]] = Field(default_factory=dict)
     recommendation_summary: str
 
 
@@ -259,12 +257,8 @@ def validate_production_promotion(
             "image_count": cnt,
             "baseline_accuracy": _safe_div(d_f["b_tp"] + d_f["b_tn"], cnt),
             "candidate_accuracy": _safe_div(d_f["c_tp"] + d_f["c_tn"], cnt),
-            "baseline_ai_recall": _safe_div(
-                d_f["b_tp"], d_f["b_tp"] + d_f["b_fn"]
-            ),
-            "candidate_ai_recall": _safe_div(
-                d_f["c_tp"], d_f["c_tp"] + d_f["c_fn"]
-            ),
+            "baseline_ai_recall": _safe_div(d_f["b_tp"], d_f["b_tp"] + d_f["b_fn"]),
+            "candidate_ai_recall": _safe_div(d_f["c_tp"], d_f["c_tp"] + d_f["c_fn"]),
             "baseline_fp": d_f["b_fp"],
             "candidate_fp": d_f["c_fp"],
         }
@@ -366,9 +360,7 @@ def validate_production_promotion(
     )
 
     all_passed = all(c.passed for c in checks)
-    verdict = (
-        "APPROVED_FOR_PROMOTION" if all_passed else "REJECTED_RETAIN_M14"
-    )
+    verdict = "APPROVED_FOR_PROMOTION" if all_passed else "REJECTED_RETAIN_M14"
 
     summary = (
         "Candidate EXP_4 meets all strict production promotion criteria. False positives on Real images "
@@ -563,7 +555,9 @@ def run_validator_cli() -> None:
             # Fall back to default if specified path is missing
             fallback_p = find_default_baseline_json()
             if fallback_p and fallback_p.is_file():
-                print(f"Warning: Baseline '{base_p}' not found. Using auto-discovered baseline: {fallback_p}")
+                print(
+                    f"Warning: Baseline '{base_p}' not found. Using auto-discovered baseline: {fallback_p}"
+                )
                 base_p = fallback_p
             else:
                 print(f"Error: Baseline file not found at {base_p}", file=sys.stderr)
@@ -573,14 +567,16 @@ def run_validator_cli() -> None:
         if fallback_p and fallback_p.is_file():
             base_p = fallback_p
         else:
-            print("Error: No baseline benchmark result found. Please specify --baseline <path>.", file=sys.stderr)
+            print(
+                "Error: No baseline benchmark result found. Please specify --baseline <path>.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     cand_p = Path(args.candidate).resolve()
     if not cand_p.is_file():
         print(f"Error: Candidate file not found at {cand_p}", file=sys.stderr)
         sys.exit(1)
-
 
     report = validate_production_promotion(base_p, cand_p)
 
@@ -597,9 +593,7 @@ def run_validator_cli() -> None:
     print("MILESTONE 18 — PRODUCTION PROMOTION VALIDATION REPORT")
     print("=" * 80)
     print(f"Promotion Verdict: {report.promotion_verdict}")
-    print(
-        f"All Criteria Passed: {'YES' if report.passed_all_criteria else 'NO'}"
-    )
+    print(f"All Criteria Passed: {'YES' if report.passed_all_criteria else 'NO'}")
     print("-" * 80)
     for chk in report.criteria_checks:
         status_str = "PASS" if chk.passed else "FAIL"

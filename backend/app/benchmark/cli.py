@@ -167,8 +167,9 @@ def run_cli() -> None:
     # 3. Build production pipeline with requested calibration profile
     pipeline_cfg = PipelineConfig.for_profile(args.profile)
     pipeline = build_benchmark_pipeline(config=pipeline_cfg)
-    print(f"Active Pipeline Profile: {pipeline_cfg.calibration_profile.upper()} ({pipeline_cfg.detector_reliability})")
-
+    print(
+        f"Active Pipeline Profile: {pipeline_cfg.calibration_profile.upper()} ({pipeline_cfg.detector_reliability})"
+    )
 
     # 4. Optional external provider initialization
     external_manager = None
@@ -265,9 +266,7 @@ def run_cli() -> None:
         print(f"Sightengine AI Rec: {em.recall * 100:.2f}%")
         print(f"Sightengine AI Prec:{em.precision * 100:.2f}%")
         print(f"Sightengine AI F1:  {em.f1:.4f}")
-        print(
-            f"Sightengine Mtx:    TN={em.tn}, FP={em.fp}, FN={em.fn}, TP={em.tp}"
-        )
+        print(f"Sightengine Mtx:    TN={em.tn}, FP={em.fp}, FN={em.fn}, TP={em.tp}")
         print(
             f"Overall Agreement:  {ag.agree_count}/{ag.total_compared} ({ag.agreement_rate * 100:.2f}%)"
         )

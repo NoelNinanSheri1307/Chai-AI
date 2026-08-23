@@ -21,6 +21,7 @@ class DecisionProvenance:
     sightengine_ai_probability: float | None
     fusion_weight_chai: float
     fusion_weight_sightengine: float
+    final_fused_probability: float
     decision_reason: str
     evidence: list[str] = field(default_factory=list)
 

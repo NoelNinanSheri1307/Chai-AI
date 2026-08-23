@@ -70,7 +70,9 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         self._evidence_generator = evidence_generator
         self._explanation_generator = explanation_generator
         self._config = pipeline_config
-        self._decision_engine = decision_engine or ProductionDecisionEngine(pipeline_config)
+        self._decision_engine = decision_engine or ProductionDecisionEngine(
+            pipeline_config
+        )
         self._external_manager = external_manager
         if max_concurrency is None:
             max_concurrency = pipeline_config.max_concurrency
@@ -194,7 +196,9 @@ class ModularAnalysisPipeline(AnalysisPipeline):
 
         # Enrich metadata with decision provenance
         meta = self._build_metadata(signals)
-        meta["prov:final_classification"] = decision.provenance.final_classification.value
+        meta["prov:final_classification"] = (
+            decision.provenance.final_classification.value
+        )
         meta["prov:final_confidence"] = str(decision.provenance.final_confidence)
         meta["prov:chai_classification"] = decision.provenance.chai_classification.value
         meta["prov:chai_confidence"] = str(decision.provenance.chai_confidence)
@@ -208,6 +212,9 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         meta["prov:fusion_weight_chai"] = str(decision.provenance.fusion_weight_chai)
         meta["prov:fusion_weight_sightengine"] = str(
             decision.provenance.fusion_weight_sightengine
+        )
+        meta["prov:final_fused_probability"] = str(
+            decision.provenance.final_fused_probability
         )
         meta["prov:decision_reason"] = decision.provenance.decision_reason
 
@@ -234,7 +241,9 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             verdict=decision.verdict,
             confidence=decision.confidence,
             risk_level=decision.risk_level,
-            explanation=decision.explanation,
+            explanation=decision.explanation
+            if external_result is not None
+            else explanation,
             duration_ms=duration_ms,
             scores=fusion_result.scores,
             indicators=fusion_result.indicators,
@@ -244,7 +253,6 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             report_data=self.build_report_data(signals, fusion_result),
             provenance=decision.provenance,
         )
-
 
     # ------------------------------------------------------------------
     # Detector execution (sequential or bounded parallel)

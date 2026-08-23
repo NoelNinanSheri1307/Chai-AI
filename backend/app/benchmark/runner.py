@@ -221,7 +221,6 @@ def run_benchmark(
             image_results.append(img_res)
             success_count += 1
 
-
         except Exception as exc:
             logger.exception("Analysis failed for image %s: %s", path.name, exc)
             fail_count += 1

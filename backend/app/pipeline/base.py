@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from app.core.enums import (
     IndicatorSeverity,
@@ -22,6 +23,9 @@ from app.core.enums import (
     ScoreCategory,
     Verdict,
 )
+
+if TYPE_CHECKING:
+    from app.pipeline.decision.models import DecisionProvenance
 
 
 @dataclass(frozen=True)
@@ -101,12 +105,6 @@ class PipelineReportData:
     contributions: tuple[ReportContribution, ...] = ()
 
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.pipeline.decision.models import DecisionProvenance
-
-
 @dataclass(frozen=True)
 class PipelineResult:
     """The complete, validated output of an analysis pipeline."""
@@ -123,7 +121,6 @@ class PipelineResult:
     heatmap: HeatmapResult | None = None
     report_data: PipelineReportData | None = None
     provenance: DecisionProvenance | None = None
-
 
 
 class AnalysisPipeline(ABC):

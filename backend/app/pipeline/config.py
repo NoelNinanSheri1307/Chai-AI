@@ -13,12 +13,12 @@ configuration. ``clear_pipeline_config_cache`` is provided for the test suite.
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.enums import RiskLevel, Verdict
-
 
 # Named calibration profiles supported by the framework
 CALIBRATION_PROFILES: dict[str, dict[str, Any]] = {
@@ -282,7 +282,6 @@ class PipelineConfig(BaseSettings):
     decision_ai_edited_threshold: float = 0.45
     decision_conflict_policy: str = "weighted_priority"
 
-
     # ------------------------------------------------------------------
     # Derived helpers
     # ------------------------------------------------------------------
@@ -391,9 +390,15 @@ class PipelineConfig(BaseSettings):
         if prof_key in {"exp_4", "exp4", "exp_4_targeted_detector_rebalance"}:
             prof = CALIBRATION_PROFILES["exp_4"]
             # If detector_reliability is at default baseline M14, switch to EXP_4
-            if self.detector_reliability == CALIBRATION_PROFILES["m14"]["detector_reliability"]:
+            if (
+                self.detector_reliability
+                == CALIBRATION_PROFILES["m14"]["detector_reliability"]
+            ):
                 self.detector_reliability = dict(prof["detector_reliability"])
-            if self.classifier_resolution == CALIBRATION_PROFILES["m14"]["classifier_resolution"]:
+            if (
+                self.classifier_resolution
+                == CALIBRATION_PROFILES["m14"]["classifier_resolution"]
+            ):
                 self.classifier_resolution = prof["classifier_resolution"]
 
     @classmethod
@@ -431,7 +436,6 @@ class PipelineConfig(BaseSettings):
     def exp_4(cls, **overrides: Any) -> PipelineConfig:
         """Return a PipelineConfig instantiated with the EXP_4 rebalance configuration."""
         return cls.for_profile("exp_4", **overrides)
-
 
 
 @lru_cache(maxsize=1)

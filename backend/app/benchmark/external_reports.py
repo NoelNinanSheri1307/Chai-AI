@@ -15,7 +15,6 @@ def generate_external_markdown_report(result: ExternalBenchmarkReportResult) -> 
     deltas = result.metric_deltas
     agr = result.agreement
     conf = result.confidence_analysis
-    fail = result.failures
     tax = result.error_taxonomy
     ai_grp = result.ai_subgroup_analysis
     base = result.baseline_comparison
@@ -244,9 +243,7 @@ def generate_external_markdown_report(result: ExternalBenchmarkReportResult) -> 
     for fmt, cnt in sorted(ai_grp.format_distribution.items()):
         c_rec = ai_grp.format_recall_chai.get(fmt, 0.0)
         e_rec = ai_grp.format_recall_ext.get(fmt, 0.0)
-        lines.append(
-            f"| **{fmt}** | {cnt} | {c_rec * 100:.1f}% | {e_rec * 100:.1f}% |"
-        )
+        lines.append(f"| **{fmt}** | {cnt} | {c_rec * 100:.1f}% | {e_rec * 100:.1f}% |")
 
     lines.extend(
         [

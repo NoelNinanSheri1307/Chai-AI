@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from app.benchmark.calibration.validator import (
-    PromotionCheck,
     PromotionValidationReport,
     validate_production_promotion,
 )
@@ -36,9 +35,7 @@ def _build_mock_run_result(
         if r.ground_truth == GroundTruthLabel.AI_GENERATED and r.correct
     )
     tn = sum(
-        1
-        for r in results
-        if r.ground_truth == GroundTruthLabel.ORIGINAL and r.correct
+        1 for r in results if r.ground_truth == GroundTruthLabel.ORIGINAL and r.correct
     )
     fp = sum(
         1

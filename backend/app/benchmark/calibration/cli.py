@@ -193,7 +193,7 @@ def generate_calibration_markdown_report(report: CalibrationComparisonReport) ->
     lines.extend(
         [
             "",
-            f"> [!IMPORTANT]",
+            "> [!IMPORTANT]",
             f"> **{report.promotion_status}**",
             "",
         ]
@@ -264,9 +264,7 @@ def run_cli() -> None:
     print("=" * 80)
     print(f"Promotion Status: {report.promotion_status}")
     print("-" * 80)
-    print(
-        f"{'Metric':<25} {'Baseline (M14)':<18} {'Candidate (EXP_4)':<18} {'Delta'}"
-    )
+    print(f"{'Metric':<25} {'Baseline (M14)':<18} {'Candidate (EXP_4)':<18} {'Delta'}")
     print("-" * 80)
     print(
         f"{'Overall Accuracy':<25} {base.accuracy * 100:>6.2f}%            {cand.accuracy * 100:>6.2f}%            {cand.delta_accuracy_vs_baseline * 100:>+6.2f} pp"

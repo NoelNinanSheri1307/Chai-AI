@@ -69,6 +69,7 @@ class DecisionProvenanceDTO(BaseModel):
     sightengineAiProbability: float | None = None
     fusionWeightChai: float
     fusionWeightSightengine: float
+    finalFusedProbability: float = Field(ge=0.0, le=1.0)
     decisionReason: str
     evidence: list[str] = Field(default_factory=list)
 
@@ -93,4 +94,3 @@ class AnalysisResultDTO(BaseModel):
     evidence: list[str] = Field(default_factory=list)
     metadata: dict[str, str] = Field(default_factory=dict)
     provenance: DecisionProvenanceDTO | None = None
-

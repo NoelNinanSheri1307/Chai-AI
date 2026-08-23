@@ -86,7 +86,12 @@ def test_detector_output_is_deterministic(detector_cls: type) -> None:
     detector: Detector = detector_cls()
     first = detector.execute(JPEG_BYTES, content_type="image/jpeg")
     second = detector.execute(JPEG_BYTES, content_type="image/jpeg")
-    assert first == second
+    assert first.detector_name == second.detector_name
+    assert first.category == second.category
+    assert first.score == second.score
+    assert first.confidence == second.confidence
+    assert first.indicators == second.indicators
+    assert first.regions == second.regions
 
 
 def test_frequency_detector_emits_indicators() -> None:

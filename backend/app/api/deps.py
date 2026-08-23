@@ -147,7 +147,6 @@ def get_pipeline(
     )
 
 
-
 def get_user_repository(session: SessionDep) -> UserRepository:
     """Provide a :class:`UserRepository` bound to the request session."""
     return UserRepository(session)

@@ -309,9 +309,7 @@ class ExternalBenchmarkReportResult(BaseModel):
     error_taxonomy: DetailedErrorTaxonomy = Field(default_factory=DetailedErrorTaxonomy)
     detector_analysis: list[DetectorForensicStat] = Field(default_factory=list)
     confidence_analysis: EnhancedConfidenceMetrics
-    ai_subgroup_analysis: AISubgroupAnalysis = Field(
-        default_factory=AISubgroupAnalysis
-    )
+    ai_subgroup_analysis: AISubgroupAnalysis = Field(default_factory=AISubgroupAnalysis)
     baseline_comparison: BaselineComparison = Field(default_factory=BaselineComparison)
     decision: CalibrationDecision
     failures: ComparativeFailureSummary
@@ -552,9 +550,7 @@ def compute_three_way_comparison(
             if r.ground_truth == GroundTruthLabel.AI_GENERATED
             else "original"
         )
-        c_str = (
-            "ai_generated" if r.predicted_class == "ai_generated" else "original"
-        )
+        c_str = "ai_generated" if r.predicted_class == "ai_generated" else "original"
         e_str = "ai_generated" if ext.get("detected_as_ai") else "original"
 
         key = (gt_str, c_str, e_str)
@@ -585,7 +581,9 @@ def compute_format_comparisons(
     """Compute per-format comparative accuracy, recall, and F1 breakdown."""
     by_format: dict[str, list[ImageBenchmarkResult]] = {}
     for r in results:
-        ext_str = r.file_path.split(".")[-1].upper() if "." in r.file_path else "UNKNOWN"
+        ext_str = (
+            r.file_path.split(".")[-1].upper() if "." in r.file_path else "UNKNOWN"
+        )
         if ext_str in {"JPG", "JPEG"}:
             fmt = "JPEG"
         elif ext_str in {"PNG", "WEBP", "AVIF"}:
@@ -604,9 +602,7 @@ def compute_format_comparisons(
             x for x in subset if x.ground_truth == GroundTruthLabel.AI_GENERATED
         ]
         c_tp = sum(
-            1
-            for x in ai_subset
-            if x.predicted_class in {"ai_generated", "aigenerated"}
+            1 for x in ai_subset if x.predicted_class in {"ai_generated", "aigenerated"}
         )
         c_fp = sum(
             1
@@ -614,8 +610,8 @@ def compute_format_comparisons(
             if x.ground_truth != GroundTruthLabel.AI_GENERATED
             and x.predicted_class in {"ai_generated", "aigenerated"}
         )
-        c_fn = len(ai_subset) - c_tp
         chai_rec = _safe_div(c_tp, len(ai_subset))
+
         chai_prec = _safe_div(c_tp, c_tp + c_fp)
         chai_f1 = _safe_div(2 * chai_prec * chai_rec, chai_prec + chai_rec)
 
@@ -797,11 +793,15 @@ def compute_detector_analysis(
         elif d == "lighting":
             verdict = "High FP driver (elevated authentic lighting variance)"
         elif d == "texture":
-            verdict = "Weak/inverted discriminator (smooth authentic surfaces score high)"
+            verdict = (
+                "Weak/inverted discriminator (smooth authentic surfaces score high)"
+            )
         elif d == "compression":
             verdict = "Weak discriminator (narrow separation margin)"
         elif d == "metadata":
-            verdict = "Default-heavy signal (EXIF stripped in online/benchmark datasets)"
+            verdict = (
+                "Default-heavy signal (EXIF stripped in online/benchmark datasets)"
+            )
         elif d in {"ela", "noise"}:
             verdict = "Effectively zero signal (near-identical distributions)"
         else:
@@ -925,9 +925,7 @@ def compute_ai_subgroup_analysis(
     results: list[ImageBenchmarkResult],
 ) -> AISubgroupAnalysis:
     """Analyze the 52-image AI-generated subgroup by container format and filenames."""
-    ai_results = [
-        r for r in results if r.ground_truth == GroundTruthLabel.AI_GENERATED
-    ]
+    ai_results = [r for r in results if r.ground_truth == GroundTruthLabel.AI_GENERATED]
     format_counts: dict[str, int] = {}
     format_chai_tp: dict[str, int] = {}
     format_ext_tp: dict[str, int] = {}
@@ -1052,10 +1050,6 @@ def formulate_calibration_decision(
     detector_stats: list[DetectorForensicStat],
 ) -> CalibrationDecision:
     """Formulate an evidence-based recommendation for the next calibration step."""
-    # Check lighting and texture behavior
-    lighting_stat = next(
-        (s for s in detector_stats if s.detector_name == "lighting"), None
-    )
     freq_stat = next(
         (s for s in detector_stats if s.detector_name == "frequency"), None
     )

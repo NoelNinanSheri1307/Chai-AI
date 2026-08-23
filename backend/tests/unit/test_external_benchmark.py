@@ -6,7 +6,6 @@ import io
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from PIL import Image
 
 from app.benchmark.external_cache import ExternalBenchmarkCache
@@ -33,14 +32,15 @@ from app.benchmark.runner import run_benchmark
 from app.clients.external_detection.base import (
     ExternalDetectionResult,
 )
-from app.clients.external_detection.manager import ExternalDetectionManager
 from app.clients.external_detection.providers.sightengine import (
     SightengineDetectorProvider,
 )
 from app.core.config import Settings
 
 
-def _create_test_image_bytes(color: str = "red", size: tuple[int, int] = (32, 32)) -> bytes:
+def _create_test_image_bytes(
+    color: str = "red", size: tuple[int, int] = (32, 32)
+) -> bytes:
     img = Image.new("RGB", size, color=color)
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -163,7 +163,9 @@ def test_provider_timeout_handling() -> None:
     )
     provider = SightengineDetectorProvider(settings)
 
-    with patch("httpx.Client.post", side_effect=httpx.TimeoutException("Read timed out")):
+    with patch(
+        "httpx.Client.post", side_effect=httpx.TimeoutException("Read timed out")
+    ):
         res = provider.analyze(b"bytes")
 
     assert res.status == "timeout"
@@ -284,7 +286,9 @@ def _build_mock_image_result(
             "is_configured": True,
             "status": "success",
             "detected_as_ai": ext_ai,
-            "confidence": ext_conf if ext_conf is not None else (0.9 if ext_ai else 0.1),
+            "confidence": ext_conf
+            if ext_conf is not None
+            else (0.9 if ext_ai else 0.1),
             "classification_label": "ai_generated" if ext_ai else "authentic",
         }
     elif ext_conf is None:
@@ -315,13 +319,21 @@ def _build_mock_image_result(
 def test_external_metrics_calculation() -> None:
     results = [
         # Ground Truth Real, Sightengine Real (TN)
-        _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False),
+        _build_mock_image_result(
+            "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+        ),
         # Ground Truth Real, Sightengine AI (FP)
-        _build_mock_image_result("r2", GroundTruthLabel.ORIGINAL, "original", ext_ai=True),
+        _build_mock_image_result(
+            "r2", GroundTruthLabel.ORIGINAL, "original", ext_ai=True
+        ),
         # Ground Truth AI, Sightengine AI (TP)
-        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True),
+        _build_mock_image_result(
+            "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+        ),
         # Ground Truth AI, Sightengine Real (FN)
-        _build_mock_image_result("a2", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=False),
+        _build_mock_image_result(
+            "a2", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=False
+        ),
     ]
 
     metrics = compute_external_provider_metrics(results)
@@ -341,13 +353,21 @@ def test_external_metrics_calculation() -> None:
 def test_agreement_calculation() -> None:
     results = [
         # Real GT: Both say Real -> Agree
-        _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False),
+        _build_mock_image_result(
+            "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+        ),
         # Real GT: Chai Real, Ext AI -> Disagree
-        _build_mock_image_result("r2", GroundTruthLabel.ORIGINAL, "original", ext_ai=True),
+        _build_mock_image_result(
+            "r2", GroundTruthLabel.ORIGINAL, "original", ext_ai=True
+        ),
         # AI GT: Both say AI -> Agree
-        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True),
+        _build_mock_image_result(
+            "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+        ),
         # AI GT: Chai AI, Ext Real -> Disagree
-        _build_mock_image_result("a2", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=False),
+        _build_mock_image_result(
+            "a2", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=False
+        ),
     ]
 
     agr = compute_agreement_metrics(results)
@@ -367,34 +387,72 @@ def test_agreement_calculation() -> None:
 def test_three_way_comparison_truth_table() -> None:
     results = [
         # Real, Real, Real -> Both correct (authentic)
-        _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False),
+        _build_mock_image_result(
+            "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+        ),
         # Real, AI, Real -> Chai FP
-        _build_mock_image_result("r2", GroundTruthLabel.ORIGINAL, "ai_generated", ext_ai=False),
+        _build_mock_image_result(
+            "r2", GroundTruthLabel.ORIGINAL, "ai_generated", ext_ai=False
+        ),
         # AI, AI, AI -> Both correct (AI)
-        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True),
+        _build_mock_image_result(
+            "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+        ),
         # AI, Real, Real -> Both missed
-        _build_mock_image_result("a2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=False),
+        _build_mock_image_result(
+            "a2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=False
+        ),
     ]
 
     table = compute_three_way_comparison(results)
     assert len(table) == 8
 
     # Find row for (original, original, original)
-    both_real = next(t for t in table if t.ground_truth == "original" and t.chai_verdict == "original" and t.external_verdict == "original")
+    both_real = next(
+        t
+        for t in table
+        if t.ground_truth == "original"
+        and t.chai_verdict == "original"
+        and t.external_verdict == "original"
+    )
     assert both_real.count == 1
     assert both_real.sample_image_ids == ["r1"]
 
     # Find row for (ai_generated, original, original)
-    both_miss = next(t for t in table if t.ground_truth == "ai_generated" and t.chai_verdict == "original" and t.external_verdict == "original")
+    both_miss = next(
+        t
+        for t in table
+        if t.ground_truth == "ai_generated"
+        and t.chai_verdict == "original"
+        and t.external_verdict == "original"
+    )
     assert both_miss.count == 1
     assert both_miss.sample_image_ids == ["a2"]
 
 
 def test_format_comparisons() -> None:
     results = [
-        _build_mock_image_result("j1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False, file_path="img.jpg"),
-        _build_mock_image_result("p1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True, file_path="img.png"),
-        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True, file_path="img.avif"),
+        _build_mock_image_result(
+            "j1",
+            GroundTruthLabel.ORIGINAL,
+            "original",
+            ext_ai=False,
+            file_path="img.jpg",
+        ),
+        _build_mock_image_result(
+            "p1",
+            GroundTruthLabel.AI_GENERATED,
+            "ai_generated",
+            ext_ai=True,
+            file_path="img.png",
+        ),
+        _build_mock_image_result(
+            "a1",
+            GroundTruthLabel.AI_GENERATED,
+            "original",
+            ext_ai=True,
+            file_path="img.avif",
+        ),
     ]
 
     breakdown = compute_format_comparisons(results)
@@ -454,7 +512,9 @@ def test_external_benchmark_cache_persistence(tmp_path: Path) -> None:
 
 
 def test_reports_and_json_contain_no_credentials(tmp_path: Path) -> None:
-    img_res = _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False)
+    img_res = _build_mock_image_result(
+        "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+    )
     # Complete benchmark run result
     from app.benchmark.metrics import compute_benchmark_run_result
 
@@ -472,7 +532,13 @@ def test_reports_and_json_contain_no_credentials(tmp_path: Path) -> None:
     md_report = generate_external_markdown_report(ext_report)
     json_report = ext_report.model_dump_json(indent=2)
 
-    secret_tokens = ["api_secret", "secret123", "CHAI_SIGHTENGINE", "password", "Bearer "]
+    secret_tokens = [
+        "api_secret",
+        "secret123",
+        "CHAI_SIGHTENGINE",
+        "password",
+        "Bearer ",
+    ]
     for token in secret_tokens:
         assert token.lower() not in md_report.lower()
         assert token.lower() not in json_report.lower()
@@ -497,15 +563,25 @@ def test_detailed_error_taxonomy() -> None:
 
     results = [
         # Both correct (Real)
-        _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False),
+        _build_mock_image_result(
+            "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+        ),
         # Chai FP (Real -> AI), Ext Correct (Real -> Real)
-        _build_mock_image_result("r2", GroundTruthLabel.ORIGINAL, "ai_generated", ext_ai=False),
+        _build_mock_image_result(
+            "r2", GroundTruthLabel.ORIGINAL, "ai_generated", ext_ai=False
+        ),
         # Ext FP (Real -> AI), Chai Correct (Real -> Real)
-        _build_mock_image_result("r3", GroundTruthLabel.ORIGINAL, "original", ext_ai=True),
+        _build_mock_image_result(
+            "r3", GroundTruthLabel.ORIGINAL, "original", ext_ai=True
+        ),
         # Both correct (AI)
-        _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True),
+        _build_mock_image_result(
+            "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+        ),
         # Chai FN (AI -> Real), Ext Correct (AI -> AI)
-        _build_mock_image_result("a2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True),
+        _build_mock_image_result(
+            "a2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True
+        ),
     ]
 
     tax = compute_detailed_error_taxonomy(results)
@@ -521,11 +597,31 @@ def test_detailed_error_taxonomy() -> None:
 def test_detector_forensic_analysis_and_ranking() -> None:
     from app.benchmark.external_metrics import compute_detector_analysis
 
-    r1 = _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False)
-    r1.detector_scores = {"frequency": 0.20, "lighting": 0.85, "texture": 0.80, "compression": 0.15, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+    r1 = _build_mock_image_result(
+        "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+    )
+    r1.detector_scores = {
+        "frequency": 0.20,
+        "lighting": 0.85,
+        "texture": 0.80,
+        "compression": 0.15,
+        "metadata": 0.40,
+        "ela": 0.00,
+        "noise": 0.40,
+    }
 
-    a1 = _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True)
-    a1.detector_scores = {"frequency": 0.90, "lighting": 0.70, "texture": 0.75, "compression": 0.20, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+    a1 = _build_mock_image_result(
+        "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+    )
+    a1.detector_scores = {
+        "frequency": 0.90,
+        "lighting": 0.70,
+        "texture": 0.75,
+        "compression": 0.20,
+        "metadata": 0.40,
+        "ela": 0.00,
+        "noise": 0.40,
+    }
 
     stats = compute_detector_analysis([r1, a1])
     assert len(stats) == 7
@@ -546,9 +642,27 @@ def test_ai_subgroup_analysis() -> None:
     from app.benchmark.external_metrics import compute_ai_subgroup_analysis
 
     results = [
-        _build_mock_image_result("a_avif_1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True, file_path="gen1.avif"),
-        _build_mock_image_result("a_avif_2", GroundTruthLabel.AI_GENERATED, "original", ext_ai=True, file_path="gen2.avif"),
-        _build_mock_image_result("a_png_1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True, file_path="gen3.png"),
+        _build_mock_image_result(
+            "a_avif_1",
+            GroundTruthLabel.AI_GENERATED,
+            "ai_generated",
+            ext_ai=True,
+            file_path="gen1.avif",
+        ),
+        _build_mock_image_result(
+            "a_avif_2",
+            GroundTruthLabel.AI_GENERATED,
+            "original",
+            ext_ai=True,
+            file_path="gen2.avif",
+        ),
+        _build_mock_image_result(
+            "a_png_1",
+            GroundTruthLabel.AI_GENERATED,
+            "ai_generated",
+            ext_ai=True,
+            file_path="gen3.png",
+        ),
     ]
 
     sub = compute_ai_subgroup_analysis(results)
@@ -567,10 +681,30 @@ def test_baseline_comparison_and_calibration_decision() -> None:
     )
     from app.benchmark.metrics import compute_benchmark_run_result
 
-    r1 = _build_mock_image_result("r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False)
-    r1.detector_scores = {"frequency": 0.20, "lighting": 0.85, "texture": 0.80, "compression": 0.15, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
-    a1 = _build_mock_image_result("a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True)
-    a1.detector_scores = {"frequency": 0.90, "lighting": 0.70, "texture": 0.75, "compression": 0.20, "metadata": 0.40, "ela": 0.00, "noise": 0.40}
+    r1 = _build_mock_image_result(
+        "r1", GroundTruthLabel.ORIGINAL, "original", ext_ai=False
+    )
+    r1.detector_scores = {
+        "frequency": 0.20,
+        "lighting": 0.85,
+        "texture": 0.80,
+        "compression": 0.15,
+        "metadata": 0.40,
+        "ela": 0.00,
+        "noise": 0.40,
+    }
+    a1 = _build_mock_image_result(
+        "a1", GroundTruthLabel.AI_GENERATED, "ai_generated", ext_ai=True
+    )
+    a1.detector_scores = {
+        "frequency": 0.90,
+        "lighting": 0.70,
+        "texture": 0.75,
+        "compression": 0.20,
+        "metadata": 0.40,
+        "ela": 0.00,
+        "noise": 0.40,
+    }
 
     run_res = compute_benchmark_run_result(
         run_id="test_run",
@@ -591,4 +725,3 @@ def test_baseline_comparison_and_calibration_decision() -> None:
     assert "OPTION B" in dec.recommended_option
     assert len(dec.rationale) >= 3
     assert len(dec.next_steps) >= 3
-

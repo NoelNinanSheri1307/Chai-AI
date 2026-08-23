@@ -120,13 +120,9 @@ class FailureTransitions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     fixed_false_positives: list[TransitionItem] = Field(default_factory=list)
-    newly_introduced_false_positives: list[TransitionItem] = Field(
-        default_factory=list
-    )
+    newly_introduced_false_positives: list[TransitionItem] = Field(default_factory=list)
     fixed_false_negatives: list[TransitionItem] = Field(default_factory=list)
-    newly_introduced_false_negatives: list[TransitionItem] = Field(
-        default_factory=list
-    )
+    newly_introduced_false_negatives: list[TransitionItem] = Field(default_factory=list)
 
 
 class FormatComparisonItem(BaseModel):
@@ -388,9 +384,7 @@ def compare_calibration_runs(
         run_res = benchmark_data
 
     base_eval = evaluate_calibration(baseline_candidate, run_res)
-    cand_eval = evaluate_calibration(
-        test_candidate, run_res, baseline_result=base_eval
-    )
+    cand_eval = evaluate_calibration(test_candidate, run_res, baseline_result=base_eval)
 
     base_cfg = PipelineConfig(
         classifier_resolution=baseline_candidate.classifier_resolution,
@@ -579,7 +573,15 @@ def compare_calibration_runs(
     total_w_cand = sum(test_candidate.detector_reliability.values())
     det_impacts: list[DetectorImpactStat] = []
 
-    for d in ["lighting", "texture", "frequency", "compression", "metadata", "ela", "noise"]:
+    for d in [
+        "lighting",
+        "texture",
+        "frequency",
+        "compression",
+        "metadata",
+        "ela",
+        "noise",
+    ]:
         r_list = det_real_scores[d]
         a_list = det_ai_scores[d]
         r_m = _mean(r_list)
@@ -640,17 +642,30 @@ def compare_calibration_runs(
         baseline_recall=_safe_div(b_ai_caught, len(ai_subgroup_items)),
         candidate_caught_count=c_ai_caught,
         candidate_recall=_safe_div(c_ai_caught, len(ai_subgroup_items)),
-        newly_detected=[it for it in ai_subgroup_items if not it.caught_by_baseline and it.caught_by_candidate],
-        newly_missed=[it for it in ai_subgroup_items if it.caught_by_baseline and not it.caught_by_candidate],
+        newly_detected=[
+            it
+            for it in ai_subgroup_items
+            if not it.caught_by_baseline and it.caught_by_candidate
+        ],
+        newly_missed=[
+            it
+            for it in ai_subgroup_items
+            if it.caught_by_baseline and not it.caught_by_candidate
+        ],
         by_format={
             f: {
                 "count": fmt_data[f]["ai_count"],
                 "baseline_caught": fmt_data[f]["b_tp"],
                 "candidate_caught": fmt_data[f]["c_tp"],
-                "baseline_recall": _safe_div(fmt_data[f]["b_tp"], fmt_data[f]["ai_count"]),
-                "candidate_recall": _safe_div(fmt_data[f]["c_tp"], fmt_data[f]["ai_count"]),
+                "baseline_recall": _safe_div(
+                    fmt_data[f]["b_tp"], fmt_data[f]["ai_count"]
+                ),
+                "candidate_recall": _safe_div(
+                    fmt_data[f]["c_tp"], fmt_data[f]["ai_count"]
+                ),
             }
-            for f in formats if fmt_data[f]["ai_count"] > 0
+            for f in formats
+            if fmt_data[f]["ai_count"] > 0
         },
     )
 
@@ -663,16 +678,28 @@ def compare_calibration_runs(
     rationale: list[str] = []
     if fp_reduced and recall_maintained and f1_improved and no_hcf_increase:
         decision_status = "SUCCESSFUL"
-        rationale.append(f"Substantial False Positive reduction on Real images: {base_eval.fp} -> {cand_eval.fp} ({cand_eval.delta_fp_vs_baseline:+d} FP).")
-        rationale.append(f"AI Recall maintained or increased: {base_eval.recall * 100:.2f}% -> {cand_eval.recall * 100:.2f}% ({cand_eval.delta_recall_vs_baseline * 100:+.2f} pp).")
-        rationale.append(f"AI F1 Score improved: {base_eval.f1:.4f} -> {cand_eval.f1:.4f} ({cand_eval.delta_f1_vs_baseline:+.4f}).")
-        rationale.append(f"High-confidence failures remained at zero ({cand_eval.high_conf_failures}).")
+        rationale.append(
+            f"Substantial False Positive reduction on Real images: {base_eval.fp} -> {cand_eval.fp} ({cand_eval.delta_fp_vs_baseline:+d} FP)."
+        )
+        rationale.append(
+            f"AI Recall maintained or increased: {base_eval.recall * 100:.2f}% -> {cand_eval.recall * 100:.2f}% ({cand_eval.delta_recall_vs_baseline * 100:+.2f} pp)."
+        )
+        rationale.append(
+            f"AI F1 Score improved: {base_eval.f1:.4f} -> {cand_eval.f1:.4f} ({cand_eval.delta_f1_vs_baseline:+.4f})."
+        )
+        rationale.append(
+            f"High-confidence failures remained at zero ({cand_eval.high_conf_failures})."
+        )
     elif cand_eval.fp < base_eval.fp and not recall_maintained:
         decision_status = "MIXED"
-        rationale.append(f"False Positives reduced from {base_eval.fp} to {cand_eval.fp}, but AI Recall dropped from {base_eval.recall * 100:.2f}% to {cand_eval.recall * 100:.2f}%.")
+        rationale.append(
+            f"False Positives reduced from {base_eval.fp} to {cand_eval.fp}, but AI Recall dropped from {base_eval.recall * 100:.2f}% to {cand_eval.recall * 100:.2f}%."
+        )
     else:
         decision_status = "FAILED"
-        rationale.append("Candidate did not achieve the required diagnostic performance bounds.")
+        rationale.append(
+            "Candidate did not achieve the required diagnostic performance bounds."
+        )
 
     return CalibrationComparisonReport(
         baseline=base_eval,

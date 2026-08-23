@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from app.clients.external_detection.base import ExternalDetectionResult
-from app.core.enums import RiskLevel, Verdict
+from app.core.enums import Verdict
 from app.pipeline.base import HeatmapResult, ScoreResult
 from app.pipeline.config import PipelineConfig
 from app.pipeline.decision.models import DecisionProvenance, ProductionDecisionResult
@@ -66,7 +65,10 @@ class ProductionDecisionEngine:
             ela_score = 0.0
             if chai_scores:
                 for sc in chai_scores:
-                    if getattr(sc.category, "value", str(sc.category)) in {"ela", "texture"}:
+                    if getattr(sc.category, "value", str(sc.category)) in {
+                        "ela",
+                        "texture",
+                    }:
                         ela_score = max(ela_score, sc.value)
             s_chai_edit = ela_score if ela_score > 0.40 else 0.10
         s_chai_edit = max(0.0, min(1.0, s_chai_edit))
@@ -124,7 +126,9 @@ class ProductionDecisionEngine:
                 final_verdict = Verdict.AI_EDITED
                 final_conf = max(0.60, min(0.92, s_chai_edit))
                 reason = "Sightengine indicates authentic baseline content, but Chai forensic analysis detects localized editing/tampering artifacts."
-                evidence.append("Localized forensic inconsistency detected across spatial frequency and error level analysis.")
+                evidence.append(
+                    "Localized forensic inconsistency detected across spatial frequency and error level analysis."
+                )
             else:
                 final_verdict = Verdict.ORIGINAL
                 auth_conf = 1.0 - max(p_fused_ai, s_chai_edit)
@@ -137,15 +141,15 @@ class ProductionDecisionEngine:
             # Fallback when external provider is unavailable / unconfigured / timed out
             if chai_verdict == Verdict.AI_GENERATED:
                 final_verdict = Verdict.AI_GENERATED
-                final_conf = max(0.55, min(0.90, chai_conf))
+                final_conf = chai_conf
                 reason = f"Sightengine {ext_status}; classified as AI-generated based on Chai forensic analysis only."
             elif chai_verdict == Verdict.AI_EDITED or s_chai_edit >= th_edit:
                 final_verdict = Verdict.AI_EDITED
-                final_conf = max(0.55, min(0.90, s_chai_edit if s_chai_edit >= th_edit else chai_conf))
+                final_conf = s_chai_edit if s_chai_edit >= th_edit else chai_conf
                 reason = f"Sightengine {ext_status}; classified as AI-edited based on Chai forensic analysis only."
             else:
                 final_verdict = Verdict.ORIGINAL
-                final_conf = max(0.55, min(0.92, chai_conf))
+                final_conf = chai_conf
                 reason = f"Sightengine {ext_status}; classified as authentic based on Chai forensic analysis only."
 
         # Risk level derivation
@@ -160,9 +164,12 @@ class ProductionDecisionEngine:
             chai_ai_probability=round(p_chai_ai, 4),
             chai_edit_score=round(s_chai_edit, 4),
             sightengine_status=ext_status,
-            sightengine_ai_probability=round(p_ext_ai, 4) if p_ext_ai is not None else None,
+            sightengine_ai_probability=round(p_ext_ai, 4)
+            if p_ext_ai is not None
+            else None,
             fusion_weight_chai=round(eff_w_int, 2),
             fusion_weight_sightengine=round(eff_w_ext, 2),
+            final_fused_probability=round(p_fused_ai, 4),
             decision_reason=reason,
             evidence=evidence,
         )
