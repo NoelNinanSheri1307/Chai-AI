@@ -23,6 +23,7 @@ from app.benchmark.reports import generate_markdown_report, save_markdown_report
 from app.benchmark.runner import build_benchmark_pipeline, run_benchmark
 from app.clients.external_detection.manager import ExternalDetectionManager
 from app.core.config import Settings
+from app.pipeline.config import PipelineConfig
 
 
 def find_default_dataset_dir() -> Path:
@@ -96,6 +97,13 @@ def run_cli() -> None:
         help="Path to JSON cache file for external provider responses",
     )
     parser.add_argument(
+        "--profile",
+        type=str,
+        default="m14",
+        choices=["m14", "exp_4", "baseline", "exp4"],
+        help="Calibration profile: 'm14' (baseline) or 'exp_4' (rebalanced)",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Enable detailed logging output",
@@ -156,8 +164,11 @@ def run_cli() -> None:
     else:
         print(f"Evaluating complete dataset of {len(manifest.entries)} images...")
 
-    # 3. Build production pipeline (isolated, zero database writes)
-    pipeline = build_benchmark_pipeline()
+    # 3. Build production pipeline with requested calibration profile
+    pipeline_cfg = PipelineConfig.for_profile(args.profile)
+    pipeline = build_benchmark_pipeline(config=pipeline_cfg)
+    print(f"Active Pipeline Profile: {pipeline_cfg.calibration_profile.upper()} ({pipeline_cfg.detector_reliability})")
+
 
     # 4. Optional external provider initialization
     external_manager = None

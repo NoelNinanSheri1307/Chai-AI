@@ -215,3 +215,29 @@ def test_mathematical_gaussian_resolution_bias() -> None:
     assert (
         ratio > 80.0
     )  # Confirms mathematical asymmetry responsible for 95.4% false confidence
+
+
+def test_milestone_17_targeted_rebalance_comparison() -> None:
+    from app.benchmark.calibration.evaluator import (
+        BASELINE_M14,
+        EXP_4_TARGETED_DETECTOR_REBALANCE,
+        compare_calibration_runs,
+    )
+
+    bench_data = _build_synthetic_benchmark_result()
+    report = compare_calibration_runs(
+        benchmark_data=bench_data,
+        baseline_candidate=BASELINE_M14,
+        test_candidate=EXP_4_TARGETED_DETECTOR_REBALANCE,
+    )
+
+    assert report.baseline.name == "BASELINE_M14"
+    assert report.candidate.name == "EXP_4_TARGETED_DETECTOR_REBALANCE"
+    assert len(report.detector_impacts) == 7
+
+    # In synthetic dataset: r2 has high lighting (0.85) and texture (0.83)
+    # Under EXP_4 with lighting=0.05, texture=0.05, frequency=0.40 (score=0.20), r2 should be fixed!
+    assert len(report.transitions.fixed_false_positives) >= 1
+    assert "Experimental candidate only" in report.promotion_status
+    assert report.decision_status in {"SUCCESSFUL", "MIXED", "FAILED"}
+

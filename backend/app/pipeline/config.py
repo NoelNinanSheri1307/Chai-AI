@@ -20,6 +20,39 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.core.enums import RiskLevel, Verdict
 
 
+# Named calibration profiles supported by the framework
+CALIBRATION_PROFILES: dict[str, dict[str, Any]] = {
+    "m14": {
+        "name": "BASELINE_M14",
+        "description": "Milestone 14 baseline configuration (frequency=0.18, lighting=0.17, texture=0.15)",
+        "detector_reliability": {
+            "metadata": 0.10,
+            "frequency": 0.18,
+            "ela": 0.18,
+            "noise": 0.12,
+            "compression": 0.10,
+            "texture": 0.15,
+            "lighting": 0.17,
+        },
+        "classifier_resolution": 0.15,
+    },
+    "exp_4": {
+        "name": "EXP_4_TARGETED_DETECTOR_REBALANCE",
+        "description": "Milestone 17/18 validated rebalance: Frequency promoted (0.40), Lighting dampened (0.05), Texture dampened (0.05)",
+        "detector_reliability": {
+            "metadata": 0.10,
+            "frequency": 0.40,
+            "ela": 0.18,
+            "noise": 0.12,
+            "compression": 0.10,
+            "texture": 0.05,
+            "lighting": 0.05,
+        },
+        "classifier_resolution": 0.15,
+    },
+}
+
+
 class PipelineConfig(BaseSettings):
     """Deterministic, environment-overridable pipeline settings."""
 
@@ -29,6 +62,13 @@ class PipelineConfig(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+    )
+
+    # Calibration Profile -----------------------------------------------
+    # Selects a named calibration configuration: 'm14' (baseline) or 'exp_4' (rebalanced)
+    calibration_profile: str = Field(
+        default="m14",
+        description="Active calibration profile: 'm14' (baseline) or 'exp_4' (rebalanced)",
     )
 
     # Versioning --------------------------------------------------------
@@ -89,16 +129,11 @@ class PipelineConfig(BaseSettings):
     # touching code. Weights need not sum to one: the fusion engine normalizes
     # them each run.
     detector_reliability: dict[str, float] = Field(
-        default_factory=lambda: {
-            "metadata": 0.10,
-            "frequency": 0.18,
-            "ela": 0.18,
-            "noise": 0.12,
-            "compression": 0.10,
-            "texture": 0.15,
-            "lighting": 0.17,
-        }
+        default_factory=lambda: dict(
+            CALIBRATION_PROFILES["m14"]["detector_reliability"]
+        )
     )
+
     # Reliability applied to a detector that is not present in
     # ``detector_reliability`` (when a new detector ships before it is tuned).
     default_detector_reliability: float = 1.0
@@ -239,6 +274,16 @@ class PipelineConfig(BaseSettings):
     )
 
     # ------------------------------------------------------------------
+    # Production Decision & Multi-Source Fusion (Milestone 19)
+    # ------------------------------------------------------------------
+    decision_external_weight: float = 0.70
+    decision_internal_weight: float = 0.30
+    decision_ai_generated_threshold: float = 0.50
+    decision_ai_edited_threshold: float = 0.45
+    decision_conflict_policy: str = "weighted_priority"
+
+
+    # ------------------------------------------------------------------
     # Derived helpers
     # ------------------------------------------------------------------
     def enabled_detector_names(self) -> list[str]:
@@ -338,6 +383,55 @@ class PipelineConfig(BaseSettings):
         if verdict is Verdict.AI_GENERATED:
             return RiskLevel.HIGH if band is not RiskLevel.LOW else RiskLevel.MEDIUM
         return band
+
+    def model_post_init(self, __context: Any) -> None:
+        """Apply calibration profile defaults if profile is set to EXP_4 and reliability matches baseline."""
+        super().model_post_init(__context)
+        prof_key = self.calibration_profile.lower().replace("-", "_")
+        if prof_key in {"exp_4", "exp4", "exp_4_targeted_detector_rebalance"}:
+            prof = CALIBRATION_PROFILES["exp_4"]
+            # If detector_reliability is at default baseline M14, switch to EXP_4
+            if self.detector_reliability == CALIBRATION_PROFILES["m14"]["detector_reliability"]:
+                self.detector_reliability = dict(prof["detector_reliability"])
+            if self.classifier_resolution == CALIBRATION_PROFILES["m14"]["classifier_resolution"]:
+                self.classifier_resolution = prof["classifier_resolution"]
+
+    @classmethod
+    def for_profile(cls, profile_name: str, **overrides: Any) -> PipelineConfig:
+        """Create a PipelineConfig configured for a specific calibration profile."""
+        norm_key = profile_name.lower().replace("-", "_")
+        if norm_key in {"exp_4", "exp4", "exp_4_targeted_detector_rebalance"}:
+            prof = CALIBRATION_PROFILES["exp_4"]
+            kwargs = {
+                "calibration_profile": "exp_4",
+                "detector_reliability": dict(prof["detector_reliability"]),
+                "classifier_resolution": prof["classifier_resolution"],
+                **overrides,
+            }
+            return cls(**kwargs)
+        elif norm_key in {"m14", "baseline", "baseline_m14", "default"}:
+            prof = CALIBRATION_PROFILES["m14"]
+            kwargs = {
+                "calibration_profile": "m14",
+                "detector_reliability": dict(prof["detector_reliability"]),
+                "classifier_resolution": prof["classifier_resolution"],
+                **overrides,
+            }
+            return cls(**kwargs)
+        raise ValueError(
+            f"Unknown calibration profile: '{profile_name}'. Supported: {list(CALIBRATION_PROFILES.keys())}"
+        )
+
+    @classmethod
+    def baseline_m14(cls, **overrides: Any) -> PipelineConfig:
+        """Return a PipelineConfig instantiated with the Baseline M14 configuration."""
+        return cls.for_profile("m14", **overrides)
+
+    @classmethod
+    def exp_4(cls, **overrides: Any) -> PipelineConfig:
+        """Return a PipelineConfig instantiated with the EXP_4 rebalance configuration."""
+        return cls.for_profile("exp_4", **overrides)
+
 
 
 @lru_cache(maxsize=1)

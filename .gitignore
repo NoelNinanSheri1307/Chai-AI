@@ -11,3 +11,9 @@ desktop.ini
 
 # Logs
 *.log
+
+# Benchmark dataset and results (Milestone 12)
+chai_benchmark/
+chai-benchmark/
+chai_benchmark/results/
+chai-benchmark/results/

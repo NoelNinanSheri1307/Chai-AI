@@ -27,6 +27,8 @@ import time
 from collections.abc import Sequence
 from concurrent.futures import Future, ThreadPoolExecutor
 
+from app.clients.external_detection.base import ExternalDetectionResult
+from app.clients.external_detection.manager import ExternalDetectionManager
 from app.core.logging import get_request_id
 from app.pipeline.base import (
     AnalysisPipeline,
@@ -35,6 +37,7 @@ from app.pipeline.base import (
     ReportContribution,
 )
 from app.pipeline.config import PipelineConfig
+from app.pipeline.decision.engine import ProductionDecisionEngine
 from app.pipeline.detectors.base import Detector
 from app.pipeline.explanation.base import EvidenceGenerator, ExplanationGenerator
 from app.pipeline.fusion.base import DetectorContribution, FusionEngine, FusionResult
@@ -57,6 +60,8 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         evidence_generator: EvidenceGenerator,
         explanation_generator: ExplanationGenerator,
         pipeline_config: PipelineConfig,
+        decision_engine: ProductionDecisionEngine | None = None,
+        external_manager: ExternalDetectionManager | None = None,
         max_concurrency: int | None = None,
     ) -> None:
         self._detectors = tuple(detectors)
@@ -65,6 +70,8 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         self._evidence_generator = evidence_generator
         self._explanation_generator = explanation_generator
         self._config = pipeline_config
+        self._decision_engine = decision_engine or ProductionDecisionEngine(pipeline_config)
+        self._external_manager = external_manager
         if max_concurrency is None:
             max_concurrency = pipeline_config.max_concurrency
         # Bounded: 1..pipeline-config-hard-cap; sequential by default.
@@ -94,6 +101,16 @@ class ModularAnalysisPipeline(AnalysisPipeline):
     def explanation_generator(self) -> ExplanationGenerator:
         """The injected explanation generator."""
         return self._explanation_generator
+
+    @property
+    def decision_engine(self) -> ProductionDecisionEngine:
+        """The production decision engine."""
+        return self._decision_engine
+
+    @property
+    def external_manager(self) -> ExternalDetectionManager | None:
+        """The external detection manager, if injected."""
+        return self._external_manager
 
     # ------------------------------------------------------------------
     # Versioning
@@ -143,15 +160,66 @@ class ModularAnalysisPipeline(AnalysisPipeline):
             fusion_result, evidence, signals
         )
 
+        # External reference check if configured and manager is injected
+        external_result: ExternalDetectionResult | None = None
+        if self._external_manager is not None:
+            try:
+                ext_results = self._external_manager.analyze_all(
+                    image_bytes=image_bytes,
+                    filename=file_name or "image.jpg",
+                    content_type=content_type or "image/jpeg",
+                )
+                if ext_results:
+                    external_result = ext_results[0]
+            except Exception as exc:
+                logger.warning("External detection check failed gracefully: %s", exc)
+                external_result = ExternalDetectionResult(
+                    provider="sightengine",
+                    provider_version="v1.0",
+                    is_configured=True,
+                    status="error",
+                    error_message=str(exc),
+                )
+
+        # Multi-source production decision & fusion
+        decision = self._decision_engine.decide(
+            chai_fusion=fusion_result,
+            chai_heatmap=heatmap,
+            chai_evidence=evidence,
+            chai_scores=fusion_result.scores,
+            external_result=external_result,
+        )
+
         duration_ms = max(1, int((time.perf_counter() - started) * 1000))
+
+        # Enrich metadata with decision provenance
+        meta = self._build_metadata(signals)
+        meta["prov:final_classification"] = decision.provenance.final_classification.value
+        meta["prov:final_confidence"] = str(decision.provenance.final_confidence)
+        meta["prov:chai_classification"] = decision.provenance.chai_classification.value
+        meta["prov:chai_confidence"] = str(decision.provenance.chai_confidence)
+        meta["prov:chai_ai_probability"] = str(decision.provenance.chai_ai_probability)
+        meta["prov:chai_edit_score"] = str(decision.provenance.chai_edit_score)
+        meta["prov:sightengine_status"] = decision.provenance.sightengine_status
+        if decision.provenance.sightengine_ai_probability is not None:
+            meta["prov:sightengine_ai_probability"] = str(
+                decision.provenance.sightengine_ai_probability
+            )
+        meta["prov:fusion_weight_chai"] = str(decision.provenance.fusion_weight_chai)
+        meta["prov:fusion_weight_sightengine"] = str(
+            decision.provenance.fusion_weight_sightengine
+        )
+        meta["prov:decision_reason"] = decision.provenance.decision_reason
 
         logger.info(
             "pipeline.completed",
             extra={
                 "event": "pipeline.completed",
                 "request_id": get_request_id(),
-                "verdict": fusion_result.verdict.value,
-                "confidence": round(fusion_result.confidence, 6),
+                "verdict": decision.verdict.value,
+                "confidence": round(decision.confidence, 6),
+                "chai_verdict": fusion_result.verdict.value,
+                "sightengine_status": decision.provenance.sightengine_status,
                 "duration_ms": duration_ms,
                 "detector_timings_ms": {
                     signal.detector_name: signal.processing_time_ms
@@ -163,18 +231,20 @@ class ModularAnalysisPipeline(AnalysisPipeline):
         )
 
         return PipelineResult(
-            verdict=fusion_result.verdict,
-            confidence=fusion_result.confidence,
-            risk_level=fusion_result.risk_level,
-            explanation=explanation,
+            verdict=decision.verdict,
+            confidence=decision.confidence,
+            risk_level=decision.risk_level,
+            explanation=decision.explanation,
             duration_ms=duration_ms,
             scores=fusion_result.scores,
             indicators=fusion_result.indicators,
-            evidence=evidence,
-            metadata=self._build_metadata(signals),
+            evidence=decision.provenance.evidence,
+            metadata=meta,
             heatmap=heatmap,
             report_data=self.build_report_data(signals, fusion_result),
+            provenance=decision.provenance,
         )
+
 
     # ------------------------------------------------------------------
     # Detector execution (sequential or bounded parallel)

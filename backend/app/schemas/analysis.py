@@ -54,6 +54,25 @@ class HeatmapDataDTO(BaseModel):
     overallManipulation: float = Field(ge=0.0, le=1.0)
 
 
+class DecisionProvenanceDTO(BaseModel):
+    """Provenance and audit trail for the external-assisted classification decision."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    finalClassification: Verdict
+    finalConfidence: float = Field(ge=0.0, le=1.0)
+    chaiClassification: Verdict
+    chaiConfidence: float = Field(ge=0.0, le=1.0)
+    chaiAiProbability: float = Field(ge=0.0, le=1.0)
+    chaiEditScore: float = Field(ge=0.0, le=1.0)
+    sightengineStatus: str
+    sightengineAiProbability: float | None = None
+    fusionWeightChai: float
+    fusionWeightSightengine: float
+    decisionReason: str
+    evidence: list[str] = Field(default_factory=list)
+
+
 class AnalysisResultDTO(BaseModel):
     """Full analysis result returned to the client."""
 
@@ -73,3 +92,5 @@ class AnalysisResultDTO(BaseModel):
     heatmap: HeatmapDataDTO | None = None
     evidence: list[str] = Field(default_factory=list)
     metadata: dict[str, str] = Field(default_factory=dict)
+    provenance: DecisionProvenanceDTO | None = None
+

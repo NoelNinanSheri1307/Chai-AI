@@ -16,6 +16,7 @@ from app.models.analysis import Analysis
 from app.models.comparison import Comparison
 from app.schemas.analysis import (
     AnalysisResultDTO,
+    DecisionProvenanceDTO,
     DetectedIndicatorDTO,
     ForensicScoreDTO,
     HeatmapDataDTO,
@@ -32,6 +33,7 @@ _SEVERITY_LABELS = {
 
 _VERDICT_LABELS = {
     Verdict.ORIGINAL: "Original",
+    Verdict.AI_EDITED: "AI Edited",
     Verdict.AI_GENERATED: "AI Generated",
 }
 
@@ -76,6 +78,44 @@ def analysis_to_result_dto(analysis: Analysis) -> AnalysisResultDTO:
             overallManipulation=analysis.heatmap.overall_manipulation,
         )
 
+    meta_dict = {item.key: item.value for item in analysis.metadata_items}
+
+    prov_dto: DecisionProvenanceDTO | None = None
+    if "prov:decision_reason" in meta_dict or "decision_reason" in meta_dict:
+        reason = meta_dict.get("prov:decision_reason") or meta_dict.get("decision_reason", "")
+        se_status = meta_dict.get("prov:sightengine_status") or meta_dict.get("sightengine_status", "unconfigured")
+        se_prob_str = meta_dict.get("prov:sightengine_ai_probability") or meta_dict.get("sightengine_ai_probability")
+        se_prob = float(se_prob_str) if se_prob_str is not None and se_prob_str != "" else None
+        chai_cls_str = meta_dict.get("prov:chai_classification") or meta_dict.get("chai_classification", analysis.verdict.value if analysis.verdict else "original")
+        try:
+            chai_verdict = Verdict(chai_cls_str)
+        except Exception:
+            chai_verdict = analysis.verdict or Verdict.ORIGINAL
+
+        chai_conf = float(meta_dict.get("prov:chai_confidence", meta_dict.get("chai_confidence", analysis.confidence or 0.5)))
+        chai_ai_p = float(meta_dict.get("prov:chai_ai_probability", meta_dict.get("chai_ai_probability", 0.5)))
+        chai_edit_s = float(meta_dict.get("prov:chai_edit_score", meta_dict.get("chai_edit_score", 0.0)))
+        w_chai = float(meta_dict.get("prov:fusion_weight_chai", meta_dict.get("fusion_weight_chai", 0.3)))
+        w_se = float(meta_dict.get("prov:fusion_weight_sightengine", meta_dict.get("fusion_weight_sightengine", 0.7)))
+
+        prov_dto = DecisionProvenanceDTO(
+            finalClassification=analysis.verdict or Verdict.ORIGINAL,
+            finalConfidence=analysis.confidence or 0.0,
+            chaiClassification=chai_verdict,
+            chaiConfidence=chai_conf,
+            chaiAiProbability=chai_ai_p,
+            chaiEditScore=chai_edit_s,
+            sightengineStatus=se_status,
+            sightengineAiProbability=se_prob,
+            fusionWeightChai=w_chai,
+            fusionWeightSightengine=w_se,
+            decisionReason=reason,
+            evidence=[
+                line.text
+                for line in sorted(analysis.evidence, key=lambda line: line.position)
+            ],
+        )
+
     return AnalysisResultDTO(
         id=analysis.public_id,
         imagePath=analysis_image_path(analysis.public_id),
@@ -104,8 +144,10 @@ def analysis_to_result_dto(analysis: Analysis) -> AnalysisResultDTO:
             line.text
             for line in sorted(analysis.evidence, key=lambda line: line.position)
         ],
-        metadata={item.key: item.value for item in analysis.metadata_items},
+        metadata=meta_dict,
+        provenance=prov_dto,
     )
+
 
 
 def analysis_to_history_item(analysis: Analysis) -> HistoryItemDTO:

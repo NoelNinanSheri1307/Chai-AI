@@ -1060,11 +1060,12 @@ def formulate_calibration_decision(
         (s for s in detector_stats if s.detector_name == "frequency"), None
     )
 
+    freq_sep = freq_stat.separation_margin if freq_stat else 0.0
     rationale = [
         "Milestone 14 image decoding successfully resolved the AVIF silent-fallback bug (0 high-confidence failures vs 35 in M12).",
         f"AI Recall increased by +{baseline_comp.delta_recall * 100:.1f} percentage points and AI F1 improved by +{baseline_comp.delta_f1:.4f}.",
         f"However, Real False Positives remain high at {baseline_comp.current_fp} / 616 ({baseline_comp.current_fp / 616 * 100:.1f}%), suppressing precision to {baseline_comp.current_ai_precision * 100:.2f}%.",
-        f"Detector forensics confirm Frequency is the strongest signal (separation +{freq_stat.separation_margin:.2f if freq_stat else 0.0}), while Lighting remains the dominant FP driver on authentic COCO images.",
+        f"Detector forensics confirm Frequency is the strongest signal (separation +{freq_sep:.2f}), while Lighting remains the dominant FP driver on authentic COCO images.",
         "A focused, isolated calibration experiment targeting lighting/texture dampening and fusion resolution is warranted before final production freeze.",
     ]
 

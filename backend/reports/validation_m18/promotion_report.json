@@ -1,0 +1,1915 @@
+{
+  "baseline_run_id": "run_20260822_140413",
+  "candidate_run_id": "run_20260823_081720",
+  "passed_all_criteria": false,
+  "promotion_verdict": "REJECTED_RETAIN_M14",
+  "criteria_checks": [
+    {
+      "name": "AI Recall Non-Regression",
+      "description": "Candidate AI recall must not regress relative to Baseline M14.",
+      "passed": false,
+      "baseline_val": "30.77%",
+      "candidate_val": "7.69%",
+      "detail": "Candidate recall is 7.69% vs baseline 30.77%."
+    },
+    {
+      "name": "Real False Positive Reduction",
+      "description": "Candidate must achieve substantial FP reduction on authentic images (>=30 fewer FPs).",
+      "passed": true,
+      "baseline_val": 196,
+      "candidate_val": 71,
+      "detail": "Candidate false positives dropped from 196 to 71 (delta: -125)."
+    },
+    {
+      "name": "False Negative Containment",
+      "description": "Candidate must not materially increase false negatives on AI images.",
+      "passed": false,
+      "baseline_val": 36,
+      "candidate_val": 48,
+      "detail": "Candidate false negatives: 48 vs baseline 36."
+    },
+    {
+      "name": "High-Confidence Failure Safety",
+      "description": "Candidate must not introduce new high-confidence failures (>=80%).",
+      "passed": true,
+      "baseline_val": 0,
+      "candidate_val": 0,
+      "detail": "Candidate high-confidence failures: 0 vs baseline 0."
+    },
+    {
+      "name": "Pipeline Runtime Reliability",
+      "description": "Candidate must execute across all benchmark images with 0 unhandled exceptions.",
+      "passed": true,
+      "baseline_val": 0,
+      "candidate_val": 0,
+      "detail": "Candidate failed analyses count: 0."
+    },
+    {
+      "name": "Directional Consistency with Simulation",
+      "description": "Fresh production run must confirm accuracy and precision gains observed in M17 simulation.",
+      "passed": false,
+      "baseline_val": "Acc: 65.27%, Prec: 7.55%",
+      "candidate_val": "Acc: 82.19%, Prec: 5.33%",
+      "detail": "Accuracy improved by +16.92 pp, Precision by -2.22 pp."
+    }
+  ],
+  "baseline_accuracy": 0.6527,
+  "candidate_accuracy": 0.8219,
+  "baseline_precision": 0.0755,
+  "candidate_precision": 0.0533,
+  "baseline_recall": 0.3077,
+  "candidate_recall": 0.0769,
+  "baseline_f1": 0.1212,
+  "candidate_f1": 0.063,
+  "baseline_macro_f1": 0.4524,
+  "candidate_macro_f1": 0.4823,
+  "baseline_fp": 196,
+  "candidate_fp": 71,
+  "baseline_fn": 36,
+  "candidate_fn": 48,
+  "baseline_tp": 16,
+  "candidate_tp": 4,
+  "baseline_tn": 420,
+  "candidate_tn": 545,
+  "baseline_hcf": 0,
+  "candidate_hcf": 0,
+  "baseline_mean_conf_correct": 0.5036,
+  "candidate_mean_conf_correct": 0.5926,
+  "baseline_mean_conf_incorrect": 0.4267,
+  "candidate_mean_conf_incorrect": 0.5617,
+  "transitions": {
+    "fixed_false_positives": [
+      {
+        "image_id": "original_0015373b99aa",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000425361.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_0217449170fd",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000520871.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_07b815bd9a91",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000485480.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_0b79c8133168",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000451043.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_0bec64b322b8",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000097337.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_0c2172fdc1e1",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000409268.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_0f2deb33a988",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000233567.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_11759a17fd06",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000513580.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_1ae5c58f3c86",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000379533.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2491,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_1c2fb3e17c9c",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000231527.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_1dde87767efc",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000361147.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_1f1c45a106be",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000064462.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_1fc4a87fd3da",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000137950.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3965,
+        "candidate_pred": "original",
+        "candidate_conf": 0.5907
+      },
+      {
+        "image_id": "original_20e0722f9e1e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000165257.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_273fee88751b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000345397.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_27fdc374629b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000030213.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2807fcb8cc5b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000357737.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_28641b818074",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000452122.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2cdfc92ff019",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000031118.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2d7e55fd015c",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000080057.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2df162254e8e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000210855.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2f3dbe93247b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000493442.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_2f87cea6ff7c",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000107339.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_30e5b2591b14",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000322610.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_31ce1e5fddd2",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000529528.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_3465438bcd8e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000312406.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_37f2b41410d5",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000433192.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.318,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_3ce22b1b2e55",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000117425.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_3d9cfbdfb0a8",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000438955.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_3db245a5ee0b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000379476.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_40ebe6d5cd43",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000088345.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_41277a4ea320",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000142585.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_41fab00aad97",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000174482.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_422be8766376",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000485027.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_431bf6f6a815",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000460347.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_4635596b7722",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000313588.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_48debaf09e71",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000312552.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.318,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_49beacd53c1e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000187271.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_4ccc0b243ad6",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000035963.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_545a3c99c733",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000561335.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_56c9f4137b95",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000359937.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_5be429c41a46",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000446522.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_5c54b158f361",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000552842.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_5dc30fc8cef7",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000060932.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_5f1a46376355",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000489046.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_64001499037f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000176037.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_6474030e7b7f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000085089.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_677a7f0ad1d0",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000303653.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_6dc2f95bb3c6",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000579158.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_6eca6864fa02",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000458702.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_712a562e5bb5",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000360661.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_73fd40006366",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000505789.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_74a1c2c7bab0",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000233771.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_7525f3c0ab26",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000262487.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3143,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_772da4e47a7e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000260925.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3143,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_786fc99638ab",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000519039.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_7ab350becc58",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000163117.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_7b22757133ef",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000433774.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_7fe3399efdfa",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000195918.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2491,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_83345dfd3d54",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000052007.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_84d161aa4f1a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000524456.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8570324bcf64",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000499768.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_866bd648fdc9",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000148783.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3139,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8746b068c166",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000003661.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_887b3caf92b7",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000350148.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8ac0bda54a9d",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000509258.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8d0c9045f74a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000509131.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8d15da4c86f5",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000336209.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_8dd624082055",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000341094.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_95093d0378d9",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000082085.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_969b78e958e7",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000574823.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_9784ea090eeb",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000058655.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_9ce564f96173",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000330396.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a1cceafdd221",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000334977.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.6205,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a21b620bce39",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000376307.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a578bd244b01",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000293300.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a58ae7aa5a2a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000110784.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a7bfafb7a357",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000160666.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_a9fddd22efc5",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000363666.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_ab2e6b0fcc63",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000490936.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_af525fcd8c44",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000131131.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3464,
+        "candidate_pred": "original",
+        "candidate_conf": 0.5642
+      },
+      {
+        "image_id": "original_b47318f2a6f6",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000005037.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b4f4f99c9f12",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000574315.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b509de8e8129",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000239274.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b5605b80cc02",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000285047.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b60aacd0c06a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000378673.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b6e95c4695e3",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000346905.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3622,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_b6ea09e403b1",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000283785.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_ba94f64154bf",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000089296.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_bdc769fa26d5",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000405279.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_bdd1f97878d3",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000279887.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_bf4b43dbc437",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000184791.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3965,
+        "candidate_pred": "original",
+        "candidate_conf": 0.5907
+      },
+      {
+        "image_id": "original_bfee8bb3c7b0",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000429718.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_c09150263ab0",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000484415.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4848,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_c1ac8270b67f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000474164.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2491,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_c440bd5d515f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000441586.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_c4f51b05dc0a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000481404.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_c883905d6c0e",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000420472.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_cb6be3112e07",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000209222.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_cbf5920ff795",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000486046.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_ccd150207434",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000271471.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_cd136b4b242d",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000544519.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_d48d204af43a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000194471.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_d4b964ce5d5b",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000198915.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_d5296545bda4",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000259690.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_d6b461cb052c",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000571804.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_d842d7d287ce",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000143068.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4032,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_db7173813c23",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000142472.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e176a8e4803f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000510329.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e1ae8a5bb12a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000209757.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e349a7e122f8",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000476787.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e61aad3b31d1",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000113354.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e9140e80d2d1",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000365745.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_e9b63060910c",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000256407.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_eacd77dd985f",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000269632.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_ed8e5f059b14",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000065455.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f0ede0ab2c80",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000182021.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4334,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f1b1262b8bca",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000383339.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f3a2974ce368",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000000285.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f42e2e6ab755",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000161642.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f4daecc1eb37",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000206831.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_f8a2b4e4e006",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000091619.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_faa37d0ad642",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000088218.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_fd991bcccf83",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000046872.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "original_ffd34ec019d2",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\Real\\val2017\\000000261318.jpg",
+        "format": "JPEG",
+        "ground_truth": "original",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2979,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      }
+    ],
+    "newly_introduced_false_positives": [],
+    "fixed_false_negatives": [],
+    "newly_introduced_false_negatives": [
+      {
+        "image_id": "ai_generated_010eb41c5c54",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (31).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_0519cfb9c1b4",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (6).jpeg",
+        "format": "JPEG",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_1f6d55e463d0",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (34).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_41683e98520a",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (27).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_859de2da7be3",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (2).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_ad4c9f26ea37",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (3).png",
+        "format": "PNG",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.318,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_bf9fde540465",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (5).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.4011,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_d5bd2b5cce2d",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (6).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_db5ee95f84e8",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (30).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_e8eed7a49abb",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (7).jpeg",
+        "format": "JPEG",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3282,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_ef3bd2634905",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (1).jpeg",
+        "format": "JPEG",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.3548,
+        "candidate_pred": "original",
+        "candidate_conf": 0.55
+      },
+      {
+        "image_id": "ai_generated_f169c0cb6e14",
+        "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (29).avif",
+        "format": "AVIF",
+        "ground_truth": "ai_generated",
+        "baseline_pred": "ai_generated",
+        "baseline_conf": 0.2555,
+        "candidate_pred": "original",
+        "candidate_conf": 0.5792
+      }
+    ]
+  },
+  "format_comparison": {
+    "JPEG": {
+      "image_count": 624,
+      "baseline_accuracy": 0.6779,
+      "candidate_accuracy": 0.8734,
+      "baseline_ai_recall": 0.375,
+      "candidate_ai_recall": 0.0,
+      "baseline_fp": 196,
+      "candidate_fp": 71
+    },
+    "PNG": {
+      "image_count": 8,
+      "baseline_accuracy": 0.25,
+      "candidate_accuracy": 0.125,
+      "baseline_ai_recall": 0.25,
+      "candidate_ai_recall": 0.125,
+      "baseline_fp": 0,
+      "candidate_fp": 0
+    },
+    "WEBP": {
+      "image_count": 1,
+      "baseline_accuracy": 0.0,
+      "candidate_accuracy": 0.0,
+      "baseline_ai_recall": 0.0,
+      "candidate_ai_recall": 0.0,
+      "baseline_fp": 0,
+      "candidate_fp": 0
+    },
+    "AVIF": {
+      "image_count": 35,
+      "baseline_accuracy": 0.3143,
+      "candidate_accuracy": 0.0857,
+      "baseline_ai_recall": 0.3143,
+      "candidate_ai_recall": 0.0857,
+      "baseline_fp": 0,
+      "candidate_fp": 0
+    }
+  },
+  "ai_subgroup_comparison": {
+    "ai_generated_010eb41c5c54": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (31).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_0196e7fddbc2": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (25).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3644,
+      "candidate_conf": 0.553
+    },
+    "ai_generated_0519cfb9c1b4": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (6).jpeg",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_06ad3efe7e85": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (32).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_07fefbe36f47": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (8).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_14aaa7e54f12": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (10).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.4904,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_1f6d55e463d0": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (34).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.4011,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_2499d1ec844b": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (20).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_2d3cf225da37": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (3).jpeg",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.4467,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_2d7d8c79cc9c": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (13).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_30262dac0066": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (2).jpeg",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_32441fca692f": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (26).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3049,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_33a23da66a16": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (21).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.7282,
+      "candidate_conf": 0.6954
+    },
+    "ai_generated_41683e98520a": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (27).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.4011,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_43d21a8fef54": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (2).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_47afcea080ad": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (9).avif",
+      "baseline_caught": true,
+      "candidate_caught": true,
+      "baseline_conf": 0.5508,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_4c8be7223b2f": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (15).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.666,
+      "candidate_conf": 0.6763
+    },
+    "ai_generated_4e571dc63503": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (16).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_544b0999c14e": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (5).jpeg",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.4307,
+      "candidate_conf": 0.5845
+    },
+    "ai_generated_55e9b8329c59": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (12).avif",
+      "baseline_caught": true,
+      "candidate_caught": true,
+      "baseline_conf": 0.5626,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_5e8d6402dfb8": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (4).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3644,
+      "candidate_conf": 0.553
+    },
+    "ai_generated_5f65d7cc53bd": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (7).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_606674117531": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (1).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.584,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_624b9a409131": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (14).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.6488,
+      "candidate_conf": 0.6698
+    },
+    "ai_generated_73fd8408d0e8": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (24).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_78e47172aeb8": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (23).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_859de2da7be3": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (2).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_86a824d1d3e6": {
+      "format": "WEBP",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (1).webp",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3793,
+      "candidate_conf": 0.5698
+    },
+    "ai_generated_8ac28df2ed4d": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (33).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3049,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_924c17dd6cf8": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (4).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.666,
+      "candidate_conf": 0.6763
+    },
+    "ai_generated_a6e9f5537bc3": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (6).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.666,
+      "candidate_conf": 0.6763
+    },
+    "ai_generated_a77a2dda8c1f": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (18).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_ad4c9f26ea37": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (3).png",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.318,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_ae240367683e": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (28).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.4307,
+      "candidate_conf": 0.5845
+    },
+    "ai_generated_ae445d34d27c": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (5).png",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3644,
+      "candidate_conf": 0.553
+    },
+    "ai_generated_bbe4fb8ead47": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (7).avif",
+      "baseline_caught": true,
+      "candidate_caught": true,
+      "baseline_conf": 0.5508,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_bf9fde540465": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (5).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.4011,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_c128aa8c6b4c": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (8).jpeg",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3945,
+      "candidate_conf": 0.5875
+    },
+    "ai_generated_ca6f9ad118cb": {
+      "format": "PNG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (1).png",
+      "baseline_caught": true,
+      "candidate_caught": true,
+      "baseline_conf": 0.4917,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_d07b08bb4e8f": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (19).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3827,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_d5bd2b5cce2d": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (6).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_d771ebcc3525": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (17).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.4307,
+      "candidate_conf": 0.5845
+    },
+    "ai_generated_d8d410fe4175": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (8).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    },
+    "ai_generated_db5ee95f84e8": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (30).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_de1a45e6e629": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (35).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3644,
+      "candidate_conf": 0.553
+    },
+    "ai_generated_e7f6b948507d": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (4).jpeg",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_e8eed7a49abb": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (7).jpeg",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3282,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_ef3bd2634905": {
+      "format": "JPEG",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (1).jpeg",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.3548,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_f169c0cb6e14": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (29).avif",
+      "baseline_caught": true,
+      "candidate_caught": false,
+      "baseline_conf": 0.2555,
+      "candidate_conf": 0.5792
+    },
+    "ai_generated_f42a624c43f4": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (22).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3205,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_fe0f08cff3dd": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (11).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.3049,
+      "candidate_conf": 0.55
+    },
+    "ai_generated_fe642370e178": {
+      "format": "AVIF",
+      "file_path": "C:\\Users\\VICTUS\\Chai-AI\\chai-benchmark\\AI_Generated\\AIGen (3).avif",
+      "baseline_caught": false,
+      "candidate_caught": false,
+      "baseline_conf": 0.5719,
+      "candidate_conf": 0.6275
+    }
+  },
+  "recommendation_summary": "Candidate EXP_4 failed one or more required acceptance criteria. Production configuration remains at Baseline M14."
+}

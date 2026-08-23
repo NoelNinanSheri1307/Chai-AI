@@ -134,6 +134,7 @@ def get_pipeline(
 ) -> AnalysisPipeline:
     """Provide a modular analysis pipeline assembled from injected components."""
     resolved_settings = settings or get_settings()
+    ext_manager = ExternalDetectionManager(settings=resolved_settings)
     return ModularAnalysisPipeline(
         detectors=detectors,
         fusion=fusion,
@@ -141,8 +142,10 @@ def get_pipeline(
         evidence_generator=evidence_generator,
         explanation_generator=explanation_generator,
         pipeline_config=pipeline_config,
+        external_manager=ext_manager,
         max_concurrency=resolved_settings.pipeline_max_concurrency,
     )
+
 
 
 def get_user_repository(session: SessionDep) -> UserRepository:

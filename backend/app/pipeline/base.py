@@ -101,6 +101,12 @@ class PipelineReportData:
     contributions: tuple[ReportContribution, ...] = ()
 
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.pipeline.decision.models import DecisionProvenance
+
+
 @dataclass(frozen=True)
 class PipelineResult:
     """The complete, validated output of an analysis pipeline."""
@@ -116,6 +122,8 @@ class PipelineResult:
     metadata: dict[str, str] = field(default_factory=dict)
     heatmap: HeatmapResult | None = None
     report_data: PipelineReportData | None = None
+    provenance: DecisionProvenance | None = None
+
 
 
 class AnalysisPipeline(ABC):

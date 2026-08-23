@@ -1,4 +1,4 @@
-"""CLI tool for running Milestone 13 forensic investigation and calibration experiments."""
+"""CLI tool for running Milestone 17 isolated calibration experiments."""
 
 from __future__ import annotations
 
@@ -8,33 +8,204 @@ import sys
 from pathlib import Path
 
 from app.benchmark.calibration.evaluator import (
-    BASELINE_M12,
-    CalibrationCandidate,
-    evaluate_calibration,
+    BASELINE_M14,
+    EXP_4_TARGETED_DETECTOR_REBALANCE,
+    CalibrationComparisonReport,
+    compare_calibration_runs,
 )
-from app.benchmark.calibration.investigation import run_forensic_investigation
 
 
 def find_default_results_json() -> Path:
-    """Locate latest.json across common relative paths."""
+    """Locate benchmark latest.json across common relative paths."""
     candidates = [
+        Path("reports/benchmark_m16/latest.json"),
+        Path("reports/benchmark_m15/latest.json"),
+        Path("reports/m14a_check/latest.json"),
         Path("../chai_benchmark/results/latest.json"),
         Path("../chai-benchmark/results/latest.json"),
         Path("chai_benchmark/results/latest.json"),
         Path("chai-benchmark/results/latest.json"),
-        Path("../../chai-benchmark/results/latest.json"),
         Path("c:/Users/VICTUS/Chai-AI/chai-benchmark/results/latest.json"),
     ]
     for c in candidates:
         if c.is_file():
             return c.resolve()
-    return Path("../chai-benchmark/results/latest.json").resolve()
+    return Path("reports/benchmark_m16/latest.json").resolve()
+
+
+def generate_calibration_markdown_report(report: CalibrationComparisonReport) -> str:
+    """Render a comprehensive Markdown report for Milestone 17."""
+    base = report.baseline
+    cand = report.candidate
+    trans = report.transitions
+    sub = report.ai_subgroup
+
+    lines: list[str] = [
+        "# Milestone 17 — Targeted Calibration Experiment Report",
+        "",
+        f"**Baseline Configuration**: `{base.name}` ({base.description})  ",
+        f"**Candidate Configuration**: `{cand.name}` ({cand.description})  ",
+        f"**Promotion Status**: `{report.promotion_status}`  ",
+        "",
+        "---",
+        "",
+        "## 1. Executive Summary",
+        "",
+        f"- **Evaluated Images**: {base.total_evaluated}",
+        f"- **Accuracy**: {base.accuracy * 100:.2f}% -> **{cand.accuracy * 100:.2f}%** ({cand.delta_accuracy_vs_baseline * 100:+.2f} pp)",
+        f"- **AI Precision**: {base.precision * 100:.2f}% -> **{cand.precision * 100:.2f}%** ({cand.delta_precision_vs_baseline * 100:+.2f} pp)",
+        f"- **AI Recall**: {base.recall * 100:.2f}% -> **{cand.recall * 100:.2f}%** ({cand.delta_recall_vs_baseline * 100:+.2f} pp)",
+        f"- **AI F1 Score**: {base.f1:.4f} -> **{cand.f1:.4f}** ({cand.delta_f1_vs_baseline:+.4f})",
+        f"- **Macro F1 Score**: {base.macro_f1:.4f} -> **{cand.macro_f1:.4f}** ({cand.delta_macro_f1_vs_baseline:+.4f})",
+        f"- **False Positives (Real -> AI)**: {base.fp} -> **{cand.fp}** ({cand.delta_fp_vs_baseline:+d} FP)",
+        f"- **High-Confidence Failures**: {base.high_conf_failures} -> **{cand.high_conf_failures}**",
+        f"- **Experiment Result**: **{report.decision_status}**",
+        "",
+        "---",
+        "",
+        "## 2. Overall Performance Comparison",
+        "",
+        "| Metric | Baseline (M14) | Candidate (EXP_4) | Delta |",
+        "| :--- | :--- | :--- | :--- |",
+        f"| **Overall Accuracy** | {base.accuracy * 100:.2f}% | {cand.accuracy * 100:.2f}% | {cand.delta_accuracy_vs_baseline * 100:+.2f} pp |",
+        f"| **AI Precision** | {base.precision * 100:.2f}% | {cand.precision * 100:.2f}% | {cand.delta_precision_vs_baseline * 100:+.2f} pp |",
+        f"| **AI Recall** | {base.recall * 100:.2f}% | {cand.recall * 100:.2f}% | {cand.delta_recall_vs_baseline * 100:+.2f} pp |",
+        f"| **AI F1 Score** | {base.f1:.4f} | {cand.f1:.4f} | {cand.delta_f1_vs_baseline:+.4f} |",
+        f"| **Macro F1 Score** | {base.macro_f1:.4f} | {cand.macro_f1:.4f} | {cand.delta_macro_f1_vs_baseline:+.4f} |",
+        f"| **Weighted F1 Score** | {base.weighted_f1:.4f} | {cand.weighted_f1:.4f} | {cand.weighted_f1 - base.weighted_f1:+.4f} |",
+        f"| **Real Recall (Specificity)** | {base.real_recall * 100:.2f}% | {cand.real_recall * 100:.2f}% | {(cand.real_recall - base.real_recall) * 100:+.2f} pp |",
+        f"| **Real Precision** | {base.real_precision * 100:.2f}% | {cand.real_precision * 100:.2f}% | {(cand.real_precision - base.real_precision) * 100:+.2f} pp |",
+        "",
+        "---",
+        "",
+        "## 3. Confusion Matrix Comparison",
+        "",
+        "| Matrix Cell | Baseline (M14) | Candidate (EXP_4) | Delta |",
+        "| :--- | :--- | :--- | :--- |",
+        f"| **True Positives (TP)** | {base.tp} | {cand.tp} | {cand.delta_tp_vs_baseline:+d} |",
+        f"| **True Negatives (TN)** | {base.tn} | {cand.tn} | {cand.tn - base.tn:+d} |",
+        f"| **False Positives (FP)** | {base.fp} | {cand.fp} | {cand.delta_fp_vs_baseline:+d} |",
+        f"| **False Negatives (FN)** | {base.fn} | {cand.fn} | {cand.delta_fn_vs_baseline:+d} |",
+        "",
+        "---",
+        "",
+        "## 4. Detector Contribution Rebalancing",
+        "",
+        "| Detector | Real Mean | AI Mean | Separation | Weight Before | Weight After | Share Before | Share After |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+    ]
+
+    for det in report.detector_impacts:
+        lines.append(
+            f"| **{det.detector_name}** | {det.real_mean:.2f} | {det.ai_mean:.2f} | {det.separation:+.2f} | {det.weight_before:.2f} | {det.weight_after:.2f} | {det.share_before_pct:.1f}% | {det.share_after_pct:.1f}% |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 5. Failure Transitions",
+            "",
+            f"- **Fixed False Positives** (Real -> AI in M14, now correctly Real): **{len(trans.fixed_false_positives)} images**",
+            f"- **Newly Introduced False Positives** (Real -> Real in M14, now incorrectly AI): **{len(trans.newly_introduced_false_positives)} images**",
+            f"- **Fixed False Negatives** (AI -> Real in M14, now correctly AI): **{len(trans.fixed_false_negatives)} images**",
+            f"- **Newly Introduced False Negatives** (AI -> AI in M14, now incorrectly Real): **{len(trans.newly_introduced_false_negatives)} images**",
+            "",
+        ]
+    )
+
+    if trans.fixed_false_positives:
+        lines.append("### Sample Fixed False Positives (First 5):")
+        for item in trans.fixed_false_positives[:5]:
+            lines.append(
+                f"- `{item.image_id}` ({item.format}): `{item.file_path}` (Conf: {item.baseline_conf:.2f} -> {item.candidate_conf:.2f})"
+            )
+        lines.append("")
+
+    lines.extend(
+        [
+            "---",
+            "",
+            "## 6. Confidence Safety Analysis",
+            "",
+            "| Confidence Metric | Baseline (M14) | Candidate (EXP_4) |",
+            "| :--- | :--- | :--- |",
+            f"| **Mean Confidence on Correct** | {base.mean_conf_correct:.4f} | {cand.mean_conf_correct:.4f} |",
+            f"| **Mean Confidence on Incorrect** | {base.mean_conf_incorrect:.4f} | {cand.mean_conf_incorrect:.4f} |",
+            f"| **High-Confidence Failures (>= 80%)** | {base.high_conf_failures} | {cand.high_conf_failures} |",
+            f"| **Very-High-Confidence Failures (>= 90%)** | {base.very_high_conf_failures} | {cand.very_high_conf_failures} |",
+            f"| **Low-Confidence Correct (<= 60%)** | {base.low_conf_correct} | {cand.low_conf_correct} |",
+            "",
+            "---",
+            "",
+            "## 7. Format Breakdown",
+            "",
+            "| Format | Count | Baseline Acc | Candidate Acc | Baseline Recall | Candidate Recall | Baseline FP | Candidate FP |",
+            "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+        ]
+    )
+
+    for fmt, fc in sorted(report.format_breakdown.items()):
+        lines.append(
+            f"| **{fmt}** | {fc.image_count} | {fc.baseline_accuracy * 100:.1f}% | {fc.candidate_accuracy * 100:.1f}% | {fc.baseline_ai_recall * 100:.1f}% | {fc.candidate_ai_recall * 100:.1f}% | {fc.baseline_fp} | {fc.candidate_fp} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 8. AI-Generated Subgroup Analysis (52 Images)",
+            "",
+            f"- **Total AI Images**: {sub.total_ai_images}",
+            f"- **Baseline Caught**: {sub.baseline_caught_count} / {sub.total_ai_images} ({sub.baseline_recall * 100:.2f}%)",
+            f"- **Candidate Caught**: {sub.candidate_caught_count} / {sub.total_ai_images} ({sub.candidate_recall * 100:.2f}%)",
+            f"- **Newly Caught AI Images**: {len(sub.newly_detected)}",
+            f"- **Newly Missed AI Images**: {len(sub.newly_missed)}",
+            "",
+            "| Format | AI Images | Baseline Recall | Candidate Recall |",
+            "| :--- | :--- | :--- | :--- |",
+        ]
+    )
+
+    for fmt, d in sorted(sub.by_format.items()):
+        lines.append(
+            f"| **{fmt}** | {d['count']} | {d['baseline_recall'] * 100:.1f}% ({d['baseline_caught']}/{d['count']}) | {d['candidate_recall'] * 100:.1f}% ({d['candidate_caught']}/{d['count']}) |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 9. Decision & Production Status",
+            "",
+            f"### Experiment Result: **{report.decision_status}**",
+            "",
+            "#### Rationale:",
+        ]
+    )
+
+    for rat in report.decision_rationale:
+        lines.append(f"- {rat}")
+
+    lines.extend(
+        [
+            "",
+            f"> [!IMPORTANT]",
+            f"> **{report.promotion_status}**",
+            "",
+        ]
+    )
+
+    return "\n".join(lines)
 
 
 def run_cli() -> None:
-    """Run the forensic investigation and calibration simulation suite."""
+    """Run the Milestone 17 isolated calibration experiment CLI."""
     parser = argparse.ArgumentParser(
-        description="Chai AI Milestone 13 Forensic Investigation & Calibration CLI"
+        description="Chai AI Milestone 17 Targeted Calibration Experiment CLI"
     )
     parser.add_argument(
         "--results-json",
@@ -43,10 +214,10 @@ def run_cli() -> None:
         help="Path to benchmark results latest.json file",
     )
     parser.add_argument(
-        "--output-report",
+        "--output-dir",
         type=str,
-        default=None,
-        help="Optional path to output markdown investigation report",
+        default="reports/calibration_m17",
+        help="Output directory for calibration reports (default: reports/calibration_m17)",
     )
 
     args = parser.parse_args()
@@ -63,149 +234,75 @@ def run_cli() -> None:
         )
         sys.exit(1)
 
-    print(f"Loading benchmark dataset results from: {results_path}")
+    print(f"Loading recorded benchmark results from: {results_path}")
     raw_data = json.loads(results_path.read_text(encoding="utf-8"))
 
-    # 1. Run Forensic Investigation
-    inv_report = run_forensic_investigation(raw_data)
+    # Execute isolated comparative experiment
+    report = compare_calibration_runs(
+        benchmark_data=raw_data,
+        baseline_candidate=BASELINE_M14,
+        test_candidate=EXP_4_TARGETED_DETECTOR_REBALANCE,
+    )
+
+    # Save reports
+    out_dir = Path(args.output_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    latest_md = out_dir / "latest.md"
+    latest_json = out_dir / "latest.json"
+
+    md_content = generate_calibration_markdown_report(report)
+    latest_md.write_text(md_content, encoding="utf-8")
+    latest_json.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+
+    # Terminal output
+    base = report.baseline
+    cand = report.candidate
+    trans = report.transitions
 
     print("\n" + "=" * 80)
-    print(f"MILESTONE 13 — FORENSIC INVESTIGATION REPORT ({inv_report.run_id})")
+    print("MILESTONE 17 — TARGETED CALIBRATION EXPERIMENT (EXP_4 vs BASELINE_M14)")
     print("=" * 80)
+    print(f"Promotion Status: {report.promotion_status}")
+    print("-" * 80)
     print(
-        f"Total Evaluated: {inv_report.total_images} (Real: {inv_report.real_count}, AI Generated: {inv_report.ai_count})"
-    )
-    print(
-        f"Baseline Accuracy: {inv_report.accuracy * 100:.2f}% | AI F1: {inv_report.f1:.4f} | Macro F1: {inv_report.macro_f1:.4f}"
-    )
-    print(
-        f"Confusion Matrix: TN={inv_report.tn}, FP={inv_report.fp}, FN={inv_report.fn}, TP={inv_report.tp}"
+        f"{'Metric':<25} {'Baseline (M14)':<18} {'Candidate (EXP_4)':<18} {'Delta'}"
     )
     print("-" * 80)
-
-    print("\n1. DETECTOR USEFULNESS RANKING & STATISTICAL BREAKDOWN:")
     print(
-        f"{'Rank':<5} {'Detector':<13} {'Real Mean':<11} {'AI Mean':<10} {'Sep':<6} {'Dir':<5} {'Overlap':<8} {'Tier'}"
+        f"{'Overall Accuracy':<25} {base.accuracy * 100:>6.2f}%            {cand.accuracy * 100:>6.2f}%            {cand.delta_accuracy_vs_baseline * 100:>+6.2f} pp"
+    )
+    print(
+        f"{'AI Precision':<25} {base.precision * 100:>6.2f}%            {cand.precision * 100:>6.2f}%            {cand.delta_precision_vs_baseline * 100:>+6.2f} pp"
+    )
+    print(
+        f"{'AI Recall':<25} {base.recall * 100:>6.2f}%            {cand.recall * 100:>6.2f}%            {cand.delta_recall_vs_baseline * 100:>+6.2f} pp"
+    )
+    print(
+        f"{'AI F1 Score':<25} {base.f1:>6.4f}             {cand.f1:>6.4f}             {cand.delta_f1_vs_baseline:>+6.4f}"
+    )
+    print(
+        f"{'Macro F1 Score':<25} {base.macro_f1:>6.4f}             {cand.macro_f1:>6.4f}             {cand.delta_macro_f1_vs_baseline:>+6.4f}"
+    )
+    print(
+        f"{'False Positives (Real->AI)':<25} {base.fp:>5d}               {cand.fp:>5d}               {cand.delta_fp_vs_baseline:>+5d}"
+    )
+    print(
+        f"{'False Negatives (AI->Real)':<25} {base.fn:>5d}               {cand.fn:>5d}               {cand.delta_fn_vs_baseline:>+5d}"
+    )
+    print(
+        f"{'True Positives (AI Caught)':<25} {base.tp:>5d}               {cand.tp:>5d}               {cand.delta_tp_vs_baseline:>+5d}"
+    )
+    print(
+        f"{'High-Conf Failures (>=80%)':<25} {base.high_conf_failures:>5d}               {cand.high_conf_failures:>5d}               {cand.high_conf_failures - base.high_conf_failures:>+5d}"
     )
     print("-" * 80)
-    for s in inv_report.usefulness_ranking:
-        dir_flag = "OK" if s.direction_correct else "REV"
-        print(
-            f"{s.usefulness_rank:<5} {s.detector_name:<13} "
-            f"{s.real_mean:.2f}±{s.real_std:.2f}   "
-            f"{s.ai_mean:.2f}±{s.ai_std:.2f}  "
-            f"{s.separation_margin:.2f}   "
-            f"{dir_flag:<5} {s.distribution_overlap:<8.2f} {s.usefulness_tier}"
-        )
-
-    print("\n2. FORMAT-SPECIFIC PERFORMANCE BREAKDOWN:")
     print(
-        f"{'Format':<8} {'Total':<7} {'Real':<6} {'AI':<5} {'Acc':<8} {'Fallback Rate':<15} {'Notes'}"
+        f"Failure Transitions: Fixed FP={len(trans.fixed_false_positives)}, New FP={len(trans.newly_introduced_false_positives)}, Fixed FN={len(trans.fixed_false_negatives)}, New FN={len(trans.newly_introduced_false_negatives)}"
     )
-    print("-" * 80)
-    for fmt, fa in inv_report.format_analysis.items():
-        note_str = fa.notes[0] if fa.notes else "Normal processing"
-        print(
-            f"{fmt:<8} {fa.total_count:<7} {fa.real_count:<6} {fa.ai_count:<5} "
-            f"{fa.accuracy * 100:>5.1f}%  {fa.fallback_rate * 100:>6.1f}%          {note_str[:35]}"
-        )
-
-    print("\n3. IDENTIFIED ROOT CAUSES & IMPLEMENTATION BUGS:")
-    for b in inv_report.implementation_bugs_identified:
-        print(f"  [{b['id']}] {b['component']}: {b['issue']}")
-        print(f"         Impact: {b['impact']}")
-
-    # 2. Run Isolated Calibration Simulations
-    print("\n" + "=" * 80)
-    print("ISOLATED CALIBRATION EXPERIMENTS (COMPARED AGAINST BASELINE_M12)")
+    print(f"Final Decision: {report.decision_status}")
     print("=" * 80)
-
-    # Candidate 1: Baseline
-    res_base = evaluate_calibration(BASELINE_M12, raw_data)
-
-    # Candidate 2: Wider Gaussian Resolution (sigma=0.35)
-    cand_wider = CalibrationCandidate(
-        name="EXP_1_WIDER_GAUSSIAN",
-        description="Widen Gaussian resolution from 0.15 to 0.35 (removes 85x bias on fallback scores)",
-        classifier_resolution=0.35,
-        classifier_contribution_matrix=BASELINE_M12.classifier_contribution_matrix,
-        detector_reliability=BASELINE_M12.detector_reliability,
-        disabled_detectors=[],
-    )
-    res_wider = evaluate_calibration(cand_wider, raw_data, baseline_result=res_base)
-
-    # Candidate 3: Dampen Lighting & Inverted False Alarms
-    cand_dampen = CalibrationCandidate(
-        name="EXP_2_DAMPEN_LIGHTING",
-        description="Reduce lighting & texture weights to prevent false positives on natural photos",
-        classifier_resolution=0.35,
-        classifier_contribution_matrix={
-            "metadata": {"original": 0.90, "ai_generated": 0.20},
-            "frequency": {"original": 0.10, "ai_generated": 1.00},
-            "ela": {"original": 0.10, "ai_generated": 0.10},
-            "noise": {"original": 0.10, "ai_generated": 0.10},
-            "compression": {"original": 0.40, "ai_generated": 0.40},
-            "texture": {"original": 0.30, "ai_generated": 0.40},
-            "lighting": {"original": 0.30, "ai_generated": 0.20},
-        },
-        detector_reliability={
-            "metadata": 0.15,
-            "frequency": 0.40,
-            "ela": 0.05,
-            "noise": 0.05,
-            "compression": 0.10,
-            "texture": 0.15,
-            "lighting": 0.10,
-        },
-        disabled_detectors=[],
-    )
-    res_dampen = evaluate_calibration(cand_dampen, raw_data, baseline_result=res_base)
-
-    # Candidate 4: Frequency Promoted & Zero-Separation Detectors Dampened
-    cand_promoted = CalibrationCandidate(
-        name="EXP_3_FREQUENCY_PROMOTED",
-        description="Prioritize FFT energy concentration (highest true separator) & prune uninformative ELA/Noise",
-        classifier_resolution=0.30,
-        classifier_contribution_matrix={
-            "metadata": {"original": 0.85, "ai_generated": 0.15},
-            "frequency": {"original": 0.05, "ai_generated": 1.00},
-            "ela": {"original": 0.10, "ai_generated": 0.10},
-            "noise": {"original": 0.10, "ai_generated": 0.10},
-            "compression": {"original": 0.50, "ai_generated": 0.20},
-            "texture": {"original": 0.30, "ai_generated": 0.40},
-            "lighting": {"original": 0.40, "ai_generated": 0.20},
-        },
-        detector_reliability={
-            "metadata": 0.15,
-            "frequency": 0.50,
-            "ela": 0.02,
-            "noise": 0.02,
-            "compression": 0.10,
-            "texture": 0.15,
-            "lighting": 0.06,
-        },
-        disabled_detectors=["ela", "noise"],
-    )
-    res_promoted = evaluate_calibration(
-        cand_promoted, raw_data, baseline_result=res_base
-    )
-
-    candidates_evaluated = [res_base, res_wider, res_dampen, res_promoted]
-
-    print(
-        f"{'Configuration':<26} {'Accuracy':<10} {'AI F1':<8} {'Macro F1':<10} {'FP':<5} {'FN':<5} {'TP':<5} {'Delta Macro F1'}"
-    )
-    print("-" * 80)
-    for c in candidates_evaluated:
-        delta_str = (
-            f"{c.delta_macro_f1_vs_baseline:+.4f}"
-            if c.name != "BASELINE_M12"
-            else "BASELINE"
-        )
-        print(
-            f"{c.name:<26} {c.accuracy * 100:>6.2f}%   {c.f1:>6.4f}  {c.macro_f1:>7.4f}    "
-            f"{c.fp:<5} {c.fn:<5} {c.tp:<5} {delta_str}"
-        )
+    print(f"Report Markdown: {latest_md}")
+    print(f"Report JSON:     {latest_json}")
     print("=" * 80 + "\n")
 
 
