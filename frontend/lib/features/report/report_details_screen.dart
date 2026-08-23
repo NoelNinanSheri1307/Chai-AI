@@ -69,6 +69,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final verdictColor = result.verdict.color(colors);
+    final prov = result.provenance;
+    final isSightengineOk = prov?.isSightengineAvailable ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,6 +87,9 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
+            // =========================================================
+            // 1. PRIMARY: AUTHENTICITY DETECTION
+            // =========================================================
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,30 +106,34 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Authenticity Report',
+                            'Authenticity Detection',
                             style: AppTypography.title(colors.textPrimary),
                           ),
                         ],
                       ),
-                      VerdictBadge(verdict: result.verdict, confidence: result.confidence),
+                      VerdictBadge(
+                          verdict: result.verdict,
+                          confidence: result.confidence),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   Divider(color: colors.border),
                   const SizedBox(height: AppSpacing.sm),
-                  KeyValueRow(label: 'Analyzed file', value: result.fileName ?? 'Image'),
+                  KeyValueRow(
+                      label: 'Analyzed File',
+                      value: result.fileName ?? 'Image'),
                   KeyValueRow(
                     label: 'Timestamp',
                     value: AppFormatters.dateTime(result.timestamp),
                     divider: true,
                   ),
                   KeyValueRow(
-                    label: 'Analysis time',
+                    label: 'Analysis Duration',
                     value: AppFormatters.duration(result.analysisDuration),
                     divider: true,
                   ),
                   KeyValueRow(
-                    label: 'Risk level',
+                    label: 'Risk Level',
                     value: result.riskLevel.label,
                     divider: true,
                   ),
@@ -132,102 +141,200 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     label: 'Confidence',
                     value: AppFormatters.percent(result.confidence),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: verdictColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: verdictColor.withValues(alpha: 0.3)),
+                      border:
+                          Border.all(color: verdictColor.withValues(alpha: 0.3)),
                     ),
-                    child: Text(
-                      result.explanation,
-                      style: AppTypography.body(colors.textPrimary),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Decision Summary',
+                          style: AppTypography.caption(verdictColor)
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          result.explanation,
+                          style: AppTypography.body(colors.textPrimary),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  // Source attribution summary
+                  Row(
+                    children: [
+                      Icon(
+                        isSightengineOk
+                            ? Icons.verified_user_outlined
+                            : Icons.info_outline,
+                        size: 16,
+                        color:
+                            isSightengineOk ? colors.success : colors.warning,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          isSightengineOk
+                              ? 'Primary: Sightengine (70%) | Supporting: Chai AI (30%)'
+                              : 'External verification unavailable; classified by Chai forensics only.',
+                          style: AppTypography.caption(
+                            isSightengineOk ? colors.success : colors.warning,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            SectionHeader(title: 'Forensic Breakdown'),
+            // =========================================================
+            // 2. SECONDARY: IMAGE INSIGHTS
+            // =========================================================
+            SectionHeader(
+              title: 'Image Insights',
+              subtitle: 'Information extracted by Chai forensic pipeline',
+            ),
             const SizedBox(height: AppSpacing.md),
+
+            // Visual & Signal Analysis
             AppCard(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Visual & Signal Analysis',
+                    style: AppTypography.label(colors.textPrimary),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   for (final score in result.scores)
                     ScoreBar(category: score.category, value: score.value),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
 
-            SectionHeader(
-              title: 'Detected Indicators',
-              subtitle: result.indicators.isEmpty
-                  ? 'None above threshold'
-                  : '${result.indicators.length} found',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (result.indicators.isEmpty)
-              AppCard(
-                child: Text(
-                  'No indicators above the confidence threshold were detected.',
-                  style: AppTypography.body(colors.textSecondary),
-                ),
-              )
-            else
+            // Detected Indicators
+            if (result.indicators.isNotEmpty) ...[
+              SectionHeader(
+                title: 'Forensic Indicators',
+                subtitle: '${result.indicators.length} signals detected',
+              ),
+              const SizedBox(height: AppSpacing.md),
               for (final indicator in result.indicators)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: IndicatorCard(indicator: indicator),
                 ),
-            const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
-            SectionHeader(title: 'Evidence'),
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                children: [
-                  for (final evidence in result.evidence)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.chevron_right, size: 16, color: colors.textTertiary),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              evidence,
-                              style: AppTypography.body(colors.textSecondary),
+            // Forensic Evidence
+            if (result.evidence.isNotEmpty) ...[
+              SectionHeader(title: 'Forensic Evidence'),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                child: Column(
+                  children: [
+                    for (final evidence in result.evidence)
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.chevron_right,
+                                size: 16, color: colors.textTertiary),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                evidence,
+                                style: AppTypography.body(colors.textSecondary),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
+            // Image Metadata
+            if (result.metadata.isNotEmpty) ...[
+              SectionHeader(title: 'Image Information & Metadata'),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                child: Column(
+                  children: [
+                    for (final entry in result.metadata.entries)
+                      if (!entry.key.startsWith('prov:'))
+                        KeyValueRow(label: entry.key, value: entry.value),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
+            // Detection Provenance Summary
+            if (prov != null) ...[
+              SectionHeader(title: 'Detection Provenance'),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    KeyValueRow(
+                      label: 'Fused AI Probability',
+                      value:
+                          '${(prov.finalFusedProbability * 100).toStringAsFixed(1)}%',
                     ),
-                ],
+                    KeyValueRow(
+                      label: 'Sightengine Status',
+                      value: prov.sightengineStatus,
+                      divider: true,
+                    ),
+                    if (prov.sightengineAiProbability != null)
+                      KeyValueRow(
+                        label: 'Sightengine AI Prob',
+                        value:
+                            '${(prov.sightengineAiProbability! * 100).toStringAsFixed(1)}%',
+                        divider: true,
+                      ),
+                    KeyValueRow(
+                      label: 'Chai AI Probability',
+                      value:
+                          '${(prov.chaiAiProbability * 100).toStringAsFixed(1)}%',
+                      divider: true,
+                    ),
+                    KeyValueRow(
+                      label: 'Fusion Weights',
+                      value:
+                          'Sightengine: ${(prov.fusionWeightSightengine * 100).round()}% | Chai: ${(prov.fusionWeightChai * 100).round()}%',
+                      divider: true,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.xl),
+            ],
 
-            SectionHeader(title: 'Metadata'),
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                children: [
-                  for (final entry in result.metadata.entries)
-                    KeyValueRow(label: entry.key, value: entry.value),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
+            // Action Buttons
             AppButton(
               label: _saved ? 'Saved to History' : 'Save Analysis',
               icon: _saved ? Icons.check : Icons.bookmark_border,
-              variant: _saved ? AppButtonVariant.outline : AppButtonVariant.primary,
+              variant:
+                  _saved ? AppButtonVariant.outline : AppButtonVariant.primary,
               onPressed: _saved ? null : _save,
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -252,3 +359,4 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 }
+

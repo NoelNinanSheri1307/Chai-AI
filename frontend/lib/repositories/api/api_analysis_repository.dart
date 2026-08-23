@@ -4,16 +4,11 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-import '../../models/api_parsers.dart';
 import '../../models/analysis_result.dart';
-import '../../models/compare_result.dart';
+import '../../models/api_parsers.dart';
 import '../analysis_repository.dart';
 
 /// Backend-backed [AnalysisRepository] that talks to the Chai AI HTTP API.
-///
-/// `analyzeImage` POSTs the image bytes to `/v1/analyses` and `compareImages`
-/// POSTs two images to `/v1/compare`. The declared content type is sniffed from
-/// the magic bytes so it always agrees with the backend validation.
 class ApiAnalysisRepository implements AnalysisRepository {
   final String baseUrl;
   final http.Client _client;
@@ -49,33 +44,6 @@ class ApiAnalysisRepository implements AnalysisRepository {
     );
   }
 
-  @override
-  Future<CompareResult> compareImages({
-    String? pathA,
-    String? pathB,
-    String? nameA,
-    String? nameB,
-    Uint8List? bytesA,
-    Uint8List? bytesB,
-  }) async {
-    final request =
-        http.MultipartRequest('POST', Uri.parse('$baseUrl/v1/compare'))
-          ..files.add(http.MultipartFile.fromBytes(
-            'file_a',
-            bytesA ?? const [],
-            filename: nameA ?? 'image-a',
-            contentType: MediaType.parse(sniffImageType(bytesA)),
-          ))
-          ..files.add(http.MultipartFile.fromBytes(
-            'file_b',
-            bytesB ?? const [],
-            filename: nameB ?? 'image-b',
-            contentType: MediaType.parse(sniffImageType(bytesB)),
-          ));
-
-    final json = await _sendMultipart(request);
-    return parseCompareResult(json);
-  }
 
   Future<Map<String, dynamic>> _sendMultipart(
     http.MultipartRequest request,

@@ -49,3 +49,39 @@ class HeatmapData {
 
   const HeatmapData({required this.regions, required this.overallManipulation});
 }
+
+/// Audit trail and provenance for the production classification decision.
+class DecisionProvenance {
+  final Verdict finalClassification;
+  final double finalConfidence;
+  final Verdict chaiClassification;
+  final double chaiConfidence;
+  final double chaiAiProbability;
+  final double chaiEditScore;
+  final String sightengineStatus; // "success", "timeout", "error", "disabled", "unconfigured"
+  final double? sightengineAiProbability;
+  final double fusionWeightChai;
+  final double fusionWeightSightengine;
+  final double finalFusedProbability;
+  final String decisionReason;
+  final List<String> evidence;
+
+  const DecisionProvenance({
+    required this.finalClassification,
+    required this.finalConfidence,
+    required this.chaiClassification,
+    required this.chaiConfidence,
+    required this.chaiAiProbability,
+    required this.chaiEditScore,
+    required this.sightengineStatus,
+    this.sightengineAiProbability,
+    required this.fusionWeightChai,
+    required this.fusionWeightSightengine,
+    required this.finalFusedProbability,
+    required this.decisionReason,
+    this.evidence = const [],
+  });
+
+  bool get isSightengineAvailable => sightengineStatus == 'success';
+}
+

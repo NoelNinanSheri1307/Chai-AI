@@ -1,26 +1,42 @@
 enum Verdict {
   original,
+  aiEdited,
   aiGenerated;
 
   String get label {
     switch (this) {
       case Verdict.original:
         return 'Real';
+      case Verdict.aiEdited:
+        return 'AI Edited';
       case Verdict.aiGenerated:
         return 'AI Generated';
     }
   }
 
   static Verdict fromLabel(String label) {
-    final lower = label.toLowerCase();
+    final lower = label
+        .toLowerCase()
+        .replaceAll('_', '')
+        .replaceAll('-', '')
+        .replaceAll(' ', '');
     if (lower == 'real' || lower == 'original') return Verdict.original;
-    if (lower == 'ai generated' || lower == 'aigenerated') return Verdict.aiGenerated;
+    if (lower == 'aiedited' || lower == 'edited') return Verdict.aiEdited;
+    if (lower == 'aigenerated' ||
+        lower == 'generated' ||
+        lower == 'synthetic') {
+      return Verdict.aiGenerated;
+    }
     for (final v in Verdict.values) {
-      if (v.label.toLowerCase() == lower || v.name.toLowerCase() == lower) return v;
+      if (v.label.toLowerCase().replaceAll(' ', '') == lower ||
+          v.name.toLowerCase() == lower) {
+        return v;
+      }
     }
     return Verdict.original;
   }
 }
+
 
 enum RiskLevel {
   low,

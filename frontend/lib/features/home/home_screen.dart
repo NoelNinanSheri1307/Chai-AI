@@ -177,11 +177,6 @@ class _QuickActions extends StatelessWidget {
         route: AppRoutes.upload,
       ),
       (
-        label: 'Compare Images',
-        icon: Icons.compare,
-        route: AppRoutes.compare,
-      ),
-      (
         label: 'History',
         icon: Icons.history,
         route: AppRoutes.history,
@@ -191,7 +186,13 @@ class _QuickActions extends StatelessWidget {
         icon: Icons.settings_outlined,
         route: AppRoutes.settings,
       ),
+      (
+        label: 'About',
+        icon: Icons.info_outline,
+        route: AppRoutes.about,
+      ),
     ];
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

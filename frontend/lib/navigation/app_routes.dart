@@ -12,10 +12,10 @@ class AppRoutes {
   static const String heatmap = '/heatmap';
   static const String report = '/report';
   static const String history = '/history';
-  static const String compare = '/compare';
   static const String settings = '/settings';
   static const String about = '/about';
 }
+
 
 class ProcessingArgs {
   final String name;

@@ -1,13 +1,7 @@
-/// Parsers that convert the backend's `AnalysisResultDTO`, `HistoryItemDTO`
-/// and `CompareResultDTO` JSON payloads into the frontend model objects.
-///
-/// The backend serializes camelCase shapes that match the frontend models, so
-/// parsing is a thin, defensive mapping (numbers may arrive as int/double).
 library;
 
 import 'analysis_components.dart';
 import 'analysis_result.dart';
-import 'compare_result.dart';
 import 'history_item.dart';
 import 'verdict.dart';
 
@@ -43,7 +37,8 @@ ForensicScore _parseScore(Map<String, dynamic> json) => ForensicScore(
       value: _asDouble(json['value']),
     );
 
-DetectedIndicator _parseIndicator(Map<String, dynamic> json) => DetectedIndicator(
+DetectedIndicator _parseIndicator(Map<String, dynamic> json) =>
+    DetectedIndicator(
       type: _enumByName(IndicatorType.values, json['type'] as String),
       confidence: _asDouble(json['confidence']),
       severity: json['severity'] as String,
@@ -70,6 +65,33 @@ HeatmapData? _parseHeatmap(Map<String, dynamic>? json) {
   );
 }
 
+DecisionProvenance? _parseProvenance(Map<String, dynamic>? json) {
+  if (json == null) return null;
+  return DecisionProvenance(
+    finalClassification:
+        _enumByName(Verdict.values, json['finalClassification'] as String),
+    finalConfidence: _asDouble(json['finalConfidence']),
+    chaiClassification:
+        _enumByName(Verdict.values, json['chaiClassification'] as String),
+    chaiConfidence: _asDouble(json['chaiConfidence']),
+    chaiAiProbability: _asDouble(json['chaiAiProbability']),
+    chaiEditScore: _asDouble(json['chaiEditScore']),
+    sightengineStatus: json['sightengineStatus'] as String? ?? 'unconfigured',
+    sightengineAiProbability: json['sightengineAiProbability'] != null
+        ? _asDouble(json['sightengineAiProbability'])
+        : null,
+    fusionWeightChai: _asDouble(json['fusionWeightChai']),
+    fusionWeightSightengine: _asDouble(json['fusionWeightSightengine']),
+    finalFusedProbability: _asDouble(json['finalFusedProbability'] ??
+        json['finalConfidence'] ??
+        0.5),
+    decisionReason: json['decisionReason'] as String? ?? '',
+    evidence: (json['evidence'] as List<dynamic>? ?? [])
+        .map((e) => e as String)
+        .toList(),
+  );
+}
+
 AnalysisResult parseAnalysisResult(Map<String, dynamic> json) => AnalysisResult(
       id: json['id'] as String,
       imagePath: json['imagePath'] as String?,
@@ -78,7 +100,8 @@ AnalysisResult parseAnalysisResult(Map<String, dynamic> json) => AnalysisResult(
       confidence: _asDouble(json['confidence']),
       riskLevel: _enumByName(RiskLevel.values, json['riskLevel'] as String),
       explanation: json['explanation'] as String,
-      analysisDuration: parseIso8601Duration(json['analysisDuration'] as String),
+      analysisDuration:
+          parseIso8601Duration(json['analysisDuration'] as String),
       timestamp: DateTime.parse(json['timestamp'] as String),
       scores: (json['scores'] as List<dynamic>? ?? [])
           .map((e) => _parseScore(e as Map<String, dynamic>))
@@ -90,9 +113,10 @@ AnalysisResult parseAnalysisResult(Map<String, dynamic> json) => AnalysisResult(
       evidence: (json['evidence'] as List<dynamic>? ?? [])
           .map((e) => e as String)
           .toList(),
-      metadata:
-          (json['metadata'] as Map<String, dynamic>? ?? {})
-              .map((key, value) => MapEntry(key, value as String)),
+      metadata: (json['metadata'] as Map<String, dynamic>? ?? {})
+          .map((key, value) => MapEntry(key, value as String)),
+      provenance:
+          _parseProvenance(json['provenance'] as Map<String, dynamic>?),
     );
 
 HistoryItem parseHistoryItem(Map<String, dynamic> json) => HistoryItem(
@@ -106,18 +130,3 @@ HistoryItem parseHistoryItem(Map<String, dynamic> json) => HistoryItem(
       isFavorite: json['isFavorite'] as bool? ?? false,
     );
 
-CompareResult parseCompareResult(Map<String, dynamic> json) => CompareResult(
-      labelA: json['labelA'] as String,
-      labelB: json['labelB'] as String,
-      similarity: _asDouble(json['similarity']),
-      aiProbability: _asDouble(json['aiProbability']),
-      similarities: (json['similarities'] as List<dynamic>? ?? [])
-          .map((e) => e as String)
-          .toList(),
-      differences: (json['differences'] as List<dynamic>? ?? [])
-          .map((e) => e as String)
-          .toList(),
-      manipulatedRegions: (json['manipulatedRegions'] as List<dynamic>? ?? [])
-          .map((e) => _parseRegion(e as Map<String, dynamic>))
-          .toList(),
-    );

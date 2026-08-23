@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_dimensions.dart';
 import '../features/about/about_screen.dart';
-import '../features/compare/compare_screen.dart';
 import '../features/heatmap/heatmap_viewer_screen.dart';
 import '../features/history/history_screen.dart';
 import '../features/home/home_screen.dart';
@@ -44,8 +43,6 @@ class AppRouter {
         return ReportDetailsScreen(args: args);
       case AppRoutes.history:
         return const HistoryScreen();
-      case AppRoutes.compare:
-        return const CompareScreen();
       case AppRoutes.settings:
         return const SettingsScreen();
       case AppRoutes.about:
@@ -54,6 +51,7 @@ class AppRouter {
         return const SplashScreen();
     }
   }
+
 
   static Route<dynamic> _pageRoute(Widget page, RouteSettings settings) {
     return PageRouteBuilder(

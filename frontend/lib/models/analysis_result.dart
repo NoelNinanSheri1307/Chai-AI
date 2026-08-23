@@ -19,6 +19,7 @@ class AnalysisResult {
   final HeatmapData? heatmap;
   final List<String> evidence;
   final Map<String, String> metadata;
+  final DecisionProvenance? provenance;
 
   const AnalysisResult({
     required this.id,
@@ -36,6 +37,7 @@ class AnalysisResult {
     this.heatmap,
     required this.evidence,
     required this.metadata,
+    this.provenance,
   });
 
   AnalysisResult copyWith({
@@ -54,6 +56,7 @@ class AnalysisResult {
     HeatmapData? heatmap,
     List<String>? evidence,
     Map<String, String>? metadata,
+    DecisionProvenance? provenance,
   }) {
     return AnalysisResult(
       id: id ?? this.id,
@@ -71,6 +74,8 @@ class AnalysisResult {
       heatmap: heatmap ?? this.heatmap,
       evidence: evidence ?? this.evidence,
       metadata: metadata ?? this.metadata,
+      provenance: provenance ?? this.provenance,
     );
   }
 }
+

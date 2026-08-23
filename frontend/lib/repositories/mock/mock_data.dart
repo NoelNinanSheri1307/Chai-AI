@@ -63,7 +63,8 @@ class MockData {
   static Verdict _pickVerdict(Random rng) {
     final roll = rng.nextInt(100);
     if (roll < 45) return Verdict.original;
-    return Verdict.aiGenerated;
+    if (roll < 80) return Verdict.aiGenerated;
+    return Verdict.aiEdited;
   }
 
   static AnalysisResult buildAnalysisResult({
@@ -83,6 +84,9 @@ class MockData {
       case Verdict.original:
         confidence = 0.82 + rng.nextDouble() * 0.17;
         riskLevel = rng.nextInt(100) < 12 ? RiskLevel.medium : RiskLevel.low;
+      case Verdict.aiEdited:
+        confidence = 0.78 + rng.nextDouble() * 0.16;
+        riskLevel = RiskLevel.medium;
       case Verdict.aiGenerated:
         confidence = 0.86 + rng.nextDouble() * 0.13;
         riskLevel = rng.nextInt(100) < 18 ? RiskLevel.medium : RiskLevel.high;
@@ -125,29 +129,70 @@ class MockData {
           width: w,
           height: h,
           intensity: (0.45 + rng.nextDouble() * 0.5).clamp(0.0, 1.0),
-          label: 'Synthesized region',
+          label: verdict == Verdict.aiEdited
+              ? 'Locally modified region'
+              : 'Synthesized region',
         );
       });
       heatmap = HeatmapData(
         regions: regions,
-        overallManipulation: 0.7 + rng.nextDouble() * 0.25,
+        overallManipulation: verdict == Verdict.aiEdited
+            ? 0.55 + rng.nextDouble() * 0.25
+            : 0.7 + rng.nextDouble() * 0.25,
       );
     }
 
     final evidencePoolCopy = [...evidencePool]..shuffle(rng);
     final evidence = evidencePoolCopy.take(2 + rng.nextInt(2)).toList();
     if (verdict == Verdict.original) {
-      evidence.insert(0, 'No anomalies above the confidence threshold were located.');
+      evidence.insert(
+          0, 'No anomalies above the confidence threshold were located.');
     }
 
     final explanation = StringBuffer(_explanationFor(verdict));
     if (indicators.isNotEmpty) {
       explanation
-        ..write(' Strongest signal: ')
+        ..write(' Strongest supporting signal: ')
         ..write(indicators.first.description);
     } else {
-      explanation.write(' Sensor and frequency analyses returned clean profiles.');
+      explanation
+          .write(' Sensor and frequency analyses returned clean profiles.');
     }
+
+    final isSightengineAvailable = rng.nextInt(100) < 90;
+    final seStatus = isSightengineAvailable ? 'success' : 'unconfigured';
+    final seProb = isSightengineAvailable
+        ? (verdict == Verdict.aiGenerated
+            ? 0.88 + rng.nextDouble() * 0.1
+            : (verdict == Verdict.aiEdited
+                ? 0.15 + rng.nextDouble() * 0.2
+                : 0.05 + rng.nextDouble() * 0.1))
+        : null;
+    final chaiAiProb = verdict == Verdict.aiGenerated
+        ? 0.85
+        : (verdict == Verdict.aiEdited ? 0.25 : 0.10);
+    final chaiEditScore = verdict == Verdict.aiEdited ? 0.82 : 0.12;
+    final pFused = isSightengineAvailable
+        ? (0.70 * (seProb ?? 0.0) + 0.30 * chaiAiProb)
+        : chaiAiProb;
+
+    final provenance = DecisionProvenance(
+      finalClassification: verdict,
+      finalConfidence: confidence.clamp(0.0, 1.0),
+      chaiClassification: verdict,
+      chaiConfidence: confidence.clamp(0.0, 1.0),
+      chaiAiProbability: chaiAiProb,
+      chaiEditScore: chaiEditScore,
+      sightengineStatus: seStatus,
+      sightengineAiProbability: seProb,
+      fusionWeightChai: isSightengineAvailable ? 0.30 : 1.00,
+      fusionWeightSightengine: isSightengineAvailable ? 0.70 : 0.00,
+      finalFusedProbability: pFused,
+      decisionReason: isSightengineAvailable
+          ? 'Classification fused using Sightengine (70%) and Chai forensics (30%).'
+          : 'External verification unavailable; classification based on Chai forensics only.',
+      evidence: evidence,
+    );
 
     return AnalysisResult(
       id: 'ana_${seed.abs()}',
@@ -173,6 +218,7 @@ class MockData {
         'Format': name.endsWith('.png') ? 'PNG' : 'JPEG',
         'File size': '${2 + (seed % 9)}.${rng.nextInt(9)} MB',
       },
+      provenance: provenance,
     );
   }
 
@@ -180,6 +226,8 @@ class MockData {
     switch (verdict) {
       case Verdict.original:
         return 0.82 + rng.nextDouble() * 0.12;
+      case Verdict.aiEdited:
+        return 0.52 + rng.nextDouble() * 0.2;
       case Verdict.aiGenerated:
         return 0.18 + rng.nextDouble() * 0.4;
     }
@@ -189,10 +237,13 @@ class MockData {
     switch (verdict) {
       case Verdict.original:
         return 'No significant manipulation detected. The image appears authentic.';
+      case Verdict.aiEdited:
+        return 'Localized manipulation detected; image appears partially edited.';
       case Verdict.aiGenerated:
         return 'Image appears to be fully or largely AI-generated.';
     }
   }
+
 
   /// Rebuilds a full report for a persisted history summary, keeping the
   /// stored verdict/confidence/risk consistent with the card the user tapped.
