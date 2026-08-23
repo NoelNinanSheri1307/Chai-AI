@@ -1,0 +1,27 @@
+# Render Blueprint specification for Chai AI Backend
+services:
+  - type: web
+    name: chai-ai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CHAI_ENVIRONMENT
+        value: development
+      - key: CHAI_LOG_LEVEL
+        value: INFO
+      - key: CHAI_JSON_LOGGING
+        value: "true"
+      - key: CHAI_EXTERNAL_DETECTION_ENABLED
+        value: "true"
+      - key: CHAI_SIGHTENGINE_ENABLED
+        value: "true"
+      - key: CHAI_SIGHTENGINE_API_USER
+        sync: false
+      - key: CHAI_SIGHTENGINE_API_SECRET
+        sync: false
+      - key: CHAI_CORS_ORIGINS
+        value: "*"

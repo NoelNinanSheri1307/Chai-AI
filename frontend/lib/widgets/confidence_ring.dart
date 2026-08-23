@@ -62,39 +62,61 @@ class _ConfidenceRingState extends State<ConfidenceRing>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final progress = _animation.value;
-        return CustomPaint(
-          size: Size(widget.size, widget.size),
-          painter: _RingPainter(
-            progress: progress,
-            color: widget.color,
-            trackColor: colors.surfaceMuted,
-            strokeWidth: widget.size * 0.055,
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${(progress * 100).round()}%',
-                  style: AppTypography.display(colors.textPrimary),
+    final strokeWidth = max(8.0, widget.size * 0.055);
+
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          final progress = _animation.value;
+          return Stack(
+            alignment: Alignment.center,
+            fit: StackFit.expand,
+            children: [
+              CustomPaint(
+                size: Size(widget.size, widget.size),
+                painter: _RingPainter(
+                  progress: progress,
+                  color: widget.color,
+                  trackColor: colors.surfaceMuted,
+                  strokeWidth: strokeWidth,
                 ),
-                if (widget.centerLabel != null)
-                  Text(
-                    widget.centerLabel!,
-                    style: AppTypography.caption(colors.textTertiary),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: AppTypography.display(colors.textPrimary).copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
+                      ),
+                    ),
+                    if (widget.centerLabel != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.centerLabel!.toUpperCase(),
+                        style: AppTypography.caption(colors.textTertiary).copyWith(
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
+
 
 class _RingPainter extends CustomPainter {
   final double progress;

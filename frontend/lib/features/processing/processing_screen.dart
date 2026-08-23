@@ -18,13 +18,14 @@ class _Stage {
 }
 
 const List<_Stage> _stages = [
-  _Stage('Preparing Image', 'Normalizing and scaling the upload', Icons.image_outlined),
-  _Stage('Checking Metadata', 'Reading EXIF and provenance fields', Icons.data_object),
-  _Stage('Running AI Model', 'Forward pass of the detection model', Icons.memory),
-  _Stage('Comparing Features', 'Matching signals against known classes', Icons.compare),
-  _Stage('Generating Explanation', 'Building an explainable verdict', Icons.text_snippet_outlined),
-  _Stage('Preparing Report', 'Assembling scores and evidence', Icons.description_outlined),
+  _Stage('Preparing Image', 'Normalizing image format and dimensions', Icons.image_outlined),
+  _Stage('Extracting Metadata', 'Inspecting EXIF data and capture device attributes', Icons.data_object),
+  _Stage('Running Chai Forensics', 'Extracting spatial, frequency, and lighting signals', Icons.analytics_outlined),
+  _Stage('External Verification', 'Querying primary authenticity signal', Icons.verified_user_outlined),
+  _Stage('Synthesizing Insights', 'Calibrating multi-source decision and supporting evidence', Icons.auto_awesome_outlined),
+  _Stage('Finalizing Results', 'Assembling authenticity verdict and image insights', Icons.description_outlined),
 ];
+
 
 class ProcessingScreen extends StatefulWidget {
   final ProcessingArgs args;

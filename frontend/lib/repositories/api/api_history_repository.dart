@@ -13,14 +13,20 @@ import '../history_repository.dart';
 /// is a no-op and `clear` deletes the listed entries. Favorite toggling has no
 /// backend endpoint yet, so it is persisted only for the current session.
 class ApiHistoryRepository implements HistoryRepository {
-  final String baseUrl;
+  final String Function() _getBaseUrl;
   final http.Client _client;
 
   // Session-only favorite overrides (the backend has no favorite endpoint yet).
   final Set<String> _favorites = {};
 
-  ApiHistoryRepository(this.baseUrl, {http.Client? client})
-      : _client = client ?? http.Client();
+  ApiHistoryRepository(Object baseUrlOrGetter, {http.Client? client})
+      : _getBaseUrl = baseUrlOrGetter is String Function()
+            ? baseUrlOrGetter
+            : (() => baseUrlOrGetter.toString()),
+        _client = client ?? http.Client();
+
+  String get baseUrl => _getBaseUrl().replaceAll(RegExp(r'/+$'), '');
+
 
   @override
   Future<List<HistoryItem>> fetchAll() async {

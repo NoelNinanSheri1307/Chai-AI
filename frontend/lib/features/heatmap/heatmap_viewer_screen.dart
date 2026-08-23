@@ -33,11 +33,16 @@ class _HeatmapViewerScreenState extends State<HeatmapViewerScreen> {
     final heatmap = result.heatmap;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manipulation Heatmap')),
+      appBar: AppBar(title: const Text('Forensic Visualizations')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
+            Text(
+              'Regions highlighted by Chai image analysis. Visual highlights represent localized variations in spatial frequency, noise, and lighting signals extracted during analysis.',
+              style: AppTypography.caption(colors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.md),
             AppCard(
               padding: EdgeInsets.zero,
               child: ClipRRect(
@@ -90,8 +95,8 @@ class _HeatmapViewerScreenState extends State<HeatmapViewerScreen> {
             const SizedBox(height: AppSpacing.lg),
             if (heatmap != null && heatmap.regions.isNotEmpty) ...[
               SectionHeader(
-                title: 'Detected Regions',
-                subtitle: '${heatmap.regions.length} localized',
+                title: 'Highlighted Regions',
+                subtitle: '${heatmap.regions.length} localized areas',
               ),
               const SizedBox(height: AppSpacing.md),
               for (final region in heatmap.regions)
@@ -115,7 +120,7 @@ class _HeatmapViewerScreenState extends State<HeatmapViewerScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Intensity ${(region.intensity * 100).round()}%',
+                              'Signal variation ${(region.intensity * 100).round()}%',
                               style: AppTypography.caption(colors.textTertiary),
                             ),
                           ],
@@ -126,7 +131,7 @@ class _HeatmapViewerScreenState extends State<HeatmapViewerScreen> {
                 ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                'Overall manipulation: ${(heatmap.overallManipulation * 100).round()}%',
+                'Overall anomaly density: ${(heatmap.overallManipulation * 100).round()}%',
                 style: AppTypography.label(colors.warning),
               ),
             ],
@@ -168,7 +173,7 @@ class _NoHeatmap extends StatelessWidget {
             Icon(Icons.search_off, size: 40, color: colors.textTertiary),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'No manipulation regions detected',
+              'No highlighted regions detected',
               style: AppTypography.body(colors.textSecondary),
             ),
           ],
@@ -177,3 +182,4 @@ class _NoHeatmap extends StatelessWidget {
     );
   }
 }
+

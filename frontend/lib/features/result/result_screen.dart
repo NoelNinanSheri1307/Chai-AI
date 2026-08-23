@@ -364,7 +364,7 @@ class _SourceAttributionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
-                  '70/30 Fused',
+                  'Forensic-Assisted',
                   style: AppTypography.caption(colors.success),
                 ),
               ),
@@ -374,7 +374,7 @@ class _SourceAttributionCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _SourceRow(
             source: 'Sightengine',
-            role: 'Primary Detection (70%)',
+            role: 'Primary Classification Engine',
             status: 'Verified',
             probability: prov?.sightengineAiProbability,
             statusColor: colors.success,
@@ -382,9 +382,9 @@ class _SourceAttributionCard extends StatelessWidget {
           const Divider(height: AppSpacing.lg),
           _SourceRow(
             source: 'Chai AI',
-            role: 'Supporting Forensic Analysis (30%)',
-            status: 'Active',
-            probability: prov?.chaiAiProbability,
+            role: 'Forensic Signal & Verification Assist',
+            status: 'Assisting',
+            subtitle: 'Forensic context supplied',
             statusColor: colors.accent,
           ),
         ],
@@ -397,6 +397,7 @@ class _SourceRow extends StatelessWidget {
   final String source;
   final String role;
   final String status;
+  final String? subtitle;
   final double? probability;
   final Color statusColor;
 
@@ -404,6 +405,7 @@ class _SourceRow extends StatelessWidget {
     required this.source,
     required this.role,
     required this.status,
+    this.subtitle,
     this.probability,
     required this.statusColor,
   });
@@ -436,16 +438,21 @@ class _SourceRow extends StatelessWidget {
               Text(
                 'AI prob: ${(probability! * 100).round()}%',
                 style: AppTypography.caption(colors.textSecondary),
+              )
+            else if (subtitle != null)
+              Text(
+                subtitle!,
+                style: AppTypography.caption(colors.textSecondary),
               ),
           ],
         ),
       ],
     );
   }
-
 }
 
 // -----------------------------------------------------------------------------
+
 // 2. Image Insights Widgets
 // -----------------------------------------------------------------------------
 
@@ -741,7 +748,7 @@ class _ProvenanceCardState extends State<_ProvenanceCard> {
           if (_expanded) ...[
             const SizedBox(height: AppSpacing.md),
             KeyValueRow(
-              label: 'Final Verdict',
+              label: 'Final Classification',
               value: prov.finalClassification.label,
             ),
             KeyValueRow(
@@ -767,26 +774,26 @@ class _ProvenanceCardState extends State<_ProvenanceCard> {
                 divider: true,
               ),
             KeyValueRow(
-              label: 'Chai Forensic Verdict',
-              value: prov.chaiClassification.label,
+              label: 'Sightengine Weight',
+              value: '${(prov.fusionWeightSightengine * 100).round()}%',
               divider: true,
             ),
             KeyValueRow(
-              label: 'Chai AI Probability',
-              value: '${(prov.chaiAiProbability * 100).toStringAsFixed(1)}%',
+              label: 'Chai Forensic Role',
+              value: 'Assisting Sightengine Verification',
               divider: true,
             ),
             KeyValueRow(
-              label: 'Chai Edit Score',
+              label: 'Chai Forensic Telemetry',
+              value: 'Active (7 signals)',
+              divider: true,
+            ),
+            KeyValueRow(
+              label: 'Chai Edit / Artifact Score',
               value: '${(prov.chaiEditScore * 100).toStringAsFixed(1)}%',
               divider: true,
             ),
-            KeyValueRow(
-              label: 'Fusion Weights',
-              value:
-                  'Sightengine: ${(prov.fusionWeightSightengine * 100).round()}% | Chai: ${(prov.fusionWeightChai * 100).round()}%',
-              divider: true,
-            ),
+
             if (prov.decisionReason.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
@@ -800,6 +807,7 @@ class _ProvenanceCardState extends State<_ProvenanceCard> {
               ),
             ],
           ],
+
         ],
       ),
     );

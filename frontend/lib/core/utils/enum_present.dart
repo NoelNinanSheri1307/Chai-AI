@@ -29,13 +29,14 @@ extension VerdictX on Verdict {
   String get summary {
     switch (this) {
       case Verdict.original:
-        return 'No significant manipulation detected. The image appears authentic.';
+        return 'Visual and forensic characteristics are consistent with authentic capture.';
       case Verdict.aiEdited:
-        return 'Localized editing or AI manipulation detected on an otherwise authentic image.';
+        return 'Localized visual or signal anomalies suggest partial AI editing or modification.';
       case Verdict.aiGenerated:
-        return 'Image appears to be fully or largely AI-generated.';
+        return 'Image features and synthesis artifacts suggest full AI generation.';
     }
   }
+
 
   String get shortSummary {
     switch (this) {

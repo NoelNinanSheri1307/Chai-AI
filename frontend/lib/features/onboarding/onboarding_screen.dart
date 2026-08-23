@@ -33,9 +33,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _Slide(
       Icons.center_focus_strong,
-      'Forensic-grade analysis',
-      'Eight forensic signals, explainable indicators, and a manipulation heatmap behind every verdict.',
+      'Image Insights & Forensics',
+      'Multi-signal forensic analysis, explainable indicators, and visual highlights for every image.',
     ),
+
     _Slide(
       Icons.document_scanner_outlined,
       'Reports that travel',

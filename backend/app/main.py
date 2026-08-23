@@ -103,6 +103,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     _add_middleware(app, resolved_settings)
     app.include_router(api_router, prefix=constants.API_V1_PREFIX)
 
+    @app.get("/health", include_in_schema=False)
+    @app.get("/", include_in_schema=False)
+    async def root_health() -> dict[str, str]:
+        return {
+            "status": "ok",
+            "service": resolved_settings.app_name,
+            "version": resolved_settings.app_version,
+        }
+
     return app
 
 

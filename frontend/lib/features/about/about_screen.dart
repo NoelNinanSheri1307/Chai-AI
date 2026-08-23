@@ -61,14 +61,14 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Chai AI determines whether an uploaded image is real '
-                    'or AI-generated. It runs a forensic pipeline across '
-                    'texture, metadata, lighting, frequency, noise, compression, '
-                    'edge consistency and color distribution, then explains every '
-                    'verdict with detected indicators, confidence scores and a '
-                    'manipulation heatmap.',
+                    'Chai AI delivers image authenticity detection supported by '
+                    'deep forensic image insights. It determines whether an image '
+                    'is Real, AI-Generated, or AI-Edited using multi-source verification '
+                    'and extracts supporting forensic signals across spatial frequency, '
+                    'lighting, texture, noise, compression, and visual heatmaps.',
                     style: AppTypography.body(colors.textSecondary),
                   ),
+
                 ],
               ),
             ),

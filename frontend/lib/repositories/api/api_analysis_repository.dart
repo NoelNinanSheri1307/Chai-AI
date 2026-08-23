@@ -10,11 +10,17 @@ import '../analysis_repository.dart';
 
 /// Backend-backed [AnalysisRepository] that talks to the Chai AI HTTP API.
 class ApiAnalysisRepository implements AnalysisRepository {
-  final String baseUrl;
+  final String Function() _getBaseUrl;
   final http.Client _client;
 
-  ApiAnalysisRepository(this.baseUrl, {http.Client? client})
-      : _client = client ?? http.Client();
+  ApiAnalysisRepository(Object baseUrlOrGetter, {http.Client? client})
+      : _getBaseUrl = baseUrlOrGetter is String Function()
+            ? baseUrlOrGetter
+            : (() => baseUrlOrGetter.toString()),
+        _client = client ?? http.Client();
+
+  String get baseUrl => _getBaseUrl().replaceAll(RegExp(r'/+$'), '');
+
 
   @override
   Future<AnalysisResult> analyzeImage({

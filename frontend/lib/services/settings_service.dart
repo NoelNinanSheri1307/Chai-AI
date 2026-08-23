@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/config/app_config.dart';
+
 enum AppLanguage {
   english('English'),
   placeholder('More languages coming soon');
@@ -9,7 +11,7 @@ enum AppLanguage {
   const AppLanguage(this.label);
 }
 
-/// App-wide preferences: theme, language, onboarding state and the (future)
+/// App-wide preferences: theme, language, onboarding state and the
 /// backend endpoint. Persisted locally; screens consume this via Provider.
 class SettingsService extends ChangeNotifier {
   static const String _themeKey = 'chai_theme_mode';
@@ -18,7 +20,8 @@ class SettingsService extends ChangeNotifier {
 
   ThemeMode _themeMode = ThemeMode.dark;
   final AppLanguage _language = AppLanguage.english;
-  String _endpoint = 'http://localhost:8000';
+  String _endpoint = AppConfig.initialApiBaseUrl;
+
   bool _onboardingSeen = false;
   bool _ready = false;
 
@@ -62,9 +65,11 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setEndpoint(String value) async {
-    _endpoint = value;
+    final normalized = AppConfig.normalizeUrl(value);
+    _endpoint = normalized;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_endpointKey, value);
+    await prefs.setString(_endpointKey, normalized);
   }
 }
+

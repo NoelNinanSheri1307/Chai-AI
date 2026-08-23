@@ -183,13 +183,14 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       Expanded(
                         child: Text(
                           isSightengineOk
-                              ? 'Primary: Sightengine (70%) | Supporting: Chai AI (30%)'
+                              ? 'Primary: Sightengine | Assisted by: Chai AI Forensics'
                               : 'External verification unavailable; classified by Chai forensics only.',
                           style: AppTypography.caption(
                             isSightengineOk ? colors.success : colors.warning,
                           ),
                         ),
                       ),
+
                     ],
                   ),
                 ],
@@ -286,6 +287,47 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               const SizedBox(height: AppSpacing.lg),
             ],
 
+            // Forensic Heatmap Preview
+            if (result.heatmap != null) ...[
+              SectionHeader(
+                title: 'Forensic Visualizations',
+                subtitle: 'Regions highlighted by Chai image analysis',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                padding: EdgeInsets.zero,
+                onTap: () => Navigator.of(context).pushNamed(
+                  AppRoutes.heatmap,
+                  arguments: HeatmapArgs(result),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Visual Highlights',
+                              style: AppTypography.label(colors.textPrimary),
+                            ),
+                            Text(
+                              'View Full Heatmap →',
+                              style: AppTypography.caption(colors.accent),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
             // Detection Provenance Summary
             if (prov != null) ...[
               SectionHeader(title: 'Detection Provenance'),
@@ -295,9 +337,19 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     KeyValueRow(
+                      label: 'Final Classification',
+                      value: prov.finalClassification.label,
+                    ),
+                    KeyValueRow(
+                      label: 'Final Confidence',
+                      value: '${(prov.finalConfidence * 100).round()}%',
+                      divider: true,
+                    ),
+                    KeyValueRow(
                       label: 'Fused AI Probability',
                       value:
                           '${(prov.finalFusedProbability * 100).toStringAsFixed(1)}%',
+                      divider: true,
                     ),
                     KeyValueRow(
                       label: 'Sightengine Status',
@@ -312,22 +364,45 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         divider: true,
                       ),
                     KeyValueRow(
-                      label: 'Chai AI Probability',
-                      value:
-                          '${(prov.chaiAiProbability * 100).toStringAsFixed(1)}%',
+                      label: 'Sightengine Weight',
+                      value: '${(prov.fusionWeightSightengine * 100).round()}%',
                       divider: true,
                     ),
                     KeyValueRow(
-                      label: 'Fusion Weights',
-                      value:
-                          'Sightengine: ${(prov.fusionWeightSightengine * 100).round()}% | Chai: ${(prov.fusionWeightChai * 100).round()}%',
+                      label: 'Chai Forensic Role',
+                      value: 'Assisting Sightengine Verification',
                       divider: true,
                     ),
+                    KeyValueRow(
+                      label: 'Chai Forensic Telemetry',
+                      value: 'Active (7 signals)',
+                      divider: true,
+                    ),
+                    KeyValueRow(
+                      label: 'Chai Edit / Artifact Score',
+                      value:
+                          '${(prov.chaiEditScore * 100).toStringAsFixed(1)}%',
+                      divider: true,
+                    ),
+
+                    if (prov.decisionReason.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Decision Rationale:',
+                        style: AppTypography.caption(colors.textTertiary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        prov.decisionReason,
+                        style: AppTypography.body(colors.textSecondary),
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
             ],
+
 
             // Action Buttons
             AppButton(

@@ -27,15 +27,16 @@ class ChaiApp extends StatelessWidget {
     final settings = SettingsService();
     return MultiProvider(
       providers: [
-        // The frontend talks to the running backend over HTTP. Swap these for
-        // mock repositories when you want offline, simulated results instead.
+        // The frontend talks to the running backend over HTTP.
+        // It reads from the dynamically configured endpoint in SettingsService / AppConfig.
         Provider<AnalysisRepository>(
-          create: (_) => ApiAnalysisRepository(settings.endpoint),
+          create: (_) => ApiAnalysisRepository(() => settings.endpoint),
         ),
         Provider<HistoryRepository>(
-          create: (_) => ApiHistoryRepository(settings.endpoint),
+          create: (_) => ApiHistoryRepository(() => settings.endpoint),
         ),
         Provider<ReportRepository>(create: (_) => MockReportRepository()),
+
         ChangeNotifierProvider<SettingsService>(create: (_) => settings),
         ChangeNotifierProvider<HistoryController>(
           create: (ctx) => HistoryController(ctx.read<HistoryRepository>()),
