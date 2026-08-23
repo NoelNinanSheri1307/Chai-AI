@@ -15,10 +15,14 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
+import logging
+
+import app.models  # noqa: F401 - ensure all table models register on SQLModel.metadata
 from app.api.errors import register_exception_handlers
 from app.api.v1.router import api_router
 from app.core import constants
 from app.core.config import Settings, get_settings
+from app.core.db import get_database
 from app.core.exceptions import ConfigurationError
 from app.core.logging import setup_logging
 from app.core.middleware import (
@@ -29,15 +33,23 @@ from app.core.middleware import (
     TrustedHostMiddleware,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Application lifespan.
-
-    Reserved slot for startup and shutdown hooks of later milestones (for
-    example provider warmup and connection cleanup). Yields immediately.
-    """
+    """Application lifespan: initialize database tables and storage root on startup."""
+    settings = get_settings()
+    try:
+        get_database(settings).create_all()
+    except Exception as exc:
+        logger.warning("Database schema initialization warning: %s", exc)
+    try:
+        settings.storage_root.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:
+        logger.warning("Storage root initialization warning: %s", exc)
     yield
+
 
 
 def _add_middleware(app: FastAPI, settings: Settings) -> None:

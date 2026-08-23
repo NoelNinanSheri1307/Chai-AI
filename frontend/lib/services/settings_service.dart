@@ -44,10 +44,22 @@ class SettingsService extends ChangeNotifier {
         orElse: () => ThemeMode.dark,
       );
     }
-    _endpoint = prefs.getString(_endpointKey) ?? _endpoint;
+    final storedEndpoint = prefs.getString(_endpointKey);
+    if (storedEndpoint != null && storedEndpoint.isNotEmpty) {
+      if (AppConfig.apiBaseUrlOverride.isNotEmpty &&
+          (storedEndpoint == 'http://localhost:8000' ||
+              storedEndpoint == 'http://127.0.0.1:8000')) {
+        _endpoint = AppConfig.initialApiBaseUrl;
+      } else {
+        _endpoint = AppConfig.normalizeUrl(storedEndpoint);
+      }
+    } else {
+      _endpoint = AppConfig.initialApiBaseUrl;
+    }
     _onboardingSeen = prefs.getBool(_onboardKey) ?? false;
     _ready = true;
     notifyListeners();
+
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

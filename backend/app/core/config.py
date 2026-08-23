@@ -229,9 +229,9 @@ class Settings(BaseSettings):
             return "sqlite://"
         if self.is_development:
             return "sqlite:///./chai.db"
-        # Production (and any unclassified environment) behaves as PostgreSQL;
-        # an operator normally supplies a concrete URL.
-        return "postgresql+psycopg://chai:chai@localhost:5432/chai"
+        # When database_url is unset, safely default to SQLite file
+        return "sqlite:///./chai.db"
+
 
 
 @lru_cache

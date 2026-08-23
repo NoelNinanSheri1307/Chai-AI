@@ -177,8 +177,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             SectionHeader(
               title: 'Backend',
-              subtitle: 'For the future analysis API',
+              subtitle: 'Active backend analysis endpoint',
             ),
+
             const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Column(
