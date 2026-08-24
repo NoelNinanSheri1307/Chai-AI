@@ -42,15 +42,16 @@ export const Footer: React.FC = () => {
               Image authenticity assessment and forensic image insights.
             </p>
             <p className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--chai-coffee)', marginTop: '0.4rem' }}>
-              Created by Noel Ninan Sheri.
+
             </p>
           </div>
 
           {/* Download Link */}
           <div>
             <a
-              href="/downloads/Chai AI.apk"
-              download="Chai AI.apk"
+              href="/downloads/ChaiAI.apk"
+              download="ChaiAI.apk"
+
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

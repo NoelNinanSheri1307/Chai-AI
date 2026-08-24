@@ -55,22 +55,25 @@ export const Download: React.FC = () => {
             }}
           >
             <a
-              href="/downloads/Chai AI.apk"
-              download="Chai AI.apk"
+              href="/downloads/ChaiAI.apk"
+              download="ChaiAI.apk"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.85rem',
+                justifyContent: 'center',
+                gap: '0.75rem',
                 backgroundColor: 'var(--chai-terracotta)',
                 color: '#F8F3E8',
-                padding: '1.1rem 2.5rem',
+                padding: 'clamp(0.9rem, 2.5vw, 1.1rem) clamp(1.4rem, 4vw, 2.5rem)',
                 borderRadius: '6px',
                 textDecoration: 'none',
-                fontSize: '1.15rem',
+                fontSize: 'clamp(1rem, 2.8vw, 1.15rem)',
                 fontWeight: 600,
                 letterSpacing: '0.02em',
                 boxShadow: '0 6px 20px rgba(169, 87, 61, 0.32)',
                 transition: 'all 0.2s ease',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.backgroundColor = 'var(--chai-terracotta-hover)';
@@ -96,9 +99,10 @@ export const Download: React.FC = () => {
                   borderRadius: '4px',
                 }}
               >
-                56.9 MB
+                54.3 MB
               </span>
             </a>
+
 
             {/* Spec / Package Details */}
             <div
@@ -112,12 +116,13 @@ export const Download: React.FC = () => {
                 color: 'var(--chai-muted-brown)',
               }}
             >
-              <span>PACKAGE: Chai AI.apk</span>
+              <span>PACKAGE: ChaiAI.apk</span>
               <span>•</span>
               <span>PLATFORM: Android 8.0+</span>
               <span>•</span>
               <span>BUILD: Production Release</span>
             </div>
+
 
             {/* Disclaimer */}
             <p

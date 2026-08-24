@@ -154,8 +154,8 @@ export const PhoneShowcase: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '3.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+            gap: 'clamp(2rem, 4vw, 3.5rem)',
             alignItems: 'center',
             maxWidth: '1040px',
             margin: '0 auto',
@@ -168,16 +168,17 @@ export const PhoneShowcase: React.FC = () => {
               flexDirection: 'column',
               alignItems: 'center',
               position: 'relative',
+              width: '100%',
             }}
           >
             {/* Phone Outer Chassis */}
             <div
               style={{
-                width: '310px',
-                height: '630px',
+                width: 'min(300px, 88vw)',
+                height: 'clamp(490px, 120vw, 615px)',
                 backgroundColor: '#1E1916',
-                borderRadius: '44px',
-                padding: '12px',
+                borderRadius: 'clamp(32px, 8vw, 44px)',
+                padding: 'clamp(8px, 2vw, 12px)',
                 boxShadow:
                   '0 25px 60px -15px rgba(43, 33, 27, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 10px 25px rgba(0, 0, 0, 0.25)',
                 position: 'relative',
@@ -188,11 +189,11 @@ export const PhoneShowcase: React.FC = () => {
               <div
                 style={{
                   position: 'absolute',
-                  top: '18px',
+                  top: '16px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  width: '90px',
-                  height: '20px',
+                  width: 'clamp(70px, 22vw, 90px)',
+                  height: '18px',
                   backgroundColor: '#0F0C0A',
                   borderRadius: '10px',
                   zIndex: 20,
@@ -202,8 +203,8 @@ export const PhoneShowcase: React.FC = () => {
                   gap: '6px',
                 }}
               >
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1A233A' }} />
-                <div style={{ width: '38px', height: '3px', borderRadius: '2px', backgroundColor: '#261F1A' }} />
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#1A233A' }} />
+                <div style={{ width: '32px', height: '3px', borderRadius: '2px', backgroundColor: '#261F1A' }} />
               </div>
 
               {/* Phone Screen Viewport */}
@@ -212,11 +213,12 @@ export const PhoneShowcase: React.FC = () => {
                   width: '100%',
                   height: '100%',
                   backgroundColor: '#0B0C0E',
-                  borderRadius: '34px',
+                  borderRadius: 'clamp(24px, 6vw, 34px)',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
               >
+
                 {/* Horizontal Sliding Track */}
                 <div
                   style={{

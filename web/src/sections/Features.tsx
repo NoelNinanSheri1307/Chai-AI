@@ -74,37 +74,37 @@ export const Features: React.FC = () => {
                 </p>
 
                 {/* Only 2 Verdict Classes: Real vs AI Generated */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
                   <div
                     style={{
-                      flex: '1 1 180px',
-                      padding: '0.85rem 1.25rem',
+                      flex: '1 1 min(100%, 140px)',
+                      padding: '0.75rem 1rem',
                       borderRadius: '4px',
                       backgroundColor: 'rgba(119, 112, 79, 0.14)',
                       border: '1px solid rgba(119, 112, 79, 0.3)',
                     }}
                   >
-                    <span className="font-mono" style={{ fontSize: '0.7rem', color: 'var(--chai-olive)', display: 'block', fontWeight: 600 }}>
+                    <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-olive)', display: 'block', fontWeight: 600 }}>
                       CLASS A
                     </span>
-                    <span style={{ fontWeight: 600, color: 'var(--chai-brown)', fontSize: '1rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--chai-brown)', fontSize: '0.95rem' }}>
                       Original / Real
                     </span>
                   </div>
 
                   <div
                     style={{
-                      flex: '1 1 180px',
-                      padding: '0.85rem 1.25rem',
+                      flex: '1 1 min(100%, 140px)',
+                      padding: '0.75rem 1rem',
                       borderRadius: '4px',
                       backgroundColor: 'rgba(169, 87, 61, 0.12)',
                       border: '1px solid rgba(169, 87, 61, 0.3)',
                     }}
                   >
-                    <span className="font-mono" style={{ fontSize: '0.7rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600 }}>
+                    <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600 }}>
                       CLASS B
                     </span>
-                    <span style={{ fontWeight: 600, color: 'var(--chai-terracotta)', fontSize: '1rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--chai-terracotta)', fontSize: '0.95rem' }}>
                       AI Generated
                     </span>
                   </div>
@@ -113,12 +113,14 @@ export const Features: React.FC = () => {
                 <div
                   className="font-mono"
                   style={{
-                    fontSize: '0.78rem',
+                    fontSize: 'clamp(0.72rem, 2vw, 0.78rem)',
                     color: 'var(--chai-muted-brown)',
                     backgroundColor: 'rgba(43, 33, 27, 0.04)',
                     padding: '0.75rem 1rem',
                     borderRadius: '4px',
                     borderLeft: '3px solid var(--chai-terracotta)',
+                    lineHeight: 1.55,
+                    wordBreak: 'break-word',
                   }}
                 >
                   ENGINE NOTE: Sightengine provides external verification anchor; Chai forensics validates signal concordance.
@@ -132,76 +134,141 @@ export const Features: React.FC = () => {
                     backgroundColor: '#201A16',
                     color: '#F8F3E8',
                     borderRadius: '6px',
-                    padding: '1.5rem',
+                    padding: 'clamp(0.85rem, 3vw, 1.35rem)',
                     boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.4)',
+                    width: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <div
                     className="font-mono"
                     style={{
-                      fontSize: '0.7rem',
+                      fontSize: '0.68rem',
                       color: 'var(--chai-clay)',
                       borderBottom: '1px solid rgba(248, 243, 232, 0.1)',
                       paddingBottom: '0.5rem',
-                      marginBottom: '1rem',
+                      marginBottom: '0.85rem',
+                      letterSpacing: '0.06em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}
                   >
-                    DECISION PIPELINE MATRIX
+                    <span>DECISION PIPELINE MATRIX</span>
+                    <span style={{ fontSize: '0.6rem', color: '#DFD0B8', opacity: 0.6 }}>3 STAGES</span>
                   </div>
 
                   {/* Flow items */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {/* Stage 1 */}
                     <div
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.65rem 0.85rem',
+                        padding: '0.7rem 0.85rem',
                         backgroundColor: 'rgba(248, 243, 232, 0.05)',
                         borderRadius: '4px',
                         border: '1px solid rgba(248, 243, 232, 0.08)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
                       }}
                     >
-                      <span className="font-mono" style={{ fontSize: '0.8rem' }}>1. Image Ingestion & EXIF Extraction</span>
-                      <span className="font-mono" style={{ fontSize: '0.7rem', color: '#A66A4F' }}>RAW RGB</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                        <span className="font-mono" style={{ fontSize: '0.78rem', color: '#F8F3E8', fontWeight: 600 }}>
+                          1. Image Ingestion
+                        </span>
+                        <span
+                          className="font-mono"
+                          style={{
+                            fontSize: '0.62rem',
+                            color: '#A66A4F',
+                            backgroundColor: 'rgba(166, 106, 79, 0.18)',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                          }}
+                        >
+                          RAW RGB
+                        </span>
+                      </div>
+                      <span className="font-mono" style={{ fontSize: '0.68rem', color: 'rgba(248, 243, 232, 0.55)' }}>
+                        EXIF extraction & structural normalization
+                      </span>
                     </div>
+
+                    {/* Stage 2 */}
                     <div
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.65rem 0.85rem',
+                        padding: '0.7rem 0.85rem',
                         backgroundColor: 'rgba(248, 243, 232, 0.05)',
                         borderRadius: '4px',
                         border: '1px solid rgba(248, 243, 232, 0.08)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
                       }}
                     >
-                      <span className="font-mono" style={{ fontSize: '0.8rem' }}>2. Dual-Engine Verification</span>
-                      <span className="font-mono" style={{ fontSize: '0.7rem', color: 'var(--chai-olive)' }}>70 / 30 FUSION</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                        <span className="font-mono" style={{ fontSize: '0.78rem', color: '#F8F3E8', fontWeight: 600 }}>
+                          2. Dual Verification
+                        </span>
+                        <span
+                          className="font-mono"
+                          style={{
+                            fontSize: '0.62rem',
+                            color: 'var(--chai-olive)',
+                            backgroundColor: 'rgba(119, 112, 79, 0.22)',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                          }}
+                        >
+                          70 / 30 FUSION
+                        </span>
+                      </div>
+                      <span className="font-mono" style={{ fontSize: '0.68rem', color: 'rgba(248, 243, 232, 0.55)' }}>
+                        Sightengine (70%) + Chai Forensics (30%)
+                      </span>
                     </div>
+
+                    {/* Stage 3 */}
                     <div
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.65rem 0.85rem',
+                        padding: '0.7rem 0.85rem',
                         backgroundColor: 'rgba(169, 87, 61, 0.15)',
                         borderRadius: '4px',
                         border: '1px solid rgba(169, 87, 61, 0.35)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
                       }}
                     >
-                      <span className="font-mono" style={{ fontSize: '0.8rem', color: '#F8F3E8', fontWeight: 600 }}>
-                        3. Authenticity Verdict Output
-                      </span>
-                      <span className="font-mono" style={{ fontSize: '0.7rem', color: 'var(--chai-terracotta)', fontWeight: 600 }}>
-                        EVALUATED
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                        <span className="font-mono" style={{ fontSize: '0.78rem', color: '#F8F3E8', fontWeight: 600 }}>
+                          3. Authenticity Verdict
+                        </span>
+                        <span
+                          className="font-mono"
+                          style={{
+                            fontSize: '0.62rem',
+                            color: 'var(--chai-terracotta)',
+                            fontWeight: 600,
+                            backgroundColor: 'rgba(169, 87, 61, 0.25)',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                          }}
+                        >
+                          EVALUATED
+                        </span>
+                      </div>
+                      <span className="font-mono" style={{ fontSize: '0.68rem', color: '#DFD0B8', opacity: 0.8 }}>
+                        Real or AI-Generated classification
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
+
 
           {/* Feature 2: Image Insights */}
           <div
