@@ -4,6 +4,7 @@ import { Hero } from './sections/Hero';
 import { ProductIntro } from './sections/ProductIntro';
 import { Features } from './sections/Features';
 import { Assessment } from './sections/Assessment';
+import { PhoneShowcase } from './sections/PhoneShowcase';
 import { Download } from './sections/Download';
 import { Footer } from './sections/Footer';
 
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
         <Hero />
         <ProductIntro />
         <Features />
+        <PhoneShowcase />
         <Assessment />
         <Download />
       </main>
@@ -26,5 +28,6 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
 
 export default App;
