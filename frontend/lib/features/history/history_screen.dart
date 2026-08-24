@@ -170,15 +170,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       controller.setFavoritesOnly(false);
                     },
                   ),
-                  for (final verdict in Verdict.values)
-                    _FilterChip(
-                      label: verdict.label,
-                      selected: controller.verdictFilter == verdict,
-                      onTap: () {
-                        controller.setVerdictFilter(verdict);
-                        controller.setFavoritesOnly(false);
-                      },
-                    ),
+                  _FilterChip(
+                    label: Verdict.original.label,
+                    selected: controller.verdictFilter == Verdict.original,
+                    onTap: () {
+                      controller.setVerdictFilter(Verdict.original);
+                      controller.setFavoritesOnly(false);
+                    },
+                  ),
+                  _FilterChip(
+                    label: Verdict.aiGenerated.label,
+                    selected: controller.verdictFilter == Verdict.aiGenerated,
+                    onTap: () {
+                      controller.setVerdictFilter(Verdict.aiGenerated);
+                      controller.setFavoritesOnly(false);
+                    },
+                  ),
+
                   _FilterChip(
                     label: 'Favorites',
                     selected: controller.favoritesOnly,

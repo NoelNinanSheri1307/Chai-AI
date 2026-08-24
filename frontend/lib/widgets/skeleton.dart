@@ -66,32 +66,33 @@ class HistoryListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(
-        6,
-        (i) => Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: AppCard(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                const Skeleton(width: 56, height: 56, radius: AppRadius.md),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Skeleton(width: 140, height: 14),
-                      SizedBox(height: AppSpacing.sm),
-                      Skeleton(width: 80, height: 12),
-                    ],
-                  ),
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 4,
+      itemBuilder: (context, i) => Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: AppCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              const Skeleton(width: 56, height: 56, radius: AppRadius.md),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Skeleton(width: 140, height: 14),
+                    SizedBox(height: AppSpacing.sm),
+                    Skeleton(width: 80, height: 12),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
 }

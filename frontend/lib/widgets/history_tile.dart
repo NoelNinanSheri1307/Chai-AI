@@ -48,15 +48,16 @@ class HistoryTile extends StatelessWidget {
                   style: AppTypography.label(colors.textPrimary),
                 ),
                 const SizedBox(height: AppSpacing.xs + 2),
-                Row(
-                  children: [
-                    VerdictBadge(
-                      verdict: item.verdict,
-                      confidence: item.confidence,
-                    ),
-                  ],
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: VerdictBadge(
+                    verdict: item.verdict,
+                    confidence: item.confidence,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs + 2),
+
                 Text(
                   AppFormatters.relative(item.timestamp),
                   style: AppTypography.caption(colors.textTertiary),

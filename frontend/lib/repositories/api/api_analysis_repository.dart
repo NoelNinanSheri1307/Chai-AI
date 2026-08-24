@@ -54,16 +54,23 @@ class ApiAnalysisRepository implements AnalysisRepository {
   Future<Map<String, dynamic>> _sendMultipart(
     http.MultipartRequest request,
   ) async {
-    final streamed = await _client.send(request);
+    final streamed = await _client.send(request).timeout(
+      const Duration(seconds: 120),
+      onTimeout: () => throw http.ClientException(
+        'Request timed out. The server took longer than 120 seconds.',
+        request.url,
+      ),
+    );
+
+
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     }
-    throw http.ClientException(
-      _errorMessage(response) ?? 'Backend returned ${response.statusCode}.',
-      response.request?.url,
-    );
+    final msg = _errorMessage(response) ?? 'Backend returned ${response.statusCode}.';
+    throw http.ClientException(msg, response.request?.url);
   }
+
 
   String? _errorMessage(http.Response response) {
     try {

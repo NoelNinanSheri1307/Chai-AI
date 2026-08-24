@@ -39,6 +39,7 @@ class ProcessingScreen extends StatefulWidget {
 class _ProcessingScreenState extends State<ProcessingScreen> {
   int _completed = 0;
   bool _failed = false;
+  String? _errorDetails;
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     setState(() {
       _completed = 0;
       _failed = false;
+      _errorDetails = null;
     });
 
     final repo = context.read<AnalysisRepository>();
@@ -71,13 +73,19 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         AppRoutes.result,
         arguments: ResultArgs(result),
       );
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('====================================');
+      debugPrint('CHAI AI ANALYSIS FAILED: $e');
+      debugPrint('STACK TRACE: $st');
+      debugPrint('====================================');
       if (!mounted) return;
       setState(() {
         _failed = true;
+        _errorDetails = e.toString().replaceAll('ClientException: ', '');
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +158,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'The analysis engine could not process this image.',
+          _errorDetails ?? 'The analysis engine could not process this image.',
           textAlign: TextAlign.center,
           style: AppTypography.body(colors.textSecondary),
         ),
@@ -169,6 +177,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       ],
     );
   }
+
 }
 
 class _StageTile extends StatelessWidget {

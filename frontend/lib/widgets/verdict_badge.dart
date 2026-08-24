@@ -26,8 +26,8 @@ class VerdictBadge extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: large ? AppSpacing.lg : AppSpacing.md,
-        vertical: large ? AppSpacing.md : AppSpacing.sm + 2,
+        horizontal: large ? AppSpacing.lg : AppSpacing.sm + 4,
+        vertical: large ? AppSpacing.md : AppSpacing.xs + 3,
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
@@ -37,27 +37,32 @@ class VerdictBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(verdict.icon, size: large ? 22 : 16, color: accent),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            verdict.label,
-            style: large
-                ? AppTypography.title(accent)
-                : AppTypography.label(accent),
+          Icon(verdict.icon, size: large ? 22 : 15, color: accent),
+          const SizedBox(width: AppSpacing.xs + 2),
+          Flexible(
+            child: Text(
+              verdict.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: large
+                  ? AppTypography.title(accent)
+                  : AppTypography.label(accent).copyWith(fontSize: 12),
+            ),
           ),
           if (confidence > 0) ...[
-            const SizedBox(width: AppSpacing.sm),
-            Container(width: 1, height: 14, color: accent.withValues(alpha: 0.3)),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.xs + 2),
+            Container(width: 1, height: 12, color: accent.withValues(alpha: 0.3)),
+            const SizedBox(width: AppSpacing.xs + 2),
             Text(
               '${(confidence * 100).round()}%',
               style: large
                   ? AppTypography.title(accent)
-                  : AppTypography.label(accent),
+                  : AppTypography.label(accent).copyWith(fontSize: 12),
             ),
           ],
         ],
       ),
     );
+
   }
 }

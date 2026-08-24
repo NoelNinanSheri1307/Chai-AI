@@ -36,7 +36,12 @@ class _UploadScreenState extends State<UploadScreen> {
   Future<void> _pick(ImageSource source) async {
     if (_loading) return;
     try {
-      final picked = await _picker.pickImage(source: source);
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 90,
+      );
       if (picked == null) return;
       final bytes = await picked.readAsBytes();
       if (!mounted) return;

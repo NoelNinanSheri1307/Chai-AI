@@ -231,8 +231,9 @@ export const Assessment: React.FC = () => {
                 Weighted Assessment + Transparent Evidence Log
               </h4>
               <p style={{ fontSize: '0.85rem', color: '#DFD0B8', lineHeight: 1.55 }}>
-                The user receives the final classification (Real, AI Generated, or AI Edited) accompanied by the exact observation signals that contributed to the evaluation.
+                The user receives the final classification (Real or AI Generated) accompanied by the exact observation signals that contributed to the evaluation.
               </p>
+
             </div>
           </div>
         </div>

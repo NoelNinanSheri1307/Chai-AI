@@ -63,12 +63,11 @@ class AboutScreen extends StatelessWidget {
                   Text(
                     'Chai AI delivers image authenticity detection supported by '
                     'deep forensic image insights. It determines whether an image '
-                    'is Real, AI-Generated, or AI-Edited using multi-source verification '
+                    'is Real or AI-Generated using multi-source verification '
                     'and extracts supporting forensic signals across spatial frequency, '
                     'lighting, texture, noise, compression, and visual heatmaps.',
                     style: AppTypography.body(colors.textSecondary),
                   ),
-
                 ],
               ),
             ),
@@ -83,11 +82,8 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'The current build runs on a local mock repository so the '
-                    'entire product can be explored without a server. Analysis '
-                    'history is stored locally on your device. When the analysis '
-                    'backend is available, images will be sent to the endpoint '
-                    'configured in Settings.',
+                    'Analyses are processed securely through the Chai AI cloud '
+                    'pipeline. Analysis history is stored locally on your device.',
                     style: AppTypography.body(colors.textSecondary),
                   ),
                 ],

@@ -94,8 +94,11 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.sm,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,10 +115,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         ],
                       ),
                       VerdictBadge(
-                          verdict: result.verdict,
-                          confidence: result.confidence),
+                        verdict: result.verdict,
+                        confidence: result.confidence,
+                      ),
                     ],
                   ),
+
                   const SizedBox(height: AppSpacing.md),
                   Divider(color: colors.border),
                   const SizedBox(height: AppSpacing.sm),
