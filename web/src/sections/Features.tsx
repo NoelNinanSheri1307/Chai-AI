@@ -74,37 +74,45 @@ export const Features: React.FC = () => {
                 </p>
 
                 {/* Only 2 Verdict Classes: Real vs AI Generated */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 130px), 1fr))',
+                    gap: '0.65rem',
+                    marginBottom: '1.25rem',
+                    width: '100%',
+                  }}
+                >
                   <div
                     style={{
-                      flex: '1 1 min(100%, 140px)',
-                      padding: '0.75rem 1rem',
+                      padding: '0.75rem 0.85rem',
                       borderRadius: '4px',
                       backgroundColor: 'rgba(119, 112, 79, 0.14)',
                       border: '1px solid rgba(119, 112, 79, 0.3)',
+                      boxSizing: 'border-box',
                     }}
                   >
-                    <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-olive)', display: 'block', fontWeight: 600 }}>
+                    <span className="font-mono" style={{ fontSize: '0.65rem', color: 'var(--chai-olive)', display: 'block', fontWeight: 600 }}>
                       CLASS A
                     </span>
-                    <span style={{ fontWeight: 600, color: 'var(--chai-brown)', fontSize: '0.95rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--chai-brown)', fontSize: '0.9rem' }}>
                       Original / Real
                     </span>
                   </div>
 
                   <div
                     style={{
-                      flex: '1 1 min(100%, 140px)',
-                      padding: '0.75rem 1rem',
+                      padding: '0.75rem 0.85rem',
                       borderRadius: '4px',
                       backgroundColor: 'rgba(169, 87, 61, 0.12)',
                       border: '1px solid rgba(169, 87, 61, 0.3)',
+                      boxSizing: 'border-box',
                     }}
                   >
-                    <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600 }}>
+                    <span className="font-mono" style={{ fontSize: '0.65rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600 }}>
                       CLASS B
                     </span>
-                    <span style={{ fontWeight: 600, color: 'var(--chai-terracotta)', fontSize: '0.95rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--chai-terracotta)', fontSize: '0.9rem' }}>
                       AI Generated
                     </span>
                   </div>
@@ -113,14 +121,16 @@ export const Features: React.FC = () => {
                 <div
                   className="font-mono"
                   style={{
-                    fontSize: 'clamp(0.72rem, 2vw, 0.78rem)',
+                    fontSize: 'clamp(0.68rem, 1.8vw, 0.75rem)',
                     color: 'var(--chai-muted-brown)',
                     backgroundColor: 'rgba(43, 33, 27, 0.04)',
-                    padding: '0.75rem 1rem',
+                    padding: '0.65rem 0.85rem',
                     borderRadius: '4px',
                     borderLeft: '3px solid var(--chai-terracotta)',
-                    lineHeight: 1.55,
+                    lineHeight: 1.5,
                     wordBreak: 'break-word',
+                    width: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   ENGINE NOTE: Sightengine provides external verification anchor; Chai forensics validates signal concordance.
@@ -269,21 +279,22 @@ export const Features: React.FC = () => {
             </div>
           </div>
 
-
           {/* Feature 2: Image Insights */}
           <div
             className="specimen-card"
             style={{
               borderRadius: '8px',
-              padding: 'clamp(1.5rem, 3vw, 2.75rem)',
+              padding: 'clamp(1rem, 3.5vw, 2.5rem)',
               border: '1px solid var(--chai-border)',
+              width: '100%',
+              boxSizing: 'border-box',
             }}
           >
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(12, 1fr)',
-                gap: '2.5rem',
+                gap: '2rem',
                 alignItems: 'center',
               }}
             >
@@ -292,33 +303,36 @@ export const Features: React.FC = () => {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                    gap: '0.75rem',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))',
+                    gap: '0.6rem',
+                    width: '100%',
                   }}
                 >
                   {[
-                    { label: 'SPATIAL FREQUENCY', val: 'FFT Radial Spectrum' },
-                    { label: 'ERROR-LEVEL ANALYSIS', val: 'Quantization Variance' },
-                    { label: 'NOISE RESIDUALS', val: 'Sensor Noise Pattern' },
-                    { label: 'LIGHTING COHERENCE', val: 'Normal Vector Map' },
-                    { label: 'TEXTURE / GRADIENT', val: 'Laplacian Variance' },
-                    { label: 'COMPRESSION', val: 'JPEG Grid Structures' },
-                    { label: 'METADATA & EXIF', val: 'Header Provenance' },
-                    { label: 'EDGE CONSISTENCY', val: 'Gradient Discontinuity' },
+                    { label: 'SPATIAL FREQUENCY', val: 'FFT Radial' },
+                    { label: 'ERROR-LEVEL ANALYSIS', val: 'Quantization' },
+                    { label: 'NOISE RESIDUALS', val: 'Sensor Noise' },
+                    { label: 'LIGHTING COHERENCE', val: 'Normal Vector' },
+                    { label: 'TEXTURE / GRADIENT', val: 'Laplacian' },
+                    { label: 'COMPRESSION', val: 'JPEG Grids' },
+                    { label: 'METADATA & EXIF', val: 'Provenance' },
+                    { label: 'EDGE CONSISTENCY', val: 'Gradients' },
                   ].map((item, idx) => (
                     <div
                       key={idx}
                       style={{
-                        padding: '0.85rem',
+                        padding: '0.65rem',
                         backgroundColor: 'var(--chai-bg)',
                         border: '1px solid var(--chai-border)',
                         borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        minWidth: 0,
                       }}
                     >
-                      <span className="font-mono" style={{ fontSize: '0.65rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600 }}>
+                      <span className="font-mono" style={{ fontSize: '0.6rem', color: 'var(--chai-terracotta)', display: 'block', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.label}
                       </span>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 500, color: 'var(--chai-brown)' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--chai-brown)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.val}
                       </span>
                     </div>
@@ -330,7 +344,7 @@ export const Features: React.FC = () => {
                 <div
                   className="font-mono"
                   style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     color: 'var(--chai-terracotta)',
                     fontWeight: 600,
                     letterSpacing: '0.08em',
@@ -342,27 +356,29 @@ export const Features: React.FC = () => {
                 <h3
                   className="font-display"
                   style={{
-                    fontSize: 'clamp(1.85rem, 2.8vw, 2.5rem)',
+                    fontSize: 'clamp(1.75rem, 2.8vw, 2.5rem)',
                     color: 'var(--chai-brown)',
                     lineHeight: 1.2,
-                    marginBottom: '1rem',
+                    marginBottom: '0.85rem',
                   }}
                 >
                   Image Insights
                 </h3>
-                <p style={{ fontSize: '1.05rem', color: 'var(--chai-coffee)', lineHeight: 1.65, marginBottom: '1.25rem' }}>
+                <p style={{ fontSize: '1rem', color: 'var(--chai-coffee)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
                   Everything the image reveals beyond its classification. Inspect structural anomalies, spectral signatures, and camera artifacts in granular detail.
                 </p>
 
                 <div
                   style={{
-                    padding: '0.85rem 1rem',
+                    padding: '0.75rem 0.95rem',
                     backgroundColor: 'rgba(119, 112, 79, 0.1)',
                     border: '1px solid rgba(119, 112, 79, 0.25)',
                     borderRadius: '4px',
+                    boxSizing: 'border-box',
+                    width: '100%',
                   }}
                 >
-                  <p style={{ fontSize: '0.82rem', color: 'var(--chai-brown)', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--chai-brown)', lineHeight: 1.5 }}>
                     <strong>Scientific Disclaimer:</strong> These signals provide supporting context. They are physical and statistical observations, not guaranteed standalone proof of AI generation.
                   </p>
                 </div>
@@ -371,6 +387,7 @@ export const Features: React.FC = () => {
           </div>
         </div>
       </div>
+
 
       <style>{`
         @media (min-width: 992px) {

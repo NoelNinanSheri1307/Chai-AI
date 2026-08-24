@@ -63,9 +63,10 @@ export const Hero: React.FC = () => {
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '0.85rem',
-                marginBottom: '2.25rem',
+                alignItems: 'stretch',
+                gap: '0.75rem',
+                marginBottom: '2rem',
+                width: '100%',
               }}
             >
               <a
@@ -75,19 +76,19 @@ export const Hero: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.65rem',
+                  gap: '0.5rem',
                   backgroundColor: 'var(--chai-terracotta)',
                   color: '#F8F3E8',
-                  padding: '0.85rem 1.65rem',
+                  padding: '0.85rem 1.4rem',
                   borderRadius: '4px',
                   textDecoration: 'none',
-                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+                  fontSize: 'clamp(0.85rem, 2.8vw, 0.98rem)',
                   fontWeight: 500,
                   letterSpacing: '0.02em',
                   boxShadow: '0 4px 14px rgba(169, 87, 61, 0.28)',
                   transition: 'all 0.2s ease',
-                  flexGrow: 1,
-                  maxWidth: '360px',
+                  flex: '1 1 min(100%, 220px)',
+                  boxSizing: 'border-box',
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--chai-terracotta-hover)';
@@ -98,13 +99,13 @@ export const Hero: React.FC = () => {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 <span>Download Chai AI</span>
-                <span className="font-mono" style={{ fontSize: '0.72rem', opacity: 0.85, paddingLeft: '0.2rem' }}>
+                <span className="font-mono" style={{ fontSize: '0.7rem', opacity: 0.85, paddingLeft: '0.2rem' }}>
                   [APK]
                 </span>
               </a>
@@ -115,18 +116,18 @@ export const Hero: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.5rem',
+                  gap: '0.45rem',
                   backgroundColor: 'transparent',
                   color: 'var(--chai-brown)',
                   border: '1px solid var(--chai-border)',
-                  padding: '0.85rem 1.4rem',
+                  padding: '0.85rem 1.25rem',
                   borderRadius: '4px',
                   textDecoration: 'none',
-                  fontSize: 'clamp(0.88rem, 2.2vw, 0.95rem)',
+                  fontSize: 'clamp(0.82rem, 2.5vw, 0.92rem)',
                   letterSpacing: '0.02em',
                   transition: 'all 0.2s',
-                  flexGrow: 1,
-                  maxWidth: '360px',
+                  flex: '1 1 min(100%, 180px)',
+                  boxSizing: 'border-box',
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.borderColor = 'var(--chai-brown)';
@@ -138,7 +139,7 @@ export const Hero: React.FC = () => {
                 }}
               >
                 <span>See how it works</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
@@ -148,33 +149,33 @@ export const Hero: React.FC = () => {
             {/* Specimen Telemetry Strip */}
             <div
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '1rem 1.5rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gap: '0.75rem',
                 borderTop: '1px solid var(--chai-border-subtle)',
-                paddingTop: '1.25rem',
+                paddingTop: '1.15rem',
+                width: '100%',
               }}
             >
               <div>
-                <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-muted-brown)', display: 'block', textTransform: 'uppercase' }}>
+                <span className="font-mono" style={{ fontSize: '0.65rem', color: 'var(--chai-muted-brown)', display: 'block', textTransform: 'uppercase' }}>
                   Architecture
                 </span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--chai-coffee)' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--chai-coffee)' }}>
                   Sightengine + Chai Forensics
                 </span>
               </div>
-              <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--chai-border)' }} />
               <div>
-                <span className="font-mono" style={{ fontSize: '0.68rem', color: 'var(--chai-muted-brown)', display: 'block', textTransform: 'uppercase' }}>
+                <span className="font-mono" style={{ fontSize: '0.65rem', color: 'var(--chai-muted-brown)', display: 'block', textTransform: 'uppercase' }}>
                   Principle
                 </span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--chai-coffee)' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--chai-coffee)' }}>
                   Supporting Evidence, Not Absolute Proof
                 </span>
               </div>
             </div>
           </div>
+
 
           {/* Right Clean Specimen Visual */}
           <div

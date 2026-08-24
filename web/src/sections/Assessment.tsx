@@ -38,31 +38,35 @@ export const Assessment: React.FC = () => {
           className="specimen-card"
           style={{
             borderRadius: '8px',
-            padding: 'clamp(1.5rem, 4vw, 3rem)',
+            padding: 'clamp(1rem, 3.5vw, 2.5rem)',
             border: '1px solid var(--chai-border)',
             position: 'relative',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           {/* Top Step: Image Input */}
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.6rem',
+                gap: '0.5rem',
                 backgroundColor: 'var(--chai-brown)',
                 color: '#F8F3E8',
-                padding: '0.65rem 1.5rem',
+                padding: '0.6rem 1.15rem',
                 borderRadius: '4px',
                 boxShadow: '0 2px 8px rgba(43, 33, 27, 0.2)',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <span className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+              <span className="font-mono" style={{ fontSize: 'clamp(0.72rem, 2vw, 0.82rem)', fontWeight: 600 }}>
                 INPUT SPECIMEN (PNG / JPEG / WEBP)
               </span>
             </div>
@@ -72,9 +76,10 @@ export const Assessment: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+              gap: '1.5rem',
               position: 'relative',
+              width: '100%',
             }}
           >
             {/* Stream 1: Sightengine External */}
@@ -83,8 +88,9 @@ export const Assessment: React.FC = () => {
                 backgroundColor: 'var(--chai-ivory)',
                 border: '1px solid rgba(169, 87, 61, 0.3)',
                 borderRadius: '6px',
-                padding: '1.75rem',
+                padding: 'clamp(1rem, 3.5vw, 1.75rem)',
                 position: 'relative',
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -92,46 +98,48 @@ export const Assessment: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '1rem',
+                  gap: '0.5rem',
+                  marginBottom: '0.85rem',
                   borderBottom: '1px solid var(--chai-border)',
-                  paddingBottom: '0.75rem',
+                  paddingBottom: '0.65rem',
                 }}
               >
-                <span className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--chai-terracotta)', fontWeight: 600 }}>
-                  STREAM A // PRIMARY VERIFICATION
+                <span className="font-mono" style={{ fontSize: '0.72rem', color: 'var(--chai-terracotta)', fontWeight: 600 }}>
+                  STREAM A // EXTERNAL
                 </span>
                 <span
                   className="font-mono"
                   style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.7rem',
                     backgroundColor: 'rgba(169, 87, 61, 0.15)',
                     color: 'var(--chai-terracotta)',
-                    padding: '2px 8px',
+                    padding: '2px 7px',
                     borderRadius: '3px',
                     fontWeight: 600,
+                    flexShrink: 0,
                   }}
                 >
                   70% Weight
                 </span>
               </div>
 
-              <h3 className="font-display" style={{ fontSize: '1.35rem', color: 'var(--chai-brown)', marginBottom: '0.75rem' }}>
+              <h3 className="font-display" style={{ fontSize: '1.25rem', color: 'var(--chai-brown)', marginBottom: '0.65rem' }}>
                 Sightengine External Detection
               </h3>
 
-              <p style={{ fontSize: '0.9rem', color: 'var(--chai-coffee)', lineHeight: 1.6, marginBottom: '1rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--chai-coffee)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
                 Leverages industry-leading generative AI artifact detection models. Evaluates cross-model synthetic signatures across diffusion and GAN architectures.
               </p>
 
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ color: 'var(--chai-terracotta)' }}>✓</span> Synthetic Probability Scoring
                 </li>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ color: 'var(--chai-terracotta)' }}>✓</span> Model Generator Classification
                 </li>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ color: 'var(--chai-terracotta)' }}>✓</span> Robust Zero-Day AI Inpainting Detection
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ color: 'var(--chai-terracotta)' }}>✓</span> Robust Inpainting Detection
                 </li>
               </ul>
             </div>
@@ -142,8 +150,9 @@ export const Assessment: React.FC = () => {
                 backgroundColor: 'var(--chai-ivory)',
                 border: '1px solid rgba(119, 112, 79, 0.3)',
                 borderRadius: '6px',
-                padding: '1.75rem',
+                padding: 'clamp(1rem, 3.5vw, 1.75rem)',
                 position: 'relative',
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -151,46 +160,48 @@ export const Assessment: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '1rem',
+                  gap: '0.5rem',
+                  marginBottom: '0.85rem',
                   borderBottom: '1px solid var(--chai-border)',
-                  paddingBottom: '0.75rem',
+                  paddingBottom: '0.65rem',
                 }}
               >
-                <span className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--chai-olive)', fontWeight: 600 }}>
-                  STREAM B // SUPPORTING FORENSICS
+                <span className="font-mono" style={{ fontSize: '0.72rem', color: 'var(--chai-olive)', fontWeight: 600 }}>
+                  STREAM B // FORENSICS
                 </span>
                 <span
                   className="font-mono"
                   style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.7rem',
                     backgroundColor: 'rgba(119, 112, 79, 0.15)',
                     color: 'var(--chai-olive)',
-                    padding: '2px 8px',
+                    padding: '2px 7px',
                     borderRadius: '3px',
                     fontWeight: 600,
+                    flexShrink: 0,
                   }}
                 >
                   30% Weight
                 </span>
               </div>
 
-              <h3 className="font-display" style={{ fontSize: '1.35rem', color: 'var(--chai-brown)', marginBottom: '0.75rem' }}>
+              <h3 className="font-display" style={{ fontSize: '1.25rem', color: 'var(--chai-brown)', marginBottom: '0.65rem' }}>
                 Chai Internal Forensics
               </h3>
 
-              <p style={{ fontSize: '0.9rem', color: 'var(--chai-coffee)', lineHeight: 1.6, marginBottom: '1rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--chai-coffee)', lineHeight: 1.55, marginBottom: '0.85rem' }}>
                 Decomposes the image across 7 distinct forensic categories, searching for physics discrepancies, compression mismatches, and EXIF irregularities.
               </p>
 
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ color: 'var(--chai-olive)' }}>✓</span> Error-Level Analysis (ELA)
                 </li>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span style={{ color: 'var(--chai-olive)' }}>✓</span> Spatial Frequency & Noise Residuals
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ color: 'var(--chai-olive)' }}>✓</span> Frequency & Sensor Noise
                 </li>
-                <li style={{ fontSize: '0.82rem', color: 'var(--chai-olive)' }}>
-                  <span style={{ color: 'var(--chai-olive)' }}>✓</span> Fallback Engine if External API is Offline
+                <li style={{ fontSize: '0.8rem', color: 'var(--chai-muted-brown)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ color: 'var(--chai-olive)' }}>✓</span> Fallback Engine when Offline
                 </li>
               </ul>
             </div>
@@ -199,10 +210,11 @@ export const Assessment: React.FC = () => {
           {/* Convergence Node */}
           <div
             style={{
-              marginTop: '2.5rem',
-              paddingTop: '2rem',
+              marginTop: '2rem',
+              paddingTop: '1.75rem',
               borderTop: '1px dashed var(--chai-border)',
               textAlign: 'center',
+              width: '100%',
             }}
           >
             <div
@@ -211,32 +223,34 @@ export const Assessment: React.FC = () => {
                 backgroundColor: 'var(--chai-ink)',
                 color: '#F8F3E8',
                 borderRadius: '6px',
-                padding: '1.25rem 2rem',
+                padding: 'clamp(1rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem)',
                 maxWidth: '620px',
+                width: '100%',
                 textAlign: 'left',
+                boxSizing: 'border-box',
               }}
             >
               <div
                 className="font-mono"
                 style={{
-                  fontSize: '0.72rem',
+                  fontSize: '0.68rem',
                   color: 'var(--chai-clay)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.06em',
                   marginBottom: '0.4rem',
                 }}
               >
-                CONVERGENCE OUTPUT // FUSED DECISION MATRIX
+                CONVERGENCE OUTPUT // FUSED MATRIX
               </div>
-              <h4 className="font-display" style={{ fontSize: '1.25rem', color: '#F8F3E8', marginBottom: '0.5rem' }}>
+              <h4 className="font-display" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.25rem)', color: '#F8F3E8', marginBottom: '0.4rem' }}>
                 Weighted Assessment + Transparent Evidence Log
               </h4>
-              <p style={{ fontSize: '0.85rem', color: '#DFD0B8', lineHeight: 1.55 }}>
+              <p style={{ fontSize: '0.82rem', color: '#DFD0B8', lineHeight: 1.5 }}>
                 The user receives the final classification (Real or AI Generated) accompanied by the exact observation signals that contributed to the evaluation.
               </p>
-
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
